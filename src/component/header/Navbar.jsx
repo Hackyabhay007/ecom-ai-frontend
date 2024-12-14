@@ -91,9 +91,9 @@ function Navbar() {
               </li>
               <li
                 className={`cursor-pointer hover:text-blue-500 ${
-                  router.pathname === '/contact' ? 'text-blue-500 font-semibold' : ''
+                  router.pathname === '/checkout' ? 'text-blue-500 font-semibold' : ''
                 }`}
-                onClick={() => navigateTo('/contact')}
+                onClick={() => navigateTo('/checkout')}
               >
                 Contact Us
               </li>
@@ -147,11 +147,11 @@ function Navbar() {
         </div>
         <div
           className={`cursor-pointer hover:text-blue-500 ${
-            router.pathname === '/contact' ? 'text-blue-950 font-semibold' : ''
+            router.pathname === '/checkout' ? 'text-blue-950 font-semibold' : ''
           }`}
-          onClick={() => navigateTo('/contact')}
+          onClick={() => navigateTo('/checkout')}
         >
-          Contact Us
+          Contact Us (checkout testing)
         </div>
       </div>
 
