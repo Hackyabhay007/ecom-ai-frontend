@@ -60,9 +60,9 @@ function CheckoutDetails({ onContinue, productDetails }) {
           />
           <div>
             <h2 className="text-lg font-semibold">{productDetails.productName}</h2>
-            <p className="text-gray-700">Qty: {productDetails.quantity}</p>
-            <p className="text-gray-700">Price: {productDetails.price}</p>
-            <p className="bg-blue-600 text-sm font-t rounded-full w-fit text-white px-2">
+            <p className="text-sub-color">Qty: {productDetails.quantity}</p>
+            <p className="text-sub-color">Price: {productDetails.price}</p>
+            <p className="bg-theme-blue text-sm font-t rounded-full w-fit text-white px-2">
               Discount: - {productDetails.discountPercentage}%
             </p>
             <p className="text-black font-bold">Total: {productDetails.total}</p>
@@ -73,7 +73,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
       {/* Right Section: Form */}
       <div className="w-full lg:w-1/2 flex-shrink-0">
         <div className="p-6 flex flex-col h-full">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">Personal Details</h2>
+          <h2 className="text-4xl text-center font-bold mb-5 text-black">Personal Details</h2>
           <form className="space-y-4 flex-grow flex flex-col">
             <div className="border pl-2 pb-1 border-black rounded-md">
               <label className="block text-sm pl-1 my-1">Country/Region</label>
@@ -95,7 +95,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   className={`border rounded-md p-2 w-full ${
-                    formErrors.firstName ? "border-red-400" : "border-black"
+                    formErrors.firstName ? "border-error-color" : "border-black"
                   }`}
                 />
                 {formErrors.firstName && (
@@ -110,7 +110,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   className={`border rounded-md p-2 w-full ${
-                    formErrors.lastName ? "border-red-400" : "border-black"
+                    formErrors.lastName ? "border-error-color" : "border-black"
                   }`}
                 />
                 {formErrors.lastName && (
@@ -126,7 +126,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                 value={formData.address}
                 onChange={handleInputChange}
                 className={`border rounded-md p-2 w-full ${
-                  formErrors.address ? "border-red-400" : "border-black"
+                  formErrors.address ? "border-error-color" : "border-black"
                 }`}
               />
               {formErrors.address && (
@@ -142,7 +142,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                   value={formData.landmark}
                   onChange={handleInputChange}
                   className={`border rounded-md p-2 w-full ${
-                    formErrors.landmark ? "border-red-400" : "border-black"
+                    formErrors.landmark ? "border-error-color" : "border-black"
                   }`}
                 />
                 {formErrors.landmark && (
@@ -157,7 +157,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                   value={formData.state}
                   onChange={handleInputChange}
                   className={`border rounded-md p-2 w-full ${
-                    formErrors.state ? "border-red-400" : "border-black"
+                    formErrors.state ? "border-error-color" : "border-black"
                   }`}
                 />
                 {formErrors.state && (
@@ -172,7 +172,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                   value={formData.pincode}
                   onChange={handleInputChange}
                   className={`border rounded-md p-2 w-full ${
-                    formErrors.pincode ? "border-red-400" : "border-black"
+                    formErrors.pincode ? "border-error-color" : "border-black"
                   }`}
                 />
                 {formErrors.pincode && (
@@ -188,7 +188,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
                 className={`border rounded-md p-2 w-full ${
-                  formErrors.phoneNumber ? "border-red-400" : "border-black"
+                  formErrors.phoneNumber ? "border-error-color" : "border-black"
                 }`}
               />
               {formErrors.phoneNumber && (
@@ -198,7 +198,7 @@ function CheckoutDetails({ onContinue, productDetails }) {
             <button
               type="button"
               onClick={handleSubmit}
-              className="bg-blue-950 text-white py-2 px-4 rounded-md mt-auto w-full"
+              className="bg-theme-blue text-white py-2 px-4 rounded-md mt-auto w-full"
             >
               Continue
             </button>

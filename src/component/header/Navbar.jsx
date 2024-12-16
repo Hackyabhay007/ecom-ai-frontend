@@ -115,7 +115,7 @@ function Navbar() {
       <div className="flex items-center space-x-14   ">
         <div
           className={`cursor-pointer hover:text-blue-500 ${
-            router.pathname === '/' ? 'text-blue-950 font-semibold' : ''
+            router.pathname === '/' ? 'text-theme-blue font-semibold' : ''
           }`}
           onClick={() => navigateTo('/')}
         >
@@ -123,7 +123,7 @@ function Navbar() {
         </div>
         <div
           className={`cursor-pointer hover:text-blue-500 ${
-            router.pathname === '/shop' ? 'text-blue-950 font-semibold' : ''
+            router.pathname === '/shop' ? 'text-theme-blue font-semibold' : ''
           }`}
           onClick={() => navigateTo('/shop')}
         >
@@ -131,7 +131,7 @@ function Navbar() {
         </div>
         <div
           className={`cursor-pointer hover:text-blue-500 ${
-            router.pathname === '/category' ? 'text-blue-950 font-semibold' : ''
+            router.pathname === '/category' ? 'text-theme-blue font-semibold' : ''
           }`}
           onClick={() => navigateTo('/category')}
         >
@@ -139,7 +139,7 @@ function Navbar() {
         </div>
         <div
           className={`cursor-pointer hover:text-blue-500 ${
-            router.pathname === '/about' ? 'text-blue-950 font-semibold' : ''
+            router.pathname === '/about' ? 'text-theme-blue font-semibold' : ''
           }`}
           onClick={() => navigateTo('/about')}
         >
@@ -147,7 +147,7 @@ function Navbar() {
         </div>
         <div
           className={`cursor-pointer hover:text-blue-500 ${
-            router.pathname === '/checkout' ? 'text-blue-950 font-semibold' : ''
+            router.pathname === '/checkout' ? 'text-theme-blue font-semibold' : ''
           }`}
           onClick={() => navigateTo('/checkout')}
         >
@@ -156,7 +156,7 @@ function Navbar() {
       </div>
 
       {/* Right Icons */}
-      <div className="flex space-x-4 items-center text-sm font-thin text-blue-900">
+      <div className="flex space-x-4 items-center text-sm font-thin text-theme-blue">
         <i className="ri-search-line text-2xl cursor-pointer hover:text-black"></i>
         <i className="ri-user-line text-2xl cursor-pointer hover:text-black"></i>
         <i className="ri-heart-line text-2xl cursor-pointer hover:text-black"></i>

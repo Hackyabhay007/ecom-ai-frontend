@@ -26,7 +26,7 @@ function PaymentCheckout({ onPaymentComplete }) {
       <div className="border border-black rounded-md">
         {/* Header Section */}
         <div className="flex justify-between items-center border-b border-black px-4 py-3">
-          <div className="flex items-center text-blue-950">
+          <div className="flex items-center text-theme-blue">
             <i className="ri-wallet-3-line text-xl mr-2"></i>
             <h2 className="text-lg font-semibold">Payment Method</h2>
           </div>
@@ -35,7 +35,7 @@ function PaymentCheckout({ onPaymentComplete }) {
 
         <div className="flex">
           {/* Left Section - Payment Options */}
-          <div className="w-1/2 md:w-1/4 border-r border-black  overflow-y-auto max-h-96">
+          <div className="w-1/2 md:w-1/4 border-r border-black scrollbar-custom  overflow-y-auto max-h-96">
             {[
               "UPI",
               "Credit/Debit Card",
@@ -53,7 +53,7 @@ function PaymentCheckout({ onPaymentComplete }) {
                 }`}
                 onClick={() => handlePaymentSelection(paymentType)}
               >
-                <span className="text-gray-800 font-medium">{paymentType}</span>
+                <span className="text-black font-medium">{paymentType}</span>
               </div>
             ))}
           </div>
@@ -88,7 +88,7 @@ function PaymentCheckout({ onPaymentComplete }) {
                           </span>
                         </div>
                         <button
-                          className="bg-blue-950 text-white py-2 px-4 rounded-md w-full mt-4"
+                          className="bg-theme-blue text-white py-2 px-4 rounded-md w-full mt-4"
                         >
                           Pay ₹ 500
                         </button>
@@ -122,7 +122,7 @@ function PaymentCheckout({ onPaymentComplete }) {
                     />
                     <div className="border-b border-dashed mb-4"></div>
                     <button
-                      className="bg-blue-950 text-white py-2 px-4 rounded-md w-full"
+                      className="bg-theme-blue text-white py-2 px-4 rounded-md w-full"
                     >
                       Pay ₹ 500
                     </button>
@@ -151,7 +151,7 @@ function PaymentCheckout({ onPaymentComplete }) {
                     </select>
                     <div className="border-b border-dashed mb-4"></div>
                     <button
-                      className="bg-blue-950 text-white py-2 px-4 rounded-md w-full"
+                      className="bg-theme-blue text-white py-2 px-4 rounded-md w-full"
                     >
                       Pay ₹ 500
                     </button>

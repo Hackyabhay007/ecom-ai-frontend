@@ -9,7 +9,7 @@ function Footer() {
         {/* Column 1: Shop */}
         <div className="flex flex-col gap-2 w-full md:w-1/3">
           <h3 className="text-xl font-bold mb-2">Shop</h3>
-          <ul className="text-gray-700 space-y-2">
+          <ul className="text-sub-color space-y-2">
             <li><Link href="/men">Men</Link></li>
             <li><Link href="/women">Women</Link></li>
             <li><Link href="/kids">Kids</Link></li>
@@ -22,7 +22,7 @@ function Footer() {
         {/* Column 2: Policy */}
         <div className="flex flex-col gap-2 w-full md:w-1/3">
           <h3 className="text-xl font-bold mb-2">Policy</h3>
-          <ul className="text-gray-700 space-y-2">
+          <ul className="text-sub-color space-y-2">
             <li><Link href="/return">Return Your Order</Link></li>
             <li><Link href="/shipping">Shipping Policy</Link></li>
             <li><Link href="/refund">Return, Refund, and Cancellation</Link></li>
@@ -39,28 +39,28 @@ function Footer() {
           <div className="flex space-x-4 text-xl">
             <Link
               href="#"
-              className="hover:text-gray-400 transition rounded-lg border border-black p-2 px-3 bg-none"
+              className="hover:text-sub-color transition rounded-lg border border-black p-2 px-3 bg-none"
               aria-label="Facebook"
             >
               <i className="ri-facebook-fill"></i>
             </Link>
             <Link
               href="#"
-              className="hover:text-gray-400 transition rounded-lg border border-black p-2 px-3 bg-none"
+              className="hover:text-sub-color transition rounded-lg border border-black p-2 px-3 bg-none"
               aria-label="Twitter"
             >
               <i className="ri-twitter-x-line"></i>
             </Link>
             <Link
               href="#"
-              className="hover:text-gray-400 transition rounded-lg border border-black p-2 px-3 bg-none"
+              className="hover:text-sub-color transition rounded-lg border border-black p-2 px-3 bg-none"
               aria-label="Instagram"
             >
               <i className="ri-instagram-line"></i>
             </Link>
             <Link
               href="#"
-              className="hover:text-gray-400 transition rounded-lg border border-black p-2 px-3 bg-none"
+              className="hover:text-sub-color transition rounded-lg border border-black p-2 px-3 bg-none"
               aria-label="WhatsApp"
             >
               <i className="ri-whatsapp-line"></i>

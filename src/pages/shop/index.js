@@ -1,13 +1,13 @@
 import Navbar from "@/component/header/Navbar";
+import Footer from "@/component/footer/Footer";
 import Shop from "./Shop";
-import Footer from "@/component/bestSeller/footer/Footer";
 
 export default function shopHome() {
   return (
     <>
       <Navbar />
       <Shop/>
-      <Footer/>
+       <Footer/>
     </>
   );
 }

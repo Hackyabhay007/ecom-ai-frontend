@@ -9,17 +9,17 @@ function YourOrder({ order, onEdit, onPayment }) {
         {/* Header Section */}
         <div className="flex justify-between p-4 border-b border-black items-center mb-4">
           <div className="flex items-center ">
-            <i className="ri-truck-line text-blue-950 text-2xl mr-2"></i>
-            <h2 className="text-xl font-bold text-blue-950">Your Order</h2>
+            <i className="ri-truck-line text-theme-blue text-2xl mr-2"></i>
+            <h2 className="text-xl font-bold text-theme-blue">Your Order</h2>
           </div>
-          <button onClick={onEdit} className="text-blue-950 font-bold underline">
+          <button onClick={onEdit} className="text-theme-blue font-bold underline">
             Edit
           </button>
         </div>
 
         {/* Table Section */}
         <div className="px-2 md:px-10">
-        <table className=" w-full text-left text-blue-950 ">
+        <table className=" w-full text-left text-theme-blue ">
           <thead>
             <tr className="font-semibold ">
               <th>Your Product</th>
@@ -65,13 +65,13 @@ function YourOrder({ order, onEdit, onPayment }) {
             <tr className="">
               <td></td>
               <td></td>
-              <td className="font-semibold text-blue-950 pt-1">Subtotal</td>
+              <td className="font-semibold text-theme-blue pt-1">Subtotal</td>
               <td className="text-right font-bold text-black">{order.subtotal}</td>
             </tr>
             <tr className="border-b-2 border-dashed border-gray-600 ">
               <td></td>
               <td></td>
-              <td className="font-semibold text-blue-950 py-2">Shipping</td>
+              <td className="font-semibold text-theme-blue py-2">Shipping</td>
               <td className="text-right font-bold text-black">
                 {order.shippingCharge === 0 ? "Free" : `₹${order.shippingCharge}`}
               </td>
@@ -79,9 +79,9 @@ function YourOrder({ order, onEdit, onPayment }) {
 
             {/* Discount Coupon and Total */}
             <tr>
-              <td className="font-semibold text-blue-950 py-2">Discount Coupon?</td>
+              <td className="font-semibold text-theme-blue py-2">Discount Coupon?</td>
               <td></td>
-              <td className="font-semibold text-blue-950 py-2">Total</td>
+              <td className="font-semibold text-theme-blue py-2">Total</td>
               <td className="text-right font-bold text-black">{order.total}</td>
             </tr>
           </tbody>
@@ -91,7 +91,7 @@ function YourOrder({ order, onEdit, onPayment }) {
 
       {/* The Majestic Peacock Loyalty & Points Card */}
       <div className="bg-blue-100 p-6 rounded-md mt-6">
-        <h3 className="text-blue-950 text-lg font-semibold border-b-2 pb-1 mb-2 w-fit border-blue-950">
+        <h3 className="text-theme-blue text-lg font-semibold border-b-2 pb-1 mb-2 w-fit border-theme-blue">
           The Majestic Peacock Loyalty & Points
         </h3>
         <ul className=" list-decimal pl-5 space-y-2">
@@ -114,7 +114,7 @@ function YourOrder({ order, onEdit, onPayment }) {
       <div className="mt-6 flex justify-end">
         <button
           onClick={onPayment}
-          className="bg-blue-950 text-white py-2 px-4 rounded-md w-full"
+          className="bg-theme-blue text-white py-2 px-4 rounded-md w-full"
         >
           Continue
         </button>

@@ -59,7 +59,7 @@ const Review = () => {
         {reviewsData.map((review) => (
           <div
             key={review.id}
-            className="w-1/3 px-5 border-2 border-blue-950 rounded-lg"
+            className="w-1/3 px-5 border-2 border-theme-blue rounded-lg"
             style={{ height: 'auto' }} // Ensuring consistent height across all cards
           >
             <div className="relative mb-4">
@@ -74,9 +74,9 @@ const Review = () => {
                 <div className="text-yellow-600">{renderStars(review.rating)}</div>
                 <h3 className="font-semibold text-lg mt-2">{review.heading}</h3>
               </div>
-                <p className="text-gray-700 mt-2">{review.review}</p>
+                <p className="text-sub-color mt-2">{review.review}</p>
                 <p className="text-sm font-bold mt-2">{review.name}</p>
-                <p className="text-sm text-gray-500 mt-2">{review.date}</p>
+                <p className="text-sm text-sub-color mt-2">{review.date}</p>
 
             </div>
           </div>
@@ -86,7 +86,7 @@ const Review = () => {
       {/* Mobile View */}
       <div className="lg:hidden flex justify-center items-center">
         <div className="relative w-full p-5">
-          <div className="w-full px-5 py-2 border border-blue-950 rounded-lg h-fit" >
+          <div className="w-full px-5 py-2 border border-theme-blue rounded-lg h-fit" >
             <div className="relative">
               <Image
                 src={reviewsData[currentIndex].image}
@@ -99,19 +99,19 @@ const Review = () => {
                 <div className="text-yellow-600">{renderStars(reviewsData[currentIndex].rating)}</div>
                 <h3 className="font-semibold text-lg mt-2">{reviewsData[currentIndex].heading}</h3>
               </div>
-                <p className="text-gray-700 mt-2">{reviewsData[currentIndex].review}</p>
+                <p className="text-sub-color mt-2">{reviewsData[currentIndex].review}</p>
                 <p className="text-sm font-bold mt-2">{reviewsData[currentIndex].name}</p>
-                <p className="text-sm text-gray-500 mt-2">{reviewsData[currentIndex].date}</p>
+                <p className="text-sm text-sub-color mt-2">{reviewsData[currentIndex].date}</p>
 
             </div>
           </div>
 
           {/* Carousel Navigation */}
           <div className="absolute top-1/2 left-0 w-full flex justify-between ">
-            <button onClick={prevReview} className="bg-gray-700 text-white p-2 rounded-full">
+            <button onClick={prevReview} className="bg-sub-color text-white p-2 rounded-full">
             <i className="ri-arrow-left-s-line"></i>
             </button>
-            <button onClick={nextReview} className="bg-gray-700 text-white p-2 rounded-full">
+            <button onClick={nextReview} className="bg-sub-color text-white p-2 rounded-full">
             
             <i className="ri-arrow-right-s-line"></i>
             </button>
@@ -122,7 +122,7 @@ const Review = () => {
             {reviewsData.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 w-2 rounded-full ${index === currentIndex ? 'bg-blue-950' : 'bg-gray-400'}`}
+                className={`h-2 w-2 rounded-full ${index === currentIndex ? 'bg-theme-blue' : 'bg-gray-400'}`}
               ></div>
             ))}
           </div>

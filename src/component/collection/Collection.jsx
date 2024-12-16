@@ -22,14 +22,22 @@ function Collection() {
       {/* Top Border */}
 
       {/* Top Data */}
-      <div className="flex flex-wrap gap-4 md:gap-24 py-2 justify-center  mb-6 text-white border-y">
-        <span>Sustainable</span>
-        <span>Affordable</span>
-        <span>Luxurious</span>
-        <span>Sustainable</span>
-        <span className='hidden md:block'>Affordable</span>
-        <span className='hidden md:block'>Luxurious</span>
+      <div className="overflow-hidden border-y py-2 mb-6">
+      <div className="flex gap-8 md:gap-24 animate-scroll-left whitespace-nowrap">
+        {[...Array(2)].map((_, idx) => (
+          <React.Fragment key={idx}>
+            <span className="mx-4 text-white">Sustainable</span>
+            <span className="mx-4 text-white">Affordable</span>
+            <span className="mx-4 text-white">Luxurious</span>
+            <span className="mx-4 text-white">Sustainable</span>
+            <span className="mx-4 text-white">Sustainable</span>
+            <span className="mx-4 text-white">Affordable</span>
+            <span className="mx-4 text-white">Luxurious</span>
+            <span className="mx-4 text-white">Sustainable</span> 
+          </React.Fragment>
+        ))}
       </div>
+    </div>
 
       {/* Heading */}
       <h2 className="text-center text-white text-4xl md:text-6xl my-14 font-bold">New Collection</h2>
