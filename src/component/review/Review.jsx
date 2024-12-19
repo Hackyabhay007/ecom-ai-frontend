@@ -51,7 +51,7 @@ const Review = () => {
   };
 
   return (
-    <div className="p-5">
+    <div className="p-5 ">
       <h2 className="text-center text-3xl font-bold mb-8">What People Are Saying</h2>
 
       {/* Desktop View */}

@@ -80,20 +80,20 @@ function Hero() {
       </div>
 
       {/* Carousel Controls */}
-      <div className="absolute top-1/2 left-4 transform -translate-y-1/2 z-20">
+      <div className="absolute -bottom-6 left-[30%] md:left-[40%] transform -translate-y-1/2 z-20">
         <button
           onClick={goToPrev}
           className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
         >
-          &#8592;
+          <i className="ri-arrow-left-s-line"></i>
         </button>
       </div>
-      <div className="absolute top-1/2 right-4 transform -translate-y-1/2 z-20">
+      <div className="absolute -bottom-6 right-[30%] md:right-[40%] transform -translate-y-1/2 z-20">
         <button
           onClick={goToNext}
           className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
         >
-          &#8594;
+          <i className="ri-arrow-right-s-line"></i>
         </button>
       </div>
 

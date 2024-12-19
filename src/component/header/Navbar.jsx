@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { useAuth } from '@/contexts/AuthContext';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
-
+  const {user}=useAuth()
+  
+  
   // Detect screen size
   useEffect(() => {
     const handleResize = () => {
@@ -158,7 +161,12 @@ function Navbar() {
       {/* Right Icons */}
       <div className="flex space-x-4 items-center text-sm font-thin text-theme-blue">
         <i className="ri-search-line text-2xl cursor-pointer hover:text-black"></i>
-        <i className="ri-user-line text-2xl cursor-pointer hover:text-black"></i>
+        <i
+          className="ri-user-line text-2xl cursor-pointer hover:text-black"
+          onClick={() =>
+            user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")
+          }
+        ></i>
         <i className="ri-heart-line text-2xl cursor-pointer hover:text-black"></i>
         <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-black"></i>
       </div>

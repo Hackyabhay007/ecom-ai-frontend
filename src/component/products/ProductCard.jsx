@@ -24,7 +24,7 @@ const ProductCard = ({ product, layout }) => {
 
   return (
     <div
-      className={`rounded-lg text-center relative text-cream ${
+      className={`rounded-lg text-center cursor-pointer relative text-cream ${
         layout === "list" ? "flex" : ""
       }`}
       onClick={() => router.push(`/shop/${id}`)} // Navigate to product page

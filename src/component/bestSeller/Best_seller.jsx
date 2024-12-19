@@ -35,7 +35,7 @@ const dummyData = [
 
 function BestSeller() {
   return (
-    <div className="h-screen p-8">
+    <div className="h-fit p-8">
       <div className="flex flex-col md:flex-row">
         <div className="md:w-1/3 p-4 flex gap-5 flex-col justify-center">
           <h1 className="text-theme-blue text-center md:text-start font-bold text-3xl md:text-7xl mb-4">Best Seller Products</h1>

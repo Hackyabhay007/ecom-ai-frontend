@@ -1,5 +1,5 @@
 import React from "react";
-
+import Image from "next/image";
 const CustomerReview = ({ reviews }) => {
   // Calculate overall rating and total ratings
   const totalRatings = reviews.length;
@@ -56,10 +56,12 @@ const CustomerReview = ({ reviews }) => {
           <h3 className="text-sm font-bold pb-2">Images from Customers</h3>
           <div className="flex flex-wrap gap-2">
             {reviews.map((review, index) => (
-              <img
+              <Image
                 key={index}
                 src={review.image}
                 alt="Customer purchase"
+                width={100}
+                height={100}
                 className="w-16 h-16 object-cover rounded-lg border"
               />
             ))}
@@ -80,10 +82,12 @@ const CustomerReview = ({ reviews }) => {
           <div key={review.id} className="border-t border-gray-300 py-6">
             <div className="flex items-start gap-4">
               {/* Reviewer Image */}
-              <img
+              <Image
                 src={review.image}
                 alt="Reviewer"
-                className="w-12 h-12 object-cover rounded-full"
+                width={50}
+                height={50}
+                className="w-12 h-12 object-cover rounded-lg"
               />
               {/* Review Content */}
               <div>

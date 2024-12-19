@@ -19,9 +19,10 @@ module.exports = {
         "discount-color":"#D2EF9A",
       },
       animation: {
+        "scroll-left-gallery": "scroll-left-gallery 10s linear infinite",
         "scroll-left": "scroll-left 15s linear infinite",
         "scroll-up": "scroll-up 15s linear infinite",
-        "scroll-up-gallery": "scroll-up-gallery 2s linear infinite",
+        "scroll-up-gallery": "scroll-up-gallery 10s linear infinite",
         slideInLeft: 'slideInLeft 0.3s ease-in-out',
         slideInRight: 'slideInRight 0.3s ease-in-out',
       },
@@ -30,14 +31,18 @@ module.exports = {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "scroll-left-gallery": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
         "scroll-up": {
           "0%": { transform: "translateY(0%)" },
           "50%": { transform: "translateY(-50%)" },
           "100%": { transform: "translateY(0%)" },
         },
         "scroll-up-gallery": {
-          "0%": { transform: "translateY(8%)" },
-          "100%": { transform: "translateY(-10%)" },
+          "0%": { transform: "translateY(100%)" },
+          "100%": { transform: "translateY(-100%)" },
         },
         slideInLeft: {
           '0%': { transform: 'translateX(0%)' },
