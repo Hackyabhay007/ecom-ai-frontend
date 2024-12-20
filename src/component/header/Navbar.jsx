@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-
+import Link from 'next/link';
+import { useSelector } from 'react-redux';
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const {user}=useAuth()
   
-  
+  const { items } = useSelector((state) => state.cart); // Access cart items from Redux
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0); // Calculate total items in cart
   // Detect screen size
   useEffect(() => {
     const handleResize = () => {
@@ -168,7 +170,16 @@ function Navbar() {
           }
         ></i>
         <i className="ri-heart-line text-2xl cursor-pointer hover:text-black"></i>
-        <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-black"></i>
+        <div className="relative">
+        <Link href="/cart">
+          <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-black"></i>
+        </Link>
+        {totalItems > 0 && (
+          <span className="absolute -top-1  -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+            {totalItems}
+          </span>
+        )}
+      </div>
       </div>
     </nav>
   );

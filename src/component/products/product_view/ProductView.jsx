@@ -4,8 +4,44 @@ import ProductDetails from "./ProductDetails";
 import CustomerReview from "./CustomerReview.jsx";
 import CustomerComment from "./CustomerComment";
 import RelatedProducts from "./RelatedProducts";
-
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../../../redux/slices/cartSlice";
 const ProductView = ({ product, allProducts }) => {
+ 
+    const dispatch = useDispatch();
+    const [quantity, setQuantity] = useState(1);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedSize, setSelectedSize] = useState(null);
+    const [warning, setWarning] = useState("");
+    const [isAdded, setIsAdded] = useState(false); 
+  const handleQuantityChange = (type) => {
+    setQuantity((prev) => (type === "increment" ? prev + 1 : Math.max(1, prev - 1)));
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedColor || !selectedSize) {
+      setWarning("Please select a color and size.");
+      return;
+    }
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity,
+        image: product.image,
+        color: selectedColor,
+        size: selectedSize,
+        categories: product.categories, 
+      })
+    );
+    setWarning(""); // Clear warning on successful addition
+    setIsAdded(true); // Indicate item was added
+
+    // Reset isAdded after 3 seconds
+    setTimeout(() => setIsAdded(false), 3000);
+  };
+
   const {
     name,
     price,
@@ -21,7 +57,6 @@ const ProductView = ({ product, allProducts }) => {
 
   const [mainImage, setMainImage] = useState(image);
   const [additionalImages, setAdditionalImages] = useState(initialAdditionalImages);
-  const [quantity, setQuantity] = useState(1);
   const [slideDirection, setSlideDirection] = useState("");
 
   const handleImageClick = (selectedImage) => {
@@ -36,9 +71,7 @@ const ProductView = ({ product, allProducts }) => {
     }
   };
 
-  const handleQuantityChange = (type) => {
-    setQuantity((prev) => (type === "increment" ? prev + 1 : Math.max(1, prev - 1)));
-  };
+ 
 
   const getAverageRating = () => {
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
@@ -124,7 +157,7 @@ const ProductView = ({ product, allProducts }) => {
               </span>
             ))}
           </div>
-
+          {warning && <p className="text-error-color fixed bg-white border shadow-md px-12 py-5 top-1/3 right-5 font-bold">{warning}</p>}
           {/* Colors */}
           <div className="mb-4">
             <span className="text-sm text-cream">Color: </span>
@@ -132,8 +165,11 @@ const ProductView = ({ product, allProducts }) => {
               {colors.map((color, index) => (
                 <div
                   key={index}
-                  className="w-6 h-6 rounded-full border-2 cursor-pointer"
+                  className={`w-6 h-6 rounded-full border-2 cursor-pointer ${
+                    selectedColor === color ? "border-black" : ""
+                  }`}
                   style={{ backgroundColor: color }}
+                  onClick={() => setSelectedColor(color)}
                 />
               ))}
             </div>
@@ -146,14 +182,17 @@ const ProductView = ({ product, allProducts }) => {
               {sizes.map((size, index) => (
                 <div
                   key={index}
-                  className="w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer"
+                  className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
+                    selectedSize === size ? "border-black" : ""
+                  }`}
+                  onClick={() => setSelectedSize(size)}
                 >
                   {size}
                 </div>
               ))}
             </div>
           </div>
-
+         
           {/* Quantity and Add to Cart */}
           <h3 className="my-2 text-black">Quantity:</h3>
           <div className="flex items-center gap-4 mb-6">
@@ -179,9 +218,20 @@ const ProductView = ({ product, allProducts }) => {
                 +
               </button>
             </div>
-            <button className="bg-white border-2 border-cream w-3/4 rounded-lg px-6 py-2">
-              Add to Cart
-            </button>
+            <button
+        className={`w-3/4 rounded-lg px-6 py-2 text-black  ${
+          isAdded ? "bg-discount-color" : "bg-white border-2 border-cream"
+        }`}
+        onClick={handleAddToCart}
+      >
+        {isAdded ? (
+          <>
+            <i className="ri-luggage-cart-line mr-2"></i> Added to Cart
+          </>
+        ) : (
+          "Add to Cart"
+        )}
+      </button>
           </div>
 
           {/* Buy Now, Compare, Share */}
@@ -207,3 +257,4 @@ const ProductView = ({ product, allProducts }) => {
 };
 
 export default ProductView;
+      
