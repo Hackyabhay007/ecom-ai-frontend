@@ -1,14 +1,15 @@
-import "../styles/globals.css"; // Import the global styles here
+import "../styles/globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Provider as ReduxProvider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import { store, persistor } from "../../redux/store"; // Adjust path based on where your store is located
-
+import { store, persistor } from "../../redux/store"; // Adjust path based on your store location
+import WishlistSidebar from "@/component/wishlist/WishlistSidebar";
 function MyApp({ Component, pageProps }) {
   return (
-    <ReduxProvider store={store}> 
+    <ReduxProvider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <AuthProvider>
+          <WishlistSidebar /> {/* Ensure the sidebar is always available */}
           <Component {...pageProps} />
         </AuthProvider>
       </PersistGate>

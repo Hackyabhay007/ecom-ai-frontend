@@ -6,6 +6,7 @@ import CustomerComment from "./CustomerComment";
 import RelatedProducts from "./RelatedProducts";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../../../redux/slices/cartSlice";
+import ProductDetailsInfo from "./ProductDetailsInfo";
 const ProductView = ({ product, allProducts }) => {
  
     const dispatch = useDispatch();
@@ -246,6 +247,7 @@ const ProductView = ({ product, allProducts }) => {
       </div>
 
       {/* Additional Sections */}
+      <ProductDetailsInfo categories={categories}/>
       <ProductDetails product={product} />
       <CustomerReview reviews={reviews} />
       <CustomerComment />

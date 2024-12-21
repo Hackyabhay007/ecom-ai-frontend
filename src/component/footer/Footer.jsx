@@ -23,10 +23,11 @@ function Footer() {
         <div className="flex flex-col gap-2 w-full md:w-1/3">
           <h3 className="text-xl font-bold mb-2">Policy</h3>
           <ul className="text-sub-color space-y-2">
-            <li><Link href="/return">Return Your Order</Link></li>
-            <li><Link href="/shipping">Shipping Policy</Link></li>
-            <li><Link href="/refund">Return, Refund, and Cancellation</Link></li>
-            <li><Link href="/terms">Terms and Conditions</Link></li>
+            <li><Link href="/policy/privacy-policy">Privacy Policy</Link></li>
+            <li><Link href="/policy/shipping-policy">Shipping Policy</Link></li>
+            <li><Link href="/policy/cookies-policy">Cookies Policy</Link></li>
+            <li><Link href="/policy/term-condition">Terms and Conditions</Link></li>
+            <li><Link href="/track-order">Track order</Link></li>
           </ul>
         </div>
 

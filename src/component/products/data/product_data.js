@@ -8,7 +8,7 @@ const products = [
         price: 100,
         prevPrice: 200,
         discount: 50,
-        image: "/images/shop/shop1.jpg",
+        image: "/images/shop/shop1.jpeg",
         tags: ["NEW"], 
         description:
           "A comfortable full sleeve t-shirt perfect for casual outings.",
@@ -32,7 +32,7 @@ const products = [
         price: 40,
         prevPrice: 60,
         discount: 33,
-        image: "/images/shop/shop2.jpg",
+        image: "/images/shop/shop2.jpeg",
         tags: ["SALE"],
         description:
           "A comfortable full sleeve t-shirt perfect for casual outings.",
@@ -104,7 +104,7 @@ const products = [
         price: 120,
         prevPrice: 240,
         discount: 50,
-        image: "/images/shop/shop5.jpeg",
+        image: "/images/shop/shop5.jpg",
         tags: ["NEW"],
         description:
           "A comfortable full sleeve t-shirt perfect for casual outings.",
