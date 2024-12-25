@@ -8,7 +8,7 @@ const GridLayout = ({
   onSortChange,
 }) => {
   return (
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex justify-between flex-wrap gap-4 items-center mb-4">
       {/* Left Controls: Sale Checkbox and Layout Switch */}
       <div className="flex items-center gap-4">
         {/* Sale Checkbox */}

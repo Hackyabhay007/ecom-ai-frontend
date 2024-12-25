@@ -18,6 +18,13 @@ module.exports = {
         "light-BG":"#F9F6F1",
         "cream":"#1F1F1F",
         "discount-color":"#D2EF9A",
+        'custom-gradient': {
+          light: '#6a11cb', // Starting color
+          dark: '#2575fc',  // Ending color
+        },
+      },
+      backgroundImage: {
+        'gradient-custom': 'linear-gradient(to right, #6a11cb, #2575fc)',
       },
       animation: {
         "scroll-left-gallery": "scroll-left-gallery 10s linear infinite",
@@ -26,6 +33,8 @@ module.exports = {
         "scroll-up-gallery": "scroll-up-gallery 10s linear infinite",
         slideInLeft: 'slideInLeft 0.3s ease-in-out',
         slideInRight: 'slideInRight 0.3s ease-in-out',
+        "progress-bar": "progress-bar 2s linear",
+        'scale-up': 'scale-up 0.3s ease-out',
       },
       keyframes: {
         "scroll-left": {
@@ -52,6 +61,14 @@ module.exports = {
         slideInRight: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' },
+        },
+        "progress-bar": {
+          "0%": { width: "0%" },
+          "100%": { width: "100%" },
+        },
+        'scale-up': {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
     },

@@ -52,7 +52,7 @@ const Review = () => {
 
   return (
     <div className="p-5 ">
-      <h2 className="text-center text-3xl font-bold mb-8">What People Are Saying</h2>
+      <h2 className="text-center text-xl md:text-3xl font-bold mb-8">What People Are Saying</h2>
 
       {/* Desktop View */}
       <div className="hidden lg:flex justify-start space-x-4 overflow-x-auto px-5">
@@ -108,12 +108,12 @@ const Review = () => {
 
           {/* Carousel Navigation */}
           <div className="absolute top-1/2 left-0 w-full flex justify-between ">
-            <button onClick={prevReview} className="bg-sub-color text-white p-2 rounded-full">
-            <i className="ri-arrow-left-s-line"></i>
+            <button onClick={prevReview} className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full">
+            <i className="ri-arrow-left-s-fill"></i>
             </button>
-            <button onClick={nextReview} className="bg-sub-color text-white p-2 rounded-full">
+            <button onClick={nextReview} className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full">
             
-            <i className="ri-arrow-right-s-line"></i>
+            <i className="ri-arrow-right-s-fill"></i>
             </button>
           </div>
 

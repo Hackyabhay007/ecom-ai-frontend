@@ -4,6 +4,7 @@ import ProductCard from "@/component/products/ProductCard";
 import Breadcrumb from "./Breadcrumb";
 import GridLayout from "./GridLayout";
 import SelectedFilters from "./SelectedFilters";
+import ProductList from "./product_view/PageList";
 
 const ShopArea = () => {
   
@@ -169,6 +170,75 @@ const ShopArea = () => {
       size:["X","M","L","XL"],
         color:["pink","blue","cream","white"],
     },
+    {
+      id: 8,
+      name: "Chic Party Dress",
+      categories: ["clothing", "dress", "partywear"],
+      price: 100,
+      prevPrice: 200,
+      discount: 50,
+      image: "/images/shop/shop8.jpg",
+      tags: ["SALE"],
+      description:
+        "A comfortable full sleeve t-shirt perfect for casual outings.",
+      additionalImages: [
+        "/images/shop/additional1.jpg",
+        "/images/shop/additional2.jpg",
+      ],
+      specifications: "Product specifications go here.",
+      reviews: [
+        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+      ],
+      size:["X","M","L","XL"],
+        color:["pink","blue","cream","white"],
+    },
+    {
+      id: 9,
+      name: "Chic Party Dress",
+      categories: ["clothing", "dress", "partywear"],
+      price: 100,
+      prevPrice: 200,
+      discount: 50,
+      image: "/images/shop/shop9.jpg",
+      tags: ["NEW"],
+      description:
+        "A comfortable full sleeve t-shirt perfect for casual outings.",
+      additionalImages: [
+        "/images/shop/additional1.jpg",
+        "/images/shop/additional2.jpg",
+      ],
+      specifications: "Product specifications go here.",
+      reviews: [
+        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+      ],
+      size:["X","M","L","XL"],
+        color:["pink","blue","cream","white"],
+    },
+    {
+      id: 10,
+      name: "Chic Party Dress",
+      categories: ["clothing", "dress", "partywear"],
+      price: 100,
+      prevPrice: 200,
+      discount: 50,
+      image: "/images/shop/shop10.jpg",
+      tags: ["NEW"],
+      description:
+        "A comfortable full sleeve t-shirt perfect for casual outings.",
+      additionalImages: [
+        "/images/shop/additional1.jpg",
+        "/images/shop/additional2.jpg",
+      ],
+      specifications: "Product specifications go here.",
+      reviews: [
+        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+      ],
+      size:["X","M","L","XL"],
+        color:["pink","blue","cream","white"],
+    },
   ]);
 
   const [filteredProducts, setFilteredProducts] = useState(products);
@@ -298,7 +368,7 @@ const ShopArea = () => {
           </div>
           {/* Products */}
 
-          <div
+          {/* <div
             className={`grid ${
               layout === "grid"
                 ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -316,7 +386,8 @@ const ShopArea = () => {
             ) : (
               <p className="text-center col-span-full">No products found.</p>
             )}
-          </div>
+          </div> */}
+          <ProductList products={filteredProducts} layout={layout} />
         </div>
       </div>
     </div>

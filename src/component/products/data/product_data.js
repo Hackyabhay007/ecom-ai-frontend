@@ -168,6 +168,75 @@ const products = [
         sizes:["X","M","L","XL"],
         colors:["pink","blue","cream","white"],
       },
+      {
+        id: 8,
+        name: "Chic Party Dress",
+        categories: ["clothing", "dress", "partywear"],
+        price: 100,
+        prevPrice: 200,
+        discount: 50,
+        image: "/images/shop/shop8.jpg",
+        tags: ["NEW"],
+        description:
+          "A comfortable full sleeve t-shirt perfect for casual outings.",
+        additionalImages: [
+          "/images/shop/additional1.jpg",
+          "/images/shop/additional2.jpg",
+        ],
+        specifications: "Product specifications go here.",
+        reviews: [
+          { id: 1, rating: 5, text: "Amazing product!", image: "/images/review/review1.png" },
+          { id: 2, rating: 4, text: "Good value for money.", image: "/images/review/review2.png" },
+        ],
+        sizes:["X","M","L","XL"],
+        colors:["pink","blue","cream","white"],
+      },
+      {
+        id: 9,
+        name: "Chic Party Dress",
+        categories: ["clothing", "dress", "partywear"],
+        price: 100,
+        prevPrice: 200,
+        discount: 50,
+        image: "/images/shop/shop9.jpg",
+        tags: ["NEW"],
+        description:
+          "A comfortable full sleeve t-shirt perfect for casual outings.",
+        additionalImages: [
+          "/images/shop/additional1.jpg",
+          "/images/shop/additional2.jpg",
+        ],
+        specifications: "Product specifications go here.",
+        reviews: [
+          { id: 1, rating: 5, text: "Amazing product!", image: "/images/review/review1.png" },
+          { id: 2, rating: 4, text: "Good value for money.", image: "/images/review/review2.png" },
+        ],
+        sizes:["X","M","L","XL"],
+        colors:["pink","blue","cream","white"],
+      },
+      {
+        id: 10,
+        name: "Chic Party Dress",
+        categories: ["clothing", "dress", "partywear"],
+        price: 100,
+        prevPrice: 200,
+        discount: 50,
+        image: "/images/shop/shop10.jpg",
+        tags: ["NEW"],
+        description:
+          "A comfortable full sleeve t-shirt perfect for casual outings.",
+        additionalImages: [
+          "/images/shop/additional1.jpg",
+          "/images/shop/additional2.jpg",
+        ],
+        specifications: "Product specifications go here.",
+        reviews: [
+          { id: 1, rating: 5, text: "Amazing product!", image: "/images/review/review1.png" },
+          { id: 2, rating: 4, text: "Good value for money.", image: "/images/review/review2.png" },
+        ],
+        sizes:["X","M","L","XL"],
+        colors:["pink","blue","cream","white"],
+      },
   ];
   
   export default products;

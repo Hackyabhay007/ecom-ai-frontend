@@ -13,7 +13,7 @@ function Gallery2() {
           height={500}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-theme-blue bg-opacity-0 group-hover:bg-opacity-40 transition-opacity duration-500">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-custom-gradient-dark  bg-opacity-0 group-hover:bg-opacity-40 transition-opacity duration-500">
           <h2 className="text-white text-4xl font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Trending Products
           </h2>
@@ -44,7 +44,7 @@ function Gallery2() {
           height={500}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-theme-blue bg-opacity-0 group-hover:bg-opacity-40 transition-opacity duration-500">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-custom-gradient-dark bg-opacity-0 group-hover:bg-opacity-40 transition-opacity duration-500">
           <h2 className="text-white text-4xl font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Oversize T-Shirt
           </h2>

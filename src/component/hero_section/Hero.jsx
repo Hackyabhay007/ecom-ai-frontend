@@ -27,27 +27,54 @@ const heroData = [
 
 function Hero() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [animateHeading, setAnimateHeading] = useState(false);
+  const [animateTagline, setAnimateTagline] = useState(false);
+  const [animateButtons, setAnimateButtons] = useState(false);
 
-  // Automatically update the image every 5 seconds
+  // Automatically update the hero every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroData.length);
+      handleNext();
     }, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  const goToNext = () => {
-    setCurrentIndex((currentIndex + 1) % heroData.length);
+  const handleNext = () => {
+    resetAnimations();
+    setTimeout(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroData.length);
+      triggerAnimations();
+    }, 500);
   };
 
-  const goToPrev = () => {
-    setCurrentIndex((currentIndex - 1 + heroData.length) % heroData.length);
+  const handlePrev = () => {
+    resetAnimations();
+    setTimeout(() => {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + heroData.length) % heroData.length);
+      triggerAnimations();
+    }, 500);
   };
+
+  const resetAnimations = () => {
+    setAnimateHeading(false);
+    setAnimateTagline(false);
+    setAnimateButtons(false);
+  };
+
+  const triggerAnimations = () => {
+    setTimeout(() => setAnimateHeading(true), 200); // Delay for heading
+    setTimeout(() => setAnimateTagline(true), 500); // Delay for tagline
+    setTimeout(() => setAnimateButtons(true), 700); // Delay for buttons
+  };
+
+  useEffect(() => {
+    triggerAnimations();
+  }, [currentIndex]);
 
   const currentHero = heroData[currentIndex];
 
   return (
-    <div className="relative w-full h-96 md:h-screen overflow-hidden">
+    <div className="relative w-full min-h-[80%] h-[600px] md:h-screen overflow-hidden">
       {/* Background Image */}
       <Image
         src={currentHero.image}
@@ -60,14 +87,31 @@ function Hero() {
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
       {/* Content */}
-      <div className="relative top-20 md:top-1 z-10 flex flex-col items-center md:items-start justify-center h-full md:p-20 text-white">
-        <h1 className="text-2xl md:text-9xl font-bold mb-4 text-center md:text-left">
+      <div className="relative z-10 flex flex-col items-center md:items-start justify-center h-full md:p-20 text-white">
+        {/* Heading Animation */}
+        <h1
+          className={`text-2xl md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${
+            animateHeading ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0"
+          }`}
+        >
           {currentHero.heading}
         </h1>
-        <p className="text-sm md:text-xl mb-6 text-center md:text-left">
+
+        {/* Tagline Animation */}
+        <p
+          className={`text-sm md:text-xl mb-6 text-center md:text-left transition-all duration-500 transform ${
+            animateTagline ? "translate-x-0 opacity-100" : "-translate-x-20 opacity-0"
+          }`}
+        >
           {currentHero.tagline}
         </p>
-        <div className="flex space-x-4">
+
+        {/* Buttons Animation */}
+        <div
+          className={`flex space-x-4 transition-all duration-500 transform ${
+            animateButtons ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+          }`}
+        >
           <button className="flex items-center space-x-2 px-6 py-1 border border-white text-white rounded hover:bg-white hover:text-black transition">
             <span>{currentHero.button1}</span>
             <span>&#8594;</span>
@@ -82,7 +126,7 @@ function Hero() {
       {/* Carousel Controls */}
       <div className="absolute -bottom-6 left-[30%] md:left-[40%] transform -translate-y-1/2 z-20">
         <button
-          onClick={goToPrev}
+          onClick={handlePrev}
           className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-left-s-line"></i>
@@ -90,7 +134,7 @@ function Hero() {
       </div>
       <div className="absolute -bottom-6 right-[30%] md:right-[40%] transform -translate-y-1/2 z-20">
         <button
-          onClick={goToNext}
+          onClick={handleNext}
           className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-right-s-line"></i>
@@ -103,7 +147,13 @@ function Hero() {
           <div
             key={index}
             className={`w-4 h-4 flex items-center justify-center border border-white rounded-full`}
-            onClick={() => setCurrentIndex(index)}
+            onClick={() => {
+              resetAnimations();
+              setTimeout(() => {
+                setCurrentIndex(index);
+                triggerAnimations();
+              }, 500);
+            }}
           >
             <div
               className={`w-2 h-2 rounded-full ${

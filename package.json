@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fontsource/instrument-sans": "^5.1.0",
     "@reduxjs/toolkit": "^2.5.0",
     "next": "15.1.0",
     "react": "^19.0.0",

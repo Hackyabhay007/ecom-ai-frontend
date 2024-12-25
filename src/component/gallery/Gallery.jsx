@@ -4,7 +4,7 @@ import Image from 'next/image';
 function Gallery() {
   return (
     <div 
-      className="relative bg-cover md:bg-center h-96 flex" 
+      className="relative bg-cover md:bg-center min-h-96 h-[500px] flex" 
       style={{ backgroundImage: "url('/images/gallery/gallery1.png')" }}
     >
       {/* Right Side Grid with Scrolling Animation */}

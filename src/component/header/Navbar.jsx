@@ -3,24 +3,25 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux"; // Import useDispatch for Redux
+import { useSelector, useDispatch } from "react-redux";
 import { toggleWishlistSidebar } from "../../../redux/slices/wishSlice";
+import Search from "../search/Search";
+
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
-  const dispatch = useDispatch(); // Initialize dispatch for Redux
+  const dispatch = useDispatch();
 
-  const { items } = useSelector((state) => state.cart); // Access cart items from Redux
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0); // Calculate total items in cart
-  // Detect screen size
+  const { items } = useSelector((state) => state.cart);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -31,7 +32,6 @@ function Navbar() {
     router.push(path);
   };
 
-  // Disable body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "auto";
   }, [isMenuOpen]);
@@ -62,39 +62,46 @@ function Navbar() {
 
           {/* Right Icons */}
           <div className="flex space-x-4 items-center">
-            <i className="ri-search-line text-2xl cursor-pointer hover:text-blue-500"></i>
-          <Link href='/cart'>
-          <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-blue-500"></i>
-          </Link>  
+            <Link href="/cart">
+              <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-theme-blue"></i>
+            </Link>
+            {totalItems > 0 && (
+            <span className="absolute top-4 right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+              {totalItems}
+            </span>
+          )}
           </div>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="mt-2 p-4 rounded-md">
+            {/* Menu Items */}
             <ul className="space-y-4">
+              {/* Search Bar */}
+              <li>
+                <Search onClose={() => setIsMenuOpen(false)} isMobile={true} />
+              </li>
               <li
-                className={`cursor-pointer hover:text-blue-500 ${
-                  router.pathname === "/" ? "text-blue-500 font-semibold" : ""
+                className={`cursor-pointer hover:text-theme-blue ${
+                  router.pathname === "/" ? "text-theme-blue font-semibold" : ""
                 }`}
                 onClick={() => navigateTo("/")}
               >
                 Home
               </li>
               <li
-                className={`cursor-pointer hover:text-blue-500 ${
-                  router.pathname === "/shop"
-                    ? "text-blue-500 font-semibold"
-                    : ""
+                className={`cursor-pointer hover:text-theme-blue ${
+                  router.pathname === "/shop" ? "text-theme-blue font-semibold" : ""
                 }`}
                 onClick={() => navigateTo("/shop")}
               >
                 Shop
               </li>
               <li
-                className={`cursor-pointer hover:text-blue-500 ${
+                className={`cursor-pointer hover:text-theme-blue ${
                   router.pathname === "/category"
-                    ? "text-blue-500 font-semibold"
+                    ? "text-theme-blue font-semibold"
                     : ""
                 }`}
                 onClick={() => navigateTo("/category")}
@@ -102,19 +109,17 @@ function Navbar() {
                 Category
               </li>
               <li
-                className={`cursor-pointer hover:text-blue-500 ${
-                  router.pathname === "/about"
-                    ? "text-blue-500 font-semibold"
-                    : ""
+                className={`cursor-pointer hover:text-theme-blue ${
+                  router.pathname === "/about" ? "text-theme-blue font-semibold" : ""
                 }`}
                 onClick={() => navigateTo("/about")}
               >
                 About
               </li>
               <li
-                className={`cursor-pointer hover:text-blue-500 ${
+                className={`cursor-pointer hover:text-theme-blue ${
                   router.pathname === "/contact-us"
-                    ? "text-blue-500 font-semibold"
+                    ? "text-theme-blue font-semibold"
                     : ""
                 }`}
                 onClick={() => navigateTo("/contact-us")}
@@ -142,9 +147,9 @@ function Navbar() {
       </div>
 
       {/* Navigation Links */}
-      <div className="flex items-center space-x-14   ">
+      <div className="flex items-center space-x-14">
         <div
-          className={`cursor-pointer hover:text-blue-500 ${
+          className={`cursor-pointer hover:text-theme-blue ${
             router.pathname === "/" ? "text-theme-blue font-semibold" : ""
           }`}
           onClick={() => navigateTo("/")}
@@ -152,7 +157,7 @@ function Navbar() {
           Home
         </div>
         <div
-          className={`cursor-pointer hover:text-blue-500 ${
+          className={`cursor-pointer hover:text-theme-blue ${
             router.pathname === "/shop" ? "text-theme-blue font-semibold" : ""
           }`}
           onClick={() => navigateTo("/shop")}
@@ -160,7 +165,7 @@ function Navbar() {
           Shop
         </div>
         <div
-          className={`cursor-pointer hover:text-blue-500 ${
+          className={`cursor-pointer hover:text-theme-blue ${
             router.pathname === "/category"
               ? "text-theme-blue font-semibold"
               : ""
@@ -170,7 +175,7 @@ function Navbar() {
           Category
         </div>
         <div
-          className={`cursor-pointer hover:text-blue-500 ${
+          className={`cursor-pointer hover:text-theme-blue ${
             router.pathname === "/checkout" ? "text-theme-blue font-semibold" : ""
           }`}
           onClick={() => navigateTo("/checkout")}
@@ -178,20 +183,23 @@ function Navbar() {
           About(checkout testing)
         </div>
         <div
-          className={`cursor-pointer hover:text-blue-500 ${
+          className={`cursor-pointer hover:text-theme-blue ${
             router.pathname === "/contact-us"
               ? "text-theme-blue font-semibold"
               : ""
           }`}
           onClick={() => navigateTo("/contact-us")}
         >
-          Contact Us 
+          Contact Us
         </div>
       </div>
 
       {/* Right Icons */}
       <div className="flex space-x-4 items-center text-sm font-thin text-theme-blue">
-        <i className="ri-search-line text-2xl cursor-pointer hover:text-black"></i>
+        <i
+          className="ri-search-line text-2xl cursor-pointer hover:text-black"
+          onClick={() => setIsSearchOpen(!isSearchOpen)}
+        ></i>
         <i
           className="ri-user-line text-2xl cursor-pointer hover:text-black"
           onClick={() =>
@@ -200,19 +208,22 @@ function Navbar() {
         ></i>
         <i
           className="ri-heart-line text-2xl cursor-pointer hover:text-black"
-          onClick={() => dispatch(toggleWishlistSidebar())} // Dispatch action to open the sidebar
-        ></i>{" "}
+          onClick={() => dispatch(toggleWishlistSidebar())}
+        ></i>
         <div className="relative">
           <Link href="/cart">
             <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-black"></i>
           </Link>
           {totalItems > 0 && (
-            <span className="absolute -top-1  -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+            <span className="absolute -top-1 -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
               {totalItems}
             </span>
           )}
         </div>
       </div>
+
+      {/* Desktop Search */}
+      {isSearchOpen && <Search onClose={() => setIsSearchOpen(false)} isMobile={false} />}
     </nav>
   );
 }

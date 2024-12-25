@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const Filter = ({ onApplyFilters }) => {
   const [filters, setFilters] = useState({
@@ -16,12 +16,25 @@ const Filter = ({ onApplyFilters }) => {
     setFilters(updatedFilters);
     onApplyFilters(updatedFilters); // Automatically apply filters on change
   };
-
+  useEffect(() => {
+    // Locking and unlocking scroll on body based on filter state
+    if (isMobileFilterOpen) {
+      document.body.style.overflow = "hidden"; // Disable scrolling
+    } else {
+      document.body.style.overflow = "auto"; // Enable scrolling
+    }
+  
+    // Cleanup the effect to reset overflow when the component unmounts or filter closes
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isMobileFilterOpen]);
+  
   return (
     <div>
       {/* Mobile Filter Toggle Button */}
       <button
-        className="md:hidden w-1/6 text-theme-blue border border-theme-blue py-1 font-semibold rounded-md hover:bg-blue-600 mb-4"
+        className="md:hidden w-1/6 text-theme-blue border border-theme-blue py-1 font-semibold rounded-md hover:bg-black hover:text-white hover:font-thin mb-4"
         onClick={() => setIsMobileFilterOpen(true)}
       >
         <i className="ri-sound-module-line"></i>
@@ -32,16 +45,20 @@ const Filter = ({ onApplyFilters }) => {
         className={`fixed inset-0 bg-white z-50 transform ${
           isMobileFilterOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 md:static md:translate-x-0 md:block md:w-fit p-4`}
+        style={{
+          width: isMobileFilterOpen ? "80%" : "100%",
+           boxShadow: isMobileFilterOpen ? "0px 0px 300px rgba(0, 0, 0, 1)" : "none", 
+        }}
       >
         {/* Close Button for Mobile */}
         <button
-          className="md:hidden absolute top-4 right-4 bg-theme-blue text-white rounded-full py-1 px-2"
+          className="md:hidden absolute top-4 right-4 text-black font-bold rounded-full p-[5px] px-[10px]"
           onClick={() => setIsMobileFilterOpen(false)}
         >
           ✕
         </button>
 
-        <h2 className="text-lg font-semibold mb-4 text-black">Filter</h2>
+        <h2 className=" text-md md:text-lg font-semibold  mb-4 text-black">Filter</h2>
 
         {/* Product Type */}
         <div className="mb-4">
@@ -72,11 +89,11 @@ const Filter = ({ onApplyFilters }) => {
         {/* Size */}
         <div className="mb-4">
           <h3 className="text-md font-semibold text-black mb-2">Size</h3>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 text-sm">
             {["XS", "S", "M", "L", "XL"].map((size) => (
               <button
                 key={size}
-                className={`p-1 px-2 border rounded-full ${
+                className={`p-[11px] px-[16px] border rounded-full ${
                   filters.size === size
                     ? "bg-theme-blue text-white"
                     : "bg-white text-black"
@@ -98,7 +115,7 @@ const Filter = ({ onApplyFilters }) => {
             min="0"
             max="1000"
             value={filters.price[1]}
-            className="w-full"
+            className="w-full h-1 accent-black"
             onChange={(e) =>
               handleFilterChange("price", [0, Number(e.target.value)])
             }
@@ -116,7 +133,7 @@ const Filter = ({ onApplyFilters }) => {
             {["blue", "red", "yellow", "green", "black"].map((color) => (
               <div
                 key={color}
-                className={`flex items-center gap-2 border rounded-full py-1 px-2 ${
+                className={`flex items-center  font-thin gap-2 border rounded-full py-1 px-1 pr-3 ${
                   filters.color === color ? "border-black" : "border-gray-300"
                 }`}
                 onClick={() => handleFilterChange("color", color)}
@@ -126,7 +143,7 @@ const Filter = ({ onApplyFilters }) => {
                   className="w-6 h-6 rounded-full"
                   style={{ backgroundColor: color }}
                 ></div>
-                <span className="capitalize text-black">{color}</span>
+                <span className="capitalize text-cream">{color}</span>
               </div>
             ))}
           </div>
@@ -153,7 +170,7 @@ const Filter = ({ onApplyFilters }) => {
                       );
                     }
                   }}
-                  className="form-checkbox text-theme-blue"
+                  className="form-checkbox text-theme-blue accent-black"
                 />
                 <span className="text-black">{brand}</span>
               </label>
