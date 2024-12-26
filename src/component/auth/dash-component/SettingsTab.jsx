@@ -39,7 +39,7 @@ const SettingsTab = () => {
   };
 
   return (
-    <div className="p-4 border rounded-xl">
+    <div className="p-4 border rounded-xl my-2">
       {/* Information Section */}
       <h2 className="text-xl font-bold mb-4">Information</h2>
       <div className="border rounded-lg p-6 bg-white">
@@ -142,7 +142,7 @@ const SettingsTab = () => {
 
         <button
           onClick={handleSaveChanges}
-          className="mt-6 px-6 py-4 bg-black text-white rounded-lg hover:bg-discount-color transition-all duration-200 ease-in-out"
+          className="mt-6 px-6 md:py-4 py-3 rounded-md md:rounded-xl text-xs md:text-sm uppercase md:font-bold bg-black text-white  hover:bg-discount-color transition-all duration-200 ease-in-out"
         >
           Save Changes
         </button>
@@ -188,7 +188,7 @@ const SettingsTab = () => {
         </div>
         <button
           onClick={handleChangePassword}
-          className="mt-6 py-4 px-6 bg-black text-white rounded-lg hover:bg-discount-color transition-all duration-200 ease-in-out"
+          className="mt-6 px-6 md:py-4 py-3 uppercase md:font-bold rounded-md md:rounded-xl text-xs md:text-sm  bg-black text-white hover:bg-discount-color transition-all duration-200 ease-in-out"
         >
           Update Password
         </button>

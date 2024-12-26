@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
+
 const OrderHistory = () => {
   const [filter, setFilter] = useState("all");
 
@@ -45,21 +46,21 @@ const OrderHistory = () => {
   };
 
   return (
-    <div className="p-4 border rounded-lg">
+    <div className="p-4 my-2 sm:p-6 md:p-8 border rounded-lg">
       {/* Heading */}
-      <div className=" pb-2 mb-4">
-        <h2 className="text-2xl font-bold border-black inline-block  px-2 py-1">
+      <div className="pb-2 mb-4">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold border-black inline-block px-2 py-1">
           Your Order
         </h2>
       </div>
 
       {/* Filters */}
-      <div className="mb-4  border-b flex justify-around">
+      <div className="mb-4 border-b flex justify-around sm:justify-start sm:gap-6">
         {["all", "pending", "delivered"].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`px-10 py-2   mr-2 ${
+            className={`px-6 sm:px-10 py-2 sm:py-3 mr-2 text-xs sm:text-sm md:text-base ${
               filter === status
                 ? "border-b-4 font-bold border-black text-black"
                 : "font-bold text-sub-color border-b-4 border-transparent"
@@ -80,7 +81,10 @@ const OrderHistory = () => {
             {/* Order Header */}
             <div className="pb-4 mb-4 border-b">
               <div className="flex justify-between">
-                <h3 className=" text-md">Order Number: <span className="font-bold">{order.orderId}</span></h3>
+                <h3 className="text-sm sm:text-md md:text-lg">
+                  Order Number:{" "}
+                  <span className="font-bold">{order.orderId}</span>
+                </h3>
                 <p
                   className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
                     statusColors[order.status]
@@ -92,30 +96,29 @@ const OrderHistory = () => {
             </div>
 
             {/* Product Details */}
-            <div className="space-y-4 ">
+            <div className="space-y-4">
               {order.products.map((product, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between border-b pb-4 "
+                  className="flex items-center justify-between border-b pb-4"
                 >
                   <div className="flex items-center gap-4">
-                    
                     <Image
                       src={product.image}
                       alt={product.name}
-                      width={200}
-                      height={200}
-                      className="w-24 h-24 object-cover rounded"
+                      width={150}
+                      height={150}
+                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 object-cover rounded"
                     />
                     <div>
-                      <p className="text-lg capitalize">{product.name}</p>
-                      <p className="text-xs text-sub-color">
+                      <p className="text-xs sm:text-sm md:text-lg capitalize">{product.name}</p>
+                      <p className="text-xs sm:text-sm text-sub-color">
                         {product.size} / {product.color}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="">
+                    <p className="text-xs sm:text-sm md:text-base">
                       {product.quantity} x {product.price}
                     </p>
                   </div>
@@ -124,11 +127,11 @@ const OrderHistory = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex text-sm   justify-start gap-4 mt-4">
-              <button className="px-8 py-4 uppercase font-bold rounded-xl bg-black text-white hover:bg-discount-color hover:text-black transition-all  duration-200 ease-in-out">
+            <div className="flex text-xs sm:text-sm md:text-base justify-around md:justify-start gap-4 mt-4">
+              <button className="px-6 sm:px-8 py-2 sm:py-3 uppercase md:font-bold rounded-md md:rounded-xl bg-black text-white hover:bg-discount-color hover:text-black transition-all duration-200 ease-in-out">
                 Order Details
               </button>
-              <button className="px-6 py-2 uppercase font-bold  rounded-xl bg-light-BG border border-gray-300 hover:bg-discount-color hover:text-black transition-all  duration-200 ease-in-out">
+              <button className="px-4 sm:px-6 py-2 sm:py-3 uppercase md:font-bold rounded-md  md:rounded-xl bg-light-BG border border-gray-300 hover:bg-discount-color hover:text-black transition-all duration-200 ease-in-out">
                 Cancel Order
               </button>
             </div>

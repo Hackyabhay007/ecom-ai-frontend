@@ -62,14 +62,13 @@ function Navbar() {
 
           {/* Right Icons */}
           <div className="flex space-x-4 items-center">
-            <Link href="/cart">
-              <i className="ri-shopping-bag-line text-2xl cursor-pointer hover:text-theme-blue"></i>
-            </Link>
-            {totalItems > 0 && (
-            <span className="absolute top-4 right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-              {totalItems}
-            </span>
-          )}
+          <i
+          className="ri-user-line text-2xl cursor-pointer hover:text-black"
+          onClick={() =>
+            user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")
+          }
+        ></i>
+           
           </div>
         </div>
 

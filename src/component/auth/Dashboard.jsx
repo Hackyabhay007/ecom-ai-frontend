@@ -24,9 +24,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row p-10">
+    <div className="flex flex-col md:flex-row p-2 mb-20 md:p-10">
       <DesktopSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="flex-1 p-6">{renderContent()}</div>
+      <div className="flex-1 p-1 md:p-6">{renderContent()}</div>
     </div>
   );
 };

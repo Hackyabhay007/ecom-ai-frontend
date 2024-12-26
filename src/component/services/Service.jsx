@@ -31,7 +31,7 @@ function Service() {
   return (
     <div className="p-5 py-10 ">
      
-      <div className="flex flex-wrap justify-center lg:flex-row lg:space-x-14 space-y-6 lg:space-y-0">
+      <div className="flex flex-wrap justify-center lg:flex-row lg:space-x-20 space-y-6 lg:space-y-0">
         {serviceData.map((service) => (
           <div
             key={service.id}

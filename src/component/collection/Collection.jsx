@@ -1,29 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import React, { useState, useRef } from "react";
+import Image from "next/image";
 
 const collectionData = [
-  { image: '/images/collection/collection1.png', alt: 'Collection 1' },
-  { image: '/images/collection/collection2.png', alt: 'Collection 2' },
-  { image: '/images/collection/collection3.png', alt: 'Collection 3' },
-  { image: '/images/collection/collection1.png', alt: 'Collection 4' },
-  { image: '/images/collection/collection2.png', alt: 'Collection 5' },
+  { image: "/images/collection/collection1.png", alt: "Collection 1" },
+  { image: "/images/collection/collection2.png", alt: "Collection 2" },
+  { image: "/images/collection/collection3.png", alt: "Collection 3" },
+  { image: "/images/collection/collection1.png", alt: "Collection 4" },
+  { image: "/images/collection/collection2.png", alt: "Collection 5" },
 ];
 
 function Collection() {
-  const [currentIndex, setCurrentIndex] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollContainerRef = useRef(null);
 
-  useEffect(() => {
-    // Set the initial centered index
-    setCurrentIndex(1); // Center the second image initially
-  }, []);
-
-  const handleScroll = (event) => {
-    const container = event.currentTarget;
+  const scrollToIndex = (index) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
     const containerWidth = container.offsetWidth;
-    const scrollLeft = container.scrollLeft;
+    const scrollPosition = index * (containerWidth / 3); // 3 images visible at a time
+    container.scrollTo({ left: scrollPosition, behavior: "smooth" });
+  };
 
-    const index = Math.round(scrollLeft / (containerWidth / 3)); // 3 images visible
-    setCurrentIndex(index);
+  const handleNext = () => {
+    if (currentIndex < collectionData.length - 3) {
+      setCurrentIndex(currentIndex + 1);
+      scrollToIndex(currentIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      scrollToIndex(currentIndex - 1);
+    }
   };
 
   return (
@@ -43,36 +52,54 @@ function Collection() {
       </div>
 
       {/* Heading */}
-      <h2 className="text-center text-white text-4xl md:text-6xl my-14 font-bold">New Collection</h2>
+      <h2 className="text-center text-white text-4xl md:text-6xl my-14 font-bold">
+        New Collection
+      </h2>
 
-      {/* Horizontal Scrollable Images */}
-      <div className="relative overflow-hidden px-6 md:px-14">
+      {/* Horizontal Scrollable Images with Buttons */}
+      <div className="relative px-4 md:px-10">
+        {/* Left Button */}
+        <button
+        className="absolute left-0 md:left-4 top-1/2 transform -translate-y-1/2 backdrop-blur-sm bg-cream/30 text-white border md:p-1 rounded-full z-10 hover:bg-white/40 transition"
+          onClick={handlePrev}
+        >
+          <i className="ri-arrow-drop-left-fill text-3xl"></i>
+        </button>
+
+        {/* Scrollable Images */}
         <div
-          className="flex gap-6 h-[210px] md:gap-20 md:h-[600px] overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth items-center"
-          onScroll={handleScroll}
+          ref={scrollContainerRef}
+          className="flex gap-6 h-[210px] md:gap-10 md:h-[600px] overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth items-center"
         >
           {collectionData.map((item, index) => (
             <div
               key={index}
-              className={`snap-center flex-shrink-0 w-[calc(100%/3)] max-w-[calc(100%/3)] transition-transform duration-300 ease-in-out ${
-                index === currentIndex+1 ? 'scale-125 md:scale-110 z-10' : 'scale-100 '
-              }`}
-              style={{
-                transformOrigin: 'center center',
-              }}
+              className="snap-center flex-shrink-0 w-[calc(100%/3.2)] max-w-[calc(100%/3)] transition-transform duration-300 ease-in-out"
             >
-              <div className="border border-white rounded-lg p-2 overflow-visible">
+              <div className="border border-white rounded-xl p-1 md:p-3 overflow-visible shadow-[0_5px_15px_rgba(255,255,255,0.4)] bg-white/10">
                 <Image
                   src={item.image}
                   alt={item.alt}
                   width={500}
                   height={500}
-                  className="h-[150px] md:h-[500px] rounded"
+                  className={`h-[150px] md:h-[450px] rounded-md object-cover ${
+                    index === currentIndex + 1
+                      ? "border-2 border-cyan-400"
+                      : ""
+                  }`}
                 />
               </div>
             </div>
           ))}
         </div>
+
+        {/* Right Button */}
+        <button
+          className="absolute right-0 md:right-4 top-1/2 transform -translate-y-1/2 backdrop-blur-sm bg-cream/30 text-white border md:p-1 rounded-full z-10 hover:bg-white/40 transition"
+          onClick={handleNext}
+        >
+          <i className="ri-arrow-drop-right-fill text-3xl"></i>
+        </button>
       </div>
 
       {/* View All Button */}

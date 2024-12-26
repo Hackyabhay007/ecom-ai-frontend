@@ -51,7 +51,7 @@ const Wishlist = () => {
         {sortedWishlist.map((product) => (
           <div
             key={product.id}
-            className="rounded-lg text-center relative text-cream cursor-pointer"
+            className="rounded-lg text-center mb-10  relative text-cream cursor-pointer"
             onClick={() => (window.location.href = `/shop/${product.id}`)}
           >
             {/* Image */}
@@ -67,13 +67,13 @@ const Wishlist = () => {
 
             {/* Product Information */}
             <div className="mt-4 px-2">
-              <h3 className="mb-1 font-medium text-xl text-cream text-left">
+              <h3 className="mb-1 font-medium text-sm md:text-md text-cream text-left">
                 {product.name}
               </h3>
-              <div className="flex mb-5 gap-3 items-center justify-start">
-                <span className="text-lg">₹{product.price}</span>
+              <div className="flex flex-wrap mb-5 gap-3 items-center justify-start">
+                <span className="md:text-lg text-sm">₹{product.price}</span>
                 {product.prevPrice && (
-                  <span className="text-sm text-sub-color line-through">
+                  <span className="text-xs text-sub-color line-through">
                     ₹{product.prevPrice}
                   </span>
                 )}

@@ -12,11 +12,15 @@ const ForgetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col md:flex-row min-h-fit md:min-h-screen bg-white">
       {/* Left Side - Reset Password Form */}
-      <div className="w-1/2 p-8 flex flex-col justify-center">
-        <h2 className="text-3xl font-bold text-[#1F1F1F] mb-2">Reset Your Password</h2>
-        <p className=" capitalize mb-6 text-xl text-cream">We will send you an email to reset password</p>
+      <div className="md:w-1/2 p-8 flex flex-col justify-center">
+        <h2 className="md:text-3xl text-xl font-bold text-[#1F1F1F] mb-2">
+          Reset Your Password
+        </h2>
+        <p className="capitalize mb-6 text-sm md:text-xl text-cream">
+          We will send you an email to reset your password.
+        </p>
         <form
           className="space-y-6"
           onSubmit={(e) => {
@@ -37,7 +41,7 @@ const ForgetPassword = () => {
           <div className="flex justify-start items-center">
             <button
               type="submit"
-              className="bg-black font-bold uppercase text-white px-10 py-4 rounded-xl hover:text-cream hover:bg-discount-color transition duration-300"
+              className="bg-black text-sm md:text-md md:font-bold uppercase text-white py-2 px-7 md:px-10 md:py-4 rounded-md md:rounded-xl hover:text-cream hover:bg-discount-color transition duration-300"
             >
               Reset Password
             </button>
@@ -51,15 +55,18 @@ const ForgetPassword = () => {
       </div>
 
       {/* Right Side - Register as New User */}
-      <div className="w-1/2 p-8 flex flex-col justify-center">
-        <h3 className="text-4xl font-bold text-black mb-4">Register</h3>
-        <p className="text-normal text-sub-color mb-6">
-          Be part of our growing family! Join us today to unlock exclusive benefits, personalized
-          experiences, and amazing offers tailored just for you.
+      <div className="md:w-1/2 p-8 flex flex-col justify-center">
+        <h3 className="md:text-4xl text-2xl font-bold text-black mb-4">
+          Register
+        </h3>
+        <p className="text-sm md:text-base text-sub-color mb-6">
+          Be part of our growing family! Join us today to unlock exclusive
+          benefits, personalized experiences, and amazing offers tailored just
+          for you.
         </p>
         <button
           onClick={() => router.push("/auth/register")}
-          className="bg-black w-fit font-bold uppercase px-10 py-4 text-white hover:text-cream rounded-xl hover:bg-discount-color transition duration-300"
+          className="bg-black w-fit text-sm md:font-bold uppercase py-2 px-5 md:px-10 md:py-4 text-white rounded-md md:rounded-xl hover:text-cream hover:bg-discount-color transition duration-300"
         >
           Register
         </button>

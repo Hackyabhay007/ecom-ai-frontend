@@ -22,10 +22,10 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex flex-col md:flex-row min-h-fit md:min-h-screen bg-white">
       {/* Left Side - Login Form */}
-      <div className="w-1/2 p-8 flex flex-col justify-center">
-        <h2 className="text-3xl font-bold text-[#1F1F1F] mb-6">Login</h2>
+      <div className="md:w-1/2 p-8 flex flex-col justify-center">
+        <h2 className="md:text-3xl text-xl font-bold text-[#1F1F1F] mb-6">Login</h2>
 
         {/* Error Message */}
         {error && (
@@ -74,7 +74,7 @@ const Login = () => {
           <div className="flex justify-between items-center">
             <button
               type="submit"
-              className="bg-black font-bold uppercase text-white px-10 py-4 rounded-xl hover:bg-discount-color hover:text-cream transition duration-300"
+              className="bg-black text-sm md:text-md md:font-bold uppercase text-white py-2 px-7 md:px-10 md:py-4 rounded-md md:rounded-xl hover:bg-discount-color hover:text-cream transition duration-300"
             >
               Login
             </button>
@@ -82,7 +82,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => router.push("/auth/forget-password")}
-              className="text-black font-bold hover:underline"
+              className="text-black text-sm md:text-lg font-bold hover:underline"
             >
               Forgot Password?
             </button>
@@ -95,8 +95,8 @@ const Login = () => {
       </div>
 
       {/* Right Side - New Customer */}
-      <div className="w-1/2 p-8 flex flex-col justify-center border-light-BG">
-        <h3 className="text-4xl font-bold text-black mb-4">New Customer</h3>
+      <div className="md:w-1/2 p-8 flex flex-col justify-center border-light-BG">
+        <h3 className="md:text-4xl text-2xl font-bold text-black mb-4">New Customer</h3>
         <p className="text-normal text-wrap text-sub-color mb-6">
           Be part of our growing family and enjoy exclusive benefits. Join us
           today and unlock a world of exclusive benefits and offers tailored
@@ -104,7 +104,7 @@ const Login = () => {
         </p>
         <button
           onClick={() => router.push("/auth/register")}
-          className="bg-black w-fit font-bold uppercase px-10 py-4 text-white rounded-xl hover:bg-discount-color hover:text-cream transition duration-300"
+          className="bg-black w-fit text-sm md:font-bold uppercase py-2 px-5 md:px-10 md:py-4 text-white rounded-md md:rounded-xl hover:bg-discount-color hover:text-cream transition duration-300"
         >
           Register
         </button>

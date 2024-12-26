@@ -8,7 +8,7 @@ const WishlistGridLayout = ({ onLayoutChange, onFilterChange }) => {
   };
 
   return (
-    <div className="flex items-center justify-between mb-4 px-5">
+    <div className="flex items-center flex-wrap gap-4 justify-between mb-4 px-5">
       {/* Layout Selector */}
       <div className="flex gap-2">
         {[3, 4, 5].map((layout) => {

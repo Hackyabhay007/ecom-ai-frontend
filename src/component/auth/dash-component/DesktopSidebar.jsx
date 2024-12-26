@@ -15,7 +15,7 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <div className="bg-light-BG w-80 min-h-screen rounded-xl p-4 shadow-md">
+    <div className="bg-light-BG  md:w-80 w-full min-h-fit md:min-h-screen rounded-xl p-4 shadow-md">
       {/* User Profile */}
       <div className="flex flex-col items-center mb-10">
         <Image

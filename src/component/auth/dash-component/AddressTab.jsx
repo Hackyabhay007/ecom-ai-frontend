@@ -29,9 +29,9 @@ const AddressTab = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="md:p-4 p-1">
       <div className="border rounded-lg p-6 bg-white">
-        <h2 className="text-lg font-bold mb-6 border-b pb-2">Billing Address</h2>
+        <h2 className="md:text-lg text-md font-bold mb-6 border-b pb-2">Billing Address</h2>
         <div className="space-y-6">
           {/* First Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,7 +157,7 @@ const AddressTab = () => {
           <div className="flex justify-start">
             <button
               onClick={handleUpdate}
-              className="px-6 py-4 rounded-xl text-sm uppercase font-bold hover:bg-discount-color bg-black text-white hover:text-black transition-all duration-200 ease-in-out"
+              className="px-6 py-4   rounded-md md:rounded-xl text-xs md:text-sm uppercase md:font-bold hover:bg-discount-color bg-black text-white hover:text-black transition-all duration-200 ease-in-out"
             >
               {buttonText}
             </button>

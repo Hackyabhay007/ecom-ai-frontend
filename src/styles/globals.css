@@ -9,7 +9,7 @@ body {
 
   /* Custom Horizontal Scrollbar */
 .scrollbar-custom::-webkit-scrollbar {
-  height: 6px; /* Set the height of the horizontal scrollbar */
+  height: 7px; /* Set the height of the horizontal scrollbar */
   width: 4px;
 }
 
@@ -34,4 +34,12 @@ body {
 
 .dark .scrollbar-custom::-webkit-scrollbar-thumb {
   background-color: #aaa; /* Lighter thumb in dark mode */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+  scrollbar-width: none; /* For Firefox */
 }
