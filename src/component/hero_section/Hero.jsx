@@ -30,14 +30,17 @@ function Hero() {
   const [animateHeading, setAnimateHeading] = useState(false);
   const [animateTagline, setAnimateTagline] = useState(false);
   const [animateButtons, setAnimateButtons] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
-  // Automatically update the hero every 5 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleNext();
-    }, 5000);
+    const interval = isPaused
+      ? null
+      : setInterval(() => {
+          handleNext();
+        }, 4000);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [isPaused, currentIndex]);
 
   const handleNext = () => {
     resetAnimations();
@@ -62,19 +65,28 @@ function Hero() {
   };
 
   const triggerAnimations = () => {
-    setTimeout(() => setAnimateHeading(true), 200); // Delay for heading
-    setTimeout(() => setAnimateTagline(true), 500); // Delay for tagline
-    setTimeout(() => setAnimateButtons(true), 700); // Delay for buttons
+    setTimeout(() => setAnimateHeading(true), 200);
+    setTimeout(() => setAnimateTagline(true), 500);
+    setTimeout(() => setAnimateButtons(true), 700);
   };
 
   useEffect(() => {
     triggerAnimations();
   }, [currentIndex]);
 
+  const handlePause = () => setIsPaused(true);
+  const handleResume = () => setIsPaused(false);
+
   const currentHero = heroData[currentIndex];
 
   return (
-    <div className="relative w-full min-h-[80%] h-[600px] md:h-screen overflow-hidden">
+    <div
+      className="relative w-full min-h-[80%] h-[600px] md:h-screen overflow-hidden"
+      onMouseEnter={handlePause}
+      onMouseLeave={handleResume}
+      onTouchStart={handlePause}
+      onTouchEnd={handleResume}
+    >
       {/* Background Image */}
       <Image
         src={currentHero.image}
@@ -88,7 +100,6 @@ function Hero() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center md:items-start justify-center h-full md:p-20 text-white">
-        {/* Heading Animation */}
         <h1
           className={`text-2xl md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${
             animateHeading ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0"
@@ -96,8 +107,6 @@ function Hero() {
         >
           {currentHero.heading}
         </h1>
-
-        {/* Tagline Animation */}
         <p
           className={`text-sm md:text-xl mb-6 text-center md:text-left transition-all duration-500 transform ${
             animateTagline ? "translate-x-0 opacity-100" : "-translate-x-20 opacity-0"
@@ -105,8 +114,6 @@ function Hero() {
         >
           {currentHero.tagline}
         </p>
-
-        {/* Buttons Animation */}
         <div
           className={`flex space-x-4 transition-all duration-500 transform ${
             animateButtons ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
@@ -124,29 +131,29 @@ function Hero() {
       </div>
 
       {/* Carousel Controls */}
-      <div className="absolute -bottom-6 left-[30%] md:left-[40%] transform -translate-y-1/2 z-20">
+      {/* <div className="absolute -bottom-6 left-[30%] md:left-[40%] transform -translate-y-1/2 z-20">
         <button
           onClick={handlePrev}
           className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-left-s-line"></i>
         </button>
-      </div>
-      <div className="absolute -bottom-6 right-[30%] md:right-[40%] transform -translate-y-1/2 z-20">
+      </div> */}
+      {/* <div className="absolute -bottom-6 right-[30%] md:right-[40%] transform -translate-y-1/2 z-20">
         <button
           onClick={handleNext}
           className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-right-s-line"></i>
         </button>
-      </div>
+      </div> */}
 
       {/* Dots Indicator */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
         {heroData.map((_, index) => (
           <div
             key={index}
-            className={`w-4 h-4 flex items-center justify-center border border-white rounded-full`}
+            className="w-4 h-4 flex items-center justify-center border border-white rounded-full"
             onClick={() => {
               resetAnimations();
               setTimeout(() => {

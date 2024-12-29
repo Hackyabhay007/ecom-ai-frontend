@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSelector } from "react-redux";
+import CategoryDropdown from "../category/CategoryDropdown";
 
 function Footer() {
   const { items } = useSelector((state) => state.cart);
@@ -34,10 +35,12 @@ function Footer() {
               <i className="ri-home-line"></i>
               <span className="text-xs">Home</span>
             </Link>
-            <Link href="/category" className="flex flex-col items-center">
+            <div  className="flex flex-col items-center">
               <i className="ri-list-unordered"></i>
-              <span className="text-xs">Category</span>
-            </Link>
+              <span className="text-xs">
+                <CategoryDropdown/>
+              </span>
+            </div>
             <Link href="/shop" className="flex flex-col items-center">
               <i className="ri-shopping-bag-line"></i>
               <span className="text-xs">Shop</span>

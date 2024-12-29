@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleWishlistSidebar } from "../../../redux/slices/wishSlice";
 import Search from "../search/Search";
-
+import CategoryDropdown from "../category/CategoryDropdown";
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -97,15 +97,8 @@ function Navbar() {
               >
                 Shop
               </li>
-              <li
-                className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/category"
-                    ? "text-theme-blue font-semibold"
-                    : ""
-                }`}
-                onClick={() => navigateTo("/category")}
-              >
-                Category
+              <li>
+              <CategoryDropdown />
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
@@ -163,15 +156,8 @@ function Navbar() {
         >
           Shop
         </div>
-        <div
-          className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/category"
-              ? "text-theme-blue font-semibold"
-              : ""
-          }`}
-          onClick={() => navigateTo("/category")}
-        >
-          Category
+        <div className="w-fit">
+        <CategoryDropdown />
         </div>
         <div
           className={`cursor-pointer hover:text-theme-blue ${

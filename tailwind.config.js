@@ -30,6 +30,7 @@ module.exports = {
         "scroll-left-gallery": "scroll-left-gallery 10s linear infinite",
         "scroll-left": "scroll-left 15s linear infinite",
         "scroll-up": "scroll-up 15s linear infinite",
+        "scroll-down": "scroll-down 15s linear infinite",
         "scroll-up-gallery": "scroll-up-gallery 10s linear infinite",
         slideInLeft: 'slideInLeft 0.3s ease-in-out',
         slideInRight: 'slideInRight 0.3s ease-in-out',
@@ -49,6 +50,11 @@ module.exports = {
           "0%": { transform: "translateY(0%)" },
           "50%": { transform: "translateY(-50%)" },
           "100%": { transform: "translateY(0%)" },
+        },
+        "scroll-down": {
+          "0%": { transform: "translateY(-40%)" },
+          "50%": { transform: "translateY(0%)" },
+          "100%": { transform: "translateY(-40%)" },
         },
         "scroll-up-gallery": {
           "0%": { transform: "translateY(100%)" },
