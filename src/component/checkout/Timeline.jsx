@@ -11,11 +11,11 @@ function Timeline({ step }) {
   return (
     <div className="relative flex justify-between items-center w-full my-6">
       {/* Background line */}
-      <div className="absolute top-1/3 left-0 w-full h-2 rounded-full border border-theme-blue  -z-10"></div>
+      <div className="absolute top-1/4 md:top-1/3 left-0 w-full h-2 rounded-full border border-theme-blue  -z-10"></div>
 
       {/* Progress line */}
       <div
-    className="absolute top-1/3 left-0 h-2 max-w-80 md:max-w-6xl rounded-full border border-theme-blue bg-theme-blue -z-10 transition-all"
+    className="absolute top-1/4 md:top-1/3 left-0 h-2 max-w-80 md:max-w-6xl rounded-full border border-theme-blue bg-theme-blue -z-10 transition-all"
         style={{
           width: `${((step - 1) / (steps.length - 1)) * 100}%`,
         }}

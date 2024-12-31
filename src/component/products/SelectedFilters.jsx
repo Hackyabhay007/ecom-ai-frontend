@@ -12,7 +12,7 @@ const SelectedFilters = ({ filters, onClearFilter, onClearAllFilters, defaultPri
   });
 
   return (
-    <div className="flex gap-2 items-center">
+    <div className="flex flex-wrap gap-2 items-center">
       {filters.category && (
         <span className="border border-sub-color-sub-color border-sub-color text-gray-700 px-2 py-1 rounded-full">
           {filters.category}
@@ -77,9 +77,9 @@ const SelectedFilters = ({ filters, onClearFilter, onClearAllFilters, defaultPri
       {hasFiltersApplied && (
         <button
           onClick={onClearAllFilters}
-          className="border border-sub-color-red-500 bg-red-500 border-red-600  text-white px-4 py-1 rounded-full"
+          className="border border-sub-color-red-500 bg-white border-red-600  text-red-600 px-4 py-1 rounded-full"
         >
-          Clear All 
+          &times; Clear All 
         </button>
       )}
     </div>

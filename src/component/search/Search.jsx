@@ -40,7 +40,7 @@ const Search = ({ onClose, isMobile }) => {
       className={`${
         isMobile
           ? " w-full  bg-white"
-          : "fixed top-1/2 left-1/2 w-[70%] min-h-[40vh] -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-3xl shadow-2xl shadow-black z-50"
+          : "fixed top-1/2 left-1/2 w-[70%] min-h-[32vh] -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-3xl shadow-2xl shadow-black z-50"
       }`}
     >
       <div className="md:flex hidden justify-between items-center mb-4">

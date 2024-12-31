@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
-import { addToWishlist, toggleWishlistSidebar } from "../../../redux/slices/wishSlice";
+import {
+  addToWishlist,
+  toggleWishlistSidebar,
+} from "../../../redux/slices/wishSlice";
 import { addToCart } from "../../../redux/slices/cartSlice";
 import QuickView from "./product_view/QuickView";
 
@@ -85,7 +88,9 @@ const ProductCard = ({ product, layout }) => {
           {tags.map((tag, index) => (
             <span
               key={index}
-              className={`${getTagColor(tag)} text-black text-xs px-3 py-1 absolute top-2 left-2 rounded-full`}
+              className={`${getTagColor(
+                tag
+              )} text-black text-xs px-3 py-1 absolute top-2 left-2 rounded-full`}
             >
               {tag}
             </span>
@@ -98,7 +103,9 @@ const ProductCard = ({ product, layout }) => {
           >
             <i
               className={`text-xl ${
-                isWishlistAdded ? "text-black ri-heart-fill" : "text-black ri-heart-line"
+                isWishlistAdded
+                  ? "text-black ri-heart-fill"
+                  : "text-black ri-heart-line"
               }`}
             ></i>
           </div>
@@ -135,19 +142,24 @@ const ProductCard = ({ product, layout }) => {
               : ""
           }`}
         >
-          <h3 className="md:mb-2 mb-1 font-medium text-sm md:text-md text-cream text-left">
+          <h3 className="mb-2 font-medium text-sm md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
             {name}
           </h3>
-          <div className="flex flex-wrap mb-5 gap-3 items-center">
+
+          <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
             <span className="text-sm md:text-md">₹{price}</span>
-            <span className="md:text-sm text-xs text-sub-color line-through">₹{prevPrice}</span>
+            <span className="md:text-sm text-xs text-sub-color line-through">
+              ₹{prevPrice}
+            </span>
             <span className="text-black bg-[#D2EF9A] rounded-full px-[6px] py-[3px] font-thin text-xs">
               - {discount}% off
             </span>
           </div>
           {layout === "list" && (
             <>
-              <p className="md:text-sm text-xs text-sub-color mb-2">{description}</p>
+              <p className="md:text-sm text-xs text-sub-color mb-2">
+                {description}
+              </p>
               {/* Quick View Button (For List Layout - Below Description) */}
               <div className="mt-2">
                 <button

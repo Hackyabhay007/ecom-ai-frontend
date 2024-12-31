@@ -84,7 +84,7 @@ function Collection() {
                   height={500}
                   className={`h-[150px] md:h-[450px] rounded-md object-cover ${
                     index === currentIndex + 1
-                      ? "border-2 border-cyan-400"
+                      ? "border-2 border-cyan-500 shadow shadow-cyan-200 md:scale-100 scale-125"
                       : ""
                   }`}
                 />

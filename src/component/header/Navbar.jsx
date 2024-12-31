@@ -62,13 +62,12 @@ function Navbar() {
 
           {/* Right Icons */}
           <div className="flex space-x-4 items-center">
-          <i
-          className="ri-user-line text-2xl cursor-pointer hover:text-black"
-          onClick={() =>
-            user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")
-          }
-        ></i>
-           
+            <i
+              className="ri-user-line text-2xl cursor-pointer hover:text-black"
+              onClick={() =>
+                user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")
+              }
+            ></i>
           </div>
         </div>
 
@@ -91,18 +90,22 @@ function Navbar() {
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/shop" ? "text-theme-blue font-semibold" : ""
+                  router.pathname === "/shop"
+                    ? "text-theme-blue font-semibold"
+                    : ""
                 }`}
                 onClick={() => navigateTo("/shop")}
               >
                 Shop
               </li>
               <li>
-              <CategoryDropdown />
+                <CategoryDropdown />
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/about" ? "text-theme-blue font-semibold" : ""
+                  router.pathname === "/about"
+                    ? "text-theme-blue font-semibold"
+                    : ""
                 }`}
                 onClick={() => navigateTo("/about")}
               >
@@ -156,16 +159,18 @@ function Navbar() {
         >
           Shop
         </div>
-        <div className="w-fit">
-        <CategoryDropdown />
+        <div className="">
+          <CategoryDropdown />
         </div>
         <div
           className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/checkout" ? "text-theme-blue font-semibold" : ""
+            router.pathname === "/about"
+              ? "text-theme-blue font-semibold"
+              : ""
           }`}
-          onClick={() => navigateTo("/checkout")}
+          onClick={() => navigateTo("/about")}
         >
-          About(checkout testing)
+          About
         </div>
         <div
           className={`cursor-pointer hover:text-theme-blue ${
@@ -208,7 +213,9 @@ function Navbar() {
       </div>
 
       {/* Desktop Search */}
-      {isSearchOpen && <Search onClose={() => setIsSearchOpen(false)} isMobile={false} />}
+      {isSearchOpen && (
+        <Search onClose={() => setIsSearchOpen(false)} isMobile={false} />
+      )}
     </nav>
   );
 }

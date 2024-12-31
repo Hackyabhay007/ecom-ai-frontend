@@ -1,10 +1,10 @@
 import React from "react";
-
+import Link from "next/link";
 const SearchSuggestion = ({ suggestions, onSuggestionClick }) => {
   if (suggestions.length === 0) return null; // Do not render if no suggestions
 
   return (
-    <ul className=" mt-2">
+    <ul className="mt-2">
       {suggestions.map((product) => (
         <li
           key={product.id}
@@ -25,6 +25,10 @@ const SearchSuggestion = ({ suggestions, onSuggestionClick }) => {
           </div>
         </li>
       ))}
+<Link href="/shop">
+  <p className="text-sub-color cursor-pointer border-b  hover:border-sub-color w-fit">see all..</p>
+</Link>
+
     </ul>
   );
 };

@@ -71,40 +71,42 @@ const ProductList = ({ products, layout }) => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-center mt-4">
-        <button
-          onClick={prevPage}
-          disabled={currentPage === 1}
-          className="px-4 py-2 border rounded-lg"
-        >
-          Previous
-        </button>
+      {currentProducts.length > 0 && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className="px-4 py-2 border rounded-lg"
+          >
+            Previous
+          </button>
 
-        {/* Page Numbers */}
-        <div className="flex items-center mx-2">
-          {pageNumbers.map((page) => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`px-4 py-2 mx-1 border rounded-lg ${
-                currentPage === page
-                  ? "bg-black text-white"
-                  : "bg-white text-black hover:bg-gray-200"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {/* Page Numbers */}
+          <div className="flex items-center mx-2">
+            {pageNumbers.map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 mx-1 border rounded-lg ${
+                  currentPage === page
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-gray-200"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={nextPage}
+            disabled={currentPage >= totalPages}
+            className="px-4 py-2 border rounded-lg"
+          >
+            Next
+          </button>
         </div>
-
-        <button
-          onClick={nextPage}
-          disabled={currentPage >= totalPages}
-          className="px-4 py-2 border rounded-lg"
-        >
-          Next
-        </button>
-      </div>
+      )}
     </div>
   );
 };

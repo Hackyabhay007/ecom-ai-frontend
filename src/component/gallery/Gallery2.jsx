@@ -3,9 +3,9 @@ import Image from 'next/image';
 
 function Gallery2() {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center h-96">
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-[80%] md:h-96">
       {/* Image 1 */}
-      <div className="relative w-full h-48 md:h-full md:w-1/2 group">
+      <div className="relative w-full h-[40%] md:h-full md:w-1/2 group">
         <Image
           src="/images/gallery/galleryA1.png"
           alt="Gallery A1"
@@ -36,7 +36,7 @@ function Gallery2() {
       </div>
 
       {/* Image 2 */}
-      <div className="relative w-full h-40 md:h-full md:w-1/2 group">
+      <div className="relative w-full h-[40%] md:h-full md:w-1/2 group">
         <Image
           src="/images/gallery/galleryA2.png"
           alt="Gallery A2"

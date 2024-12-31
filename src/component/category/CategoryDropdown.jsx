@@ -21,15 +21,6 @@ const CategoryDropdown = () => {
     }
   };
 
-  // Disable scrolling when dropdown is open
-  const disableScrolling = () => {
-    if (isCategoryOpen) {
-      document.body.style.overflow = "hidden"; // Disable body scroll
-    } else {
-      document.body.style.overflow = "auto"; // Re-enable body scroll
-    }
-  };
-
   // Add event listener to detect clicks outside of the dropdown
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -38,23 +29,18 @@ const CategoryDropdown = () => {
     };
   }, []);
 
-  // Call disableScrolling on every render to ensure body scroll behavior is updated
-  useEffect(() => {
-    disableScrolling();
-  }, [isCategoryOpen]);
-
   return (
     <div className="relative">
       {/* Category Text with Click Event */}
       <div
         ref={categoryRef} // Reference to the Category text
-        className="cursor-pointer hover:text-theme-blue flex items-center space-x-2"
+        className="cursor-pointer hover:text-theme-blue flex"
         onClick={toggleCategoryDropdown} // Toggle dropdown visibility on click
       >
         <span>Category</span>
         {/* Show the icon (arrow up/down) based on dropdown open/close */}
         <i
-          className={`text-lg ${
+          className={`hidden md:block text-lg ${
             isCategoryOpen ? "ri-arrow-up-s-line" : "ri-arrow-down-s-line"
           }`}
         ></i>
@@ -63,24 +49,22 @@ const CategoryDropdown = () => {
       {/* Dropdown container */}
       <div
         ref={dropdownRef} // Reference to the Dropdown container
-        className={`fixed inset-x-0 ${
-          isCategoryOpen ? "bottom-[10%]" : "top-[10%]"
-        } bg-white shadow-lg z-50 p-6 transition-all duration-300 ease-out transform ${
+        className={`fixed inset-x-0 h-fit bottom-[11%] md:top-[12%] bg-white z-50 p-6 transition-all duration-300 ease-out transform ${
           isCategoryOpen
-            ? "opacity-100 md:translate-y-0 translate-y-5"
-            : "opacity-0 md:-translate-y-5 translate-y-10"
-        } sm:translate-y-0 sm:top-[10%] sm:max-w-screen h-fit mx-auto`}
+            ? "opacity-100 animate-dropdown translate-y-0"
+            : "hidden -translate-y-5"
+        }`}
       >
         {/* Category Items */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 max-w-screen ">
+        <div className="flex flex-wrap justify-around gap-4 max-w-screen-xl mx-auto">
           {CategoryData.map((category, index) => (
             <div
               key={index}
-              className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-200"
-              style={{ minWidth: "100px" }}
+              className="flex  items-center space-x-1 md:space-x-3 p-4 border rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-200"
+            //   style={{ width: "calc(15% - 1rem)", minWidth: "100px" }}
             >
-              <i className={`${category.icon} text-3xl`}></i>
-              <span className="font-medium">{category.name}</span>
+              <i className={`${category.icon} text-md md:text-3xl`}></i>
+              <span className="font-medium text-xs md:text-sm">{category.name}</span>
             </div>
           ))}
         </div>

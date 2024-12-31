@@ -35,11 +35,9 @@ function Footer() {
               <i className="ri-home-line"></i>
               <span className="text-xs">Home</span>
             </Link>
-            <div  className="flex flex-col items-center">
+            <div className="flex flex-col items-center">
               <i className="ri-list-unordered"></i>
-              <span className="text-xs">
-                <CategoryDropdown/>
-              </span>
+              <CategoryDropdown />
             </div>
             <Link href="/shop" className="flex flex-col items-center">
               <i className="ri-shopping-bag-line"></i>
@@ -94,7 +92,9 @@ function Footer() {
                   <Link href="/policy/cookies-policy">Cookies Policy</Link>
                 </li>
                 <li>
-                  <Link href="/policy/term-condition">Terms and Conditions</Link>
+                  <Link href="/policy/term-condition">
+                    Terms and Conditions
+                  </Link>
                 </li>
                 <li>
                   <Link href="/track-order">Track order</Link>
