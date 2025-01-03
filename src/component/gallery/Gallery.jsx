@@ -8,7 +8,7 @@ function Gallery() {
       style={{ backgroundImage: "url('/images/gallery/gallery1.png')" }}
     >
       {/* Right Side Grid with Scrolling Animation */}
-      <div className="ml-auto w-full md:w-1/3 h-full overflow-hidden flex justify-end">
+      <div className="ml-auto w-full md:w-1/2 lg:w-1/3 h-full overflow-hidden flex justify-end">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
           {/* Grid Column 1 - Scroll Up */}
           <div className="space-y-4 animate-scroll-up">

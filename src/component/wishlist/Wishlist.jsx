@@ -33,15 +33,16 @@ const Wishlist = () => {
   });
 
   return (
-    <div>
+    <div className="mb-10">
       <WishlistBreadCrumb />
       <WishlistGridLayout
         onLayoutChange={handleLayoutChange}
         onFilterChange={handleFilterChange}
       />
       <span className="text-sub-color font-medium text-lg px-5">
-          {sortedWishlist.length} Product{sortedWishlist.length !== 1 && "s"} Found
-        </span>
+        {sortedWishlist.length} Product{sortedWishlist.length !== 1 && "s"}{" "}
+        Found
+      </span>
       <div
         className={`grid gap-4 p-4`}
         style={{
@@ -51,11 +52,11 @@ const Wishlist = () => {
         {sortedWishlist.map((product) => (
           <div
             key={product.id}
-            className="rounded-lg text-center mb-10  relative text-cream cursor-pointer"
+            className="rounded-lg text-center  relative text-cream cursor-pointer"
             onClick={() => (window.location.href = `/shop/${product.id}`)}
           >
             {/* Image */}
-            <div className="relative w-full h-96">
+            <div className="relative w-full h-32 md:h-96">
               <Image
                 src={product.image}
                 alt={product.name}
@@ -67,19 +68,20 @@ const Wishlist = () => {
 
             {/* Product Information */}
             <div className="mt-4 px-2">
-              <h3 className="mb-1 font-medium text-sm md:text-md text-cream text-left">
+              <h3 className="mb-1 font-medium text-xs md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
                 {product.name}
               </h3>
+
               <div className="flex flex-wrap mb-5 gap-3 items-center justify-start">
-                <span className="md:text-lg text-sm">₹{product.price}</span>
+                <span className="md:text-lg text-xs">₹{product.price}</span>
                 {product.prevPrice && (
                   <span className="text-xs text-sub-color line-through">
                     ₹{product.prevPrice}
                   </span>
                 )}
                 {product.discount && (
-                  <span className="bg-[#D2EF9A] rounded-full px-[6px] py-[4px] font-thin text-xs text-black">
-                    -{product.discount}% off
+                  <span className="bg-[#D2EF9A] rounded-full px-[5px] py-[2px] font-thin text-xs text-black">
+                    -{product.discount}% 
                   </span>
                 )}
               </div>

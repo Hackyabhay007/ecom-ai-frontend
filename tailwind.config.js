@@ -27,17 +27,18 @@ module.exports = {
         'gradient-custom': 'linear-gradient(to right, #6a11cb, #2575fc)',
       },
       animation: {
-        "scroll-left-gallery": "scroll-left-gallery 10s linear infinite",
+        "scroll-left-gallery": "scroll-left-gallery 50s linear infinite",
         "scroll-left": "scroll-left 15s linear infinite",
         "scroll-up": "scroll-up 15s linear infinite",
         "scroll-down": "scroll-down 15s linear infinite",
-        "scroll-up-gallery": "scroll-up-gallery 10s linear infinite",
+        "scroll-up-gallery": "scroll-up-gallery 2s linear infinite",
         slideInLeft: 'slideInLeft 0.3s ease-in-out',
         slideInRight: 'slideInRight 0.3s ease-in-out',
         "progress-bar": "progress-bar 2s linear",
         'scale-up': 'scale-up 0.3s ease-out',
         dropdown: "dropdown 0.2s ease-in-out",
         "dropdown-out": "dropdown-out 0.2s ease-in-out",
+        "fade-in-out": "fade-in-out 2s infinite",
       },
       keyframes: {
         "scroll-left": {
@@ -59,8 +60,8 @@ module.exports = {
           "100%": { transform: "translateY(-40%)" },
         },
         "scroll-up-gallery": {
-          "0%": { transform: "translateY(100%)" },
-          "100%": { transform: "translateY(-100%)" },
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-5%)" },
         },
         slideInLeft: {
           '0%': { transform: 'translateX(0%)' },
@@ -85,6 +86,10 @@ module.exports = {
         "dropdown-out": {
           "0%": { transform: "translateY(0)", opacity: "1" },
           "100%": { transform: "translateY(-10px)", opacity: "0" },
+        },
+        "fade-in-out": {
+          "0%, 100%": { opacity: "0" },
+          "50%": { opacity: "1" },
         },
       },
     },

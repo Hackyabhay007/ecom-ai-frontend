@@ -47,8 +47,8 @@ const CartItem = ({ item }) => {
           <p className="text-sm text-gray-500">₹{item.price}</p>
         </div>
       </d>
-      <div className="flex items-center gap-10">
-        <div className="flex gap-4 items-center border p-1 border-cream">
+      <div className="flex items-center gap-5 md:gap-10">
+        <div className="flex gap-2 md:gap-4 items-center border p-1 border-cream">
         <button
           className="px-2 py-0 bg-theme-blue text-white rounded-sm"
           onClick={() => handleQuantityChange("decrement")}

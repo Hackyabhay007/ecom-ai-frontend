@@ -50,15 +50,26 @@ function Navbar() {
           ></i>
 
           {/* Logo */}
-          <div className="flex justify-center items-center">
-            <Image
-              src="/images/logo/logo.png"
-              alt="Logo"
-              width={500}
-              height={500}
-              className="w-20"
-            />
-          </div>
+          <Link href="/">
+            <div className="flex justify-center items-center relative w-20 h-10">
+              {/* Main logo */}
+              <Image
+                src="/images/logo/logo.png"
+                alt="Logo"
+                width={500}
+                height={500}
+                className="absolute w-20  "
+              />
+              {/* Smaller logo */}
+              <Image
+                src="/images/logo/logo2.png"
+                alt="Logo 2"
+                width={500}
+                height={500}
+                className="absolute left-1 top-4 w-[11px] animate-pulse"
+              />
+            </div>
+          </Link>
 
           {/* Right Icons */}
           <div className="flex space-x-4 items-center">
@@ -98,9 +109,6 @@ function Navbar() {
               >
                 Shop
               </li>
-              <li>
-                <CategoryDropdown />
-              </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
                   router.pathname === "/about"
@@ -121,6 +129,16 @@ function Navbar() {
               >
                 Contact Us
               </li>
+              <li
+                className={`cursor-pointer hover:text-theme-blue ${
+                  router.pathname === "/wishlist"
+                    ? "text-theme-blue font-semibold"
+                    : ""
+                }`}
+                onClick={() => navigateTo("/wishlist")}
+              >
+                Wishlist
+              </li>
             </ul>
           </div>
         )}
@@ -130,17 +148,27 @@ function Navbar() {
 
   return (
     <nav className="bg-white text-black flex items-center justify-around p-4 py-6 shadow-md">
-      {/* Logo */}
-      <div className="flex items-center">
-        <Image
-          src="/images/logo/logo.png"
-          alt="Logo"
-          width={400}
-          height={400}
-          className="w-28"
-        />
-      </div>
-
+      <Link href="/">
+        {/* Logo */}
+        <div className="flex justify-center items-center relative w-28 h-10">
+          {/* Main logo */}
+          <Image
+            src="/images/logo/logo.png"
+            alt="Logo"
+            width={500}
+            height={500}
+            className="absolute w-28"
+          />
+          {/* Smaller logo */}
+          <Image
+            src="/images/logo/logo2.png"
+            alt="Logo 2"
+            width={500}
+            height={500}
+            className="absolute left-1 top-4 w-[15px] animate-pulse"
+          />
+        </div>
+      </Link>
       {/* Navigation Links */}
       <div className="flex items-center space-x-14">
         <div
@@ -164,9 +192,7 @@ function Navbar() {
         </div>
         <div
           className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/about"
-              ? "text-theme-blue font-semibold"
-              : ""
+            router.pathname === "/about" ? "text-theme-blue font-semibold" : ""
           }`}
           onClick={() => navigateTo("/about")}
         >

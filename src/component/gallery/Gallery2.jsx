@@ -25,15 +25,21 @@ function Gallery2() {
 
       {/* Black Strip with Scrolling Text */}
       <div className="bg-black h-8 pt-1 text-white text-sm flex overflow-hidden md:flex-col md:h-full gap-11 w-full md:w-10 items-center justify-center md:writing-mode-vertical px-2">
-        {/* Create a wrapper for the text with the animation */}
-        <div className="overflow-hidden gap-4 md:gap-0 flex flex-row md:flex-col h-full animate-scroll-left-gallery md:animate-scroll-up-gallery md:space-y-10">
-          {Array.from({ length: 20 }, (_, i) => (
-            <p key={i} className="md:mb-0 rotate-0 md:rotate-90 whitespace-nowrap">
-              {`NEW`}
-            </p>
-          ))}
-        </div>
-      </div>
+  {/* Create a wrapper for the text with the animation */}
+  <div className="gap-4 md:gap-0 flex flex-row md:flex-col h-fit animate-scroll-left-gallery md:animate-scroll-up-gallery md:space-y-10">
+    {Array.from({ length: 20 }, (_, i) => (
+      <p key={`original-${i}`} className="md:mb-0 rotate-0 md:rotate-90 whitespace-nowrap">
+        NEW
+      </p>
+    ))}
+    {Array.from({ length: 20 }, (_, i) => (
+      <p key={`duplicate-${i}`} className="md:mb-0 rotate-0 md:rotate-90 whitespace-nowrap">
+        NEW
+      </p>
+    ))}
+  </div>
+</div>
+
 
       {/* Image 2 */}
       <div className="relative w-full h-[40%] md:h-full md:w-1/2 group">

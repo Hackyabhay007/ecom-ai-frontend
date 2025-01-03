@@ -38,7 +38,7 @@ function BestSeller() {
     <div className="h-fit p-8">
       <div className="flex flex-col md:flex-row">
         <div className="md:w-1/3 p-4 flex gap-5 flex-col justify-center">
-          <h1 className="text-theme-blue text-center md:text-start font-bold text-3xl md:text-7xl mb-4">Best Seller Products</h1>
+          <h1 className="text-theme-blue text-center md:text-start font-bold text-3xl md:text-5xl lg:text-7xl mb-4">Best Seller Products</h1>
           <p className="text-sm text-sub-color mb-4">
             "Fashion Fads May come and go, but my style is eternal.
             Your Fashion always reflects who you really are.
@@ -48,10 +48,10 @@ function BestSeller() {
             Shop Now
           </button>
         </div>
-        <div className="md:w-2/3  flex overflow-x-scroll space-x-4 scrollbar-custom">
+        <div className="md:w-2/3  flex  overflow-x-scroll space-x-4 scrollbar-custom">
           <div className="flex space-x-4 w-full" style={{ minWidth: '100%' }}>
             {dummyData.map((item, index) => (
-              <div key={index} className="flex-none w-full h-full md:w-1/2 md:px-4">
+              <div key={index} className="flex-none w-full h-full md:w-2/3 lg:w-1/2 md:px-4">
                 <BestSellerCard
                   image={item.image}
                   rating={item.rating}

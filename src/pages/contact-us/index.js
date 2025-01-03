@@ -21,7 +21,7 @@ const ContactUsPage = () => {
       {isLoading ? (
         <>
          <Navbar />
-        <Loader /> // Show loader while the page is loading
+        <Loader /> 
         <Footer /> 
         </>
       ) : (

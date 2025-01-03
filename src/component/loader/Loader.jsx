@@ -3,17 +3,25 @@ import Image from 'next/image';
 
 function Loader() {
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="animate-pulse">
+    <div className="flex justify-center mt-28 w-screen h-screen">
+      {/* Parent logo */}
+      <div className="relative w-[200px] h-[200px]">
+        {/* Main logo */}
+        <Image
+          src="/images/logo/logo.png"
+          alt="Logo"
+          layout="fill"
+          objectFit="contain"
+          className="relative animate-pulse"
+        />
+        {/* Child logo */}
         <Image
           src="/images/logo/logo2.png"
-          alt="Loading"
-          width={100}
-          height={100}
-          priority
-          className="rounded-full"
+          alt="Logo 2"
+          width={50}
+          height={50}
+          className="absolute top-[45%] left-2 w-7"
         />
-        <h1>Loading..</h1>
       </div>
     </div>
   );

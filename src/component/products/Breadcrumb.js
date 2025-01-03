@@ -20,7 +20,7 @@ const Breadcrumb = ({ heading, subCategory, onCategorySelect, categories = [] })
 
       {/* Product Types */}
       <div className="py-2">
-      <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold text-[#1F1F1F] uppercase">
+      <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm font-semibold text-[#1F1F1F] uppercase">
   {categories.map((type) => (
     <span
       key={type}

@@ -15,7 +15,7 @@ function Timeline({ step }) {
 
       {/* Progress line */}
       <div
-    className="absolute top-1/4 md:top-1/3 left-0 h-2 max-w-80 md:max-w-6xl rounded-full border border-theme-blue bg-theme-blue -z-10 transition-all"
+    className="absolute top-1/4 md:top-1/3 left-0 h-2 max-w-full md:max-w-full lg:max-w-full rounded-full border border-theme-blue bg-theme-blue -z-10 transition-all"
         style={{
           width: `${((step - 1) / (steps.length - 1)) * 100}%`,
         }}

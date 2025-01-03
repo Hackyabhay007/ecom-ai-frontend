@@ -75,7 +75,7 @@ const ProductCard = ({ product, layout }) => {
         {/* Image Section */}
         <div
           className={`relative ${
-            layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
+            layout === "list" ? "lg:w-1/4 w-1/2" : "w-full"
           } h-64 md:h-96 group`}
         >
           <Image
@@ -142,7 +142,7 @@ const ProductCard = ({ product, layout }) => {
               : ""
           }`}
         >
-          <h3 className="mb-2 font-medium text-sm md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
+          <h3 className="mb-2 text-wrap font-medium text-sm md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
             {name}
           </h3>
 

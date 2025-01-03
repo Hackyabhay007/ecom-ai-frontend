@@ -14,7 +14,7 @@ function BestSellerCard({ image, rating, price, prevPrice, discount }) {
       <div className="flex flex-col p-4">
         <h2 className="font-bold">Clothing for men</h2>
         <span className="text-yellow-600 font-semibold mr-2">{rating} ★</span>
-        <div className="flex gap-5 items-center">
+        <div className="flex flex-wrap gap-5 items-center">
           <span className="font-bold text-lg">₹{price}</span>
           <span className="text-sub-color line-through">₹{prevPrice}</span>
           <span className="text-white bg-theme-blue rounded-full px-2 text-sm">- {discount}% off</span>

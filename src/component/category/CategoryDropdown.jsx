@@ -37,10 +37,10 @@ const CategoryDropdown = () => {
         className="cursor-pointer hover:text-theme-blue flex"
         onClick={toggleCategoryDropdown} // Toggle dropdown visibility on click
       >
-        <span>Category</span>
+        <span className="text-xs md:text-base">Category</span>
         {/* Show the icon (arrow up/down) based on dropdown open/close */}
         <i
-          className={`hidden md:block text-lg ${
+          className={`hidden lg:block text-lg ${
             isCategoryOpen ? "ri-arrow-up-s-line" : "ri-arrow-down-s-line"
           }`}
         ></i>

@@ -61,8 +61,8 @@ const DashboardContent = () => {
             <tr className="text-left border-b-2 uppercase">
               <th className="px-2 md:px-4 py-2">Order</th>
               <th className="px-2 md:px-4 py-2">Products</th>
-              <th className="px-2 md:px-4 py-2">Pricing</th>
-              <th className="px-2 md:px-4 py-2">Status</th>
+              <th className="px-6 md:px-4 py-2">Pricing</th>
+              <th className="px-6 md:px-4 py-2">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -81,7 +81,7 @@ const DashboardContent = () => {
                         <p className="font-bold text-xs md:text-sm">
                           {product.name}
                         </p>
-                        <div className="text-xs text-sub-color">
+                      <div className="text-xs w-20 md:w-28 text-left overflow-hidden text-ellipsis whitespace-nowrap text-sub-color">
                           {product.tags.map((tag, idx) => (
                             <span
                               key={idx}
@@ -95,7 +95,7 @@ const DashboardContent = () => {
                     </div>
                   ))}
                 </td>
-                <td className="px-2 md:px-4 py-2">{order.pricing}</td>
+                <td className="px-6 md:px-4 py-2">{order.pricing}</td>
                 <td className="px-2 md:px-4 py-2">
                   <span
                     className={`px-3 py-1 rounded-full text-xs md:text-sm font-bold ${
