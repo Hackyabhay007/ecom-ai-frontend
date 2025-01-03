@@ -59,17 +59,19 @@ function Collection() {
       {/* Horizontal Scrollable Images with Buttons */}
       <div className="relative px-4 md:px-10">
         {/* Left Button */}
-        <button
-        className="absolute left-0 md:left-4 top-1/2 transform -translate-y-1/2 backdrop-blur-sm bg-cream/30 text-white border md:p-1 rounded-full z-10 hover:bg-white/40 transition"
-          onClick={handlePrev}
-        >
-          <i className="ri-arrow-drop-left-fill text-3xl"></i>
-        </button>
+        {currentIndex > 0 && (
+          <button
+            className="absolute left-0 md:left-4 top-1/2 transform -translate-y-1/2 backdrop-blur-sm bg-cream/30 text-white border px-[4px] py-[2px] rounded-full z-10 hover:bg-white/40 transition"
+            onClick={handlePrev}
+          >
+            <i className="ri-arrow-drop-left-fill text-3xl"></i>
+          </button>
+        )}
 
         {/* Scrollable Images */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 h-[210px] md:gap-10 md:h-[600px] overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth items-center"
+          className="flex gap-7 h-[300px] md:gap-10 md:h-[600px] overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth items-center"
         >
           {collectionData.map((item, index) => (
             <div
@@ -84,7 +86,7 @@ function Collection() {
                   height={500}
                   className={`h-[150px] md:h-[450px] rounded-md object-cover ${
                     index === currentIndex + 1
-                      ? "border-2 border-cyan-500 shadow shadow-cyan-200 md:scale-100 scale-125 transition-all duration-300 delay-100 ease-in-out"
+                      ? "border-2 border-cyan-500 shadow shadow-cyan-200 md:scale-100 scale-150 transition-all duration-300 delay-100 ease-in-out"
                       : ""
                   }`}
                 />
@@ -94,12 +96,14 @@ function Collection() {
         </div>
 
         {/* Right Button */}
-        <button
-          className="absolute right-0 md:right-4 top-1/2 transform -translate-y-1/2 backdrop-blur-sm bg-cream/30 text-white border md:p-1 rounded-full z-10 hover:bg-white/40 transition"
-          onClick={handleNext}
-        >
-          <i className="ri-arrow-drop-right-fill text-3xl"></i>
-        </button>
+        {currentIndex < collectionData.length - 3 && (
+          <button
+            className="absolute right-0 md:right-4 top-1/2 transform -translate-y-1/2 backdrop-blur-sm bg-cream/30 text-white border px-[4px] py-[2px] rounded-full z-10 hover:bg-white/40 transition"
+            onClick={handleNext}
+          >
+            <i className="ri-arrow-drop-right-fill text-3xl"></i>
+          </button>
+        )}
       </div>
 
       {/* View All Button */}

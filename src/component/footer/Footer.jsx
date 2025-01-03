@@ -36,7 +36,7 @@ function Footer() {
               <span className="text-xs">Home</span>
             </Link>
             <div className="flex flex-col items-center">
-              <i className="ri-list-unordered"></i>
+             
               <CategoryDropdown />
             </div>
             <Link href="/shop" className="flex flex-col items-center">

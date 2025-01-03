@@ -330,7 +330,7 @@ const ShopArea = () => {
     setHeading(category.charAt(0).toUpperCase() + category.slice(1));
   };
   return (
-    <div className="">
+    <div className="mb-20 md:mb-5">
       {/* Breadcrumb */}
       <Breadcrumb
         heading={heading}

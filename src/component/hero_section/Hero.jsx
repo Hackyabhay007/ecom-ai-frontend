@@ -99,9 +99,9 @@ function Hero() {
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center md:items-start justify-center h-full md:p-20 text-white">
+      <div className="relative z-10 flex flex-col items-center md:m-auto mt-36 md:items-start justify-center h-full md:p-20 text-white">
         <h1
-          className={`text-2xl md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${
+          className={`text-5xl text-wrap md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${
             animateHeading ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0"
           }`}
         >

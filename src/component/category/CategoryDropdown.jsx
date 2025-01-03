@@ -14,8 +14,10 @@ const CategoryDropdown = () => {
   // Close dropdown if clicked outside of it
   const handleClickOutside = (event) => {
     if (
-      categoryRef.current && !categoryRef.current.contains(event.target) &&
-      dropdownRef.current && !dropdownRef.current.contains(event.target)
+      categoryRef.current &&
+      !categoryRef.current.contains(event.target) &&
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target)
     ) {
       setIsCategoryOpen(false);
     }
@@ -34,11 +36,14 @@ const CategoryDropdown = () => {
       {/* Category Text with Click Event */}
       <div
         ref={categoryRef} // Reference to the Category text
-        className="cursor-pointer hover:text-theme-blue flex"
+        className="cursor-pointer flex"
         onClick={toggleCategoryDropdown} // Toggle dropdown visibility on click
       >
-        <span className="text-xs md:text-base">Category</span>
-        {/* Show the icon (arrow up/down) based on dropdown open/close */}
+        <div className="flex flex-col justify-center items-center">
+          <i className=" md:hidden ri-list-unordered"></i>
+          <span className="text-xs md:text-base">Category</span>
+        </div>
+
         <i
           className={`hidden lg:block text-lg ${
             isCategoryOpen ? "ri-arrow-up-s-line" : "ri-arrow-down-s-line"
@@ -61,10 +66,12 @@ const CategoryDropdown = () => {
             <div
               key={index}
               className="flex  items-center space-x-1 md:space-x-3 p-4 border rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-200"
-            //   style={{ width: "calc(15% - 1rem)", minWidth: "100px" }}
+              //   style={{ width: "calc(15% - 1rem)", minWidth: "100px" }}
             >
               <i className={`${category.icon} text-md md:text-3xl`}></i>
-              <span className="font-medium text-xs md:text-sm">{category.name}</span>
+              <span className="font-medium text-xs md:text-sm">
+                {category.name}
+              </span>
             </div>
           ))}
         </div>
