@@ -7,6 +7,7 @@ import RelatedProducts from "./RelatedProducts";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../../../redux/slices/cartSlice";
 import ProductDetailsInfo from "./ProductDetailsInfo";
+import CustomSize from "./CustomSize";
 const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
@@ -15,6 +16,13 @@ const ProductView = ({ product, allProducts }) => {
   const [warning, setWarning] = useState("");
   const [isAdded, setIsAdded] = useState(false);
   const [isProgressVisible, setIsProgressVisible] = useState(false);
+  const [isCustomSizeVisible, setIsCustomSizeVisible] = useState(false);
+  const [customSize, setCustomSize] = useState(null);
+
+  const handleApplyCustomSize = (size) => {
+    setCustomSize(size);
+    setSelectedSize("Custom");
+  };
   const handleQuantityChange = (type) => {
     setQuantity((prev) =>
       type === "increment" ? prev + 1 : Math.max(1, prev - 1)
@@ -108,7 +116,7 @@ const ProductView = ({ product, allProducts }) => {
   const averageRating = getAverageRating();
 
   return (
-    <div className="">
+    <div className="mb-10 md:mb-0">
             {warning && (
         <div className="fixed top-20 right-10 z-50 flex flex-col items-center bg-white text-[#112A46] border-t-4 border-red-500  rounded-b-lg shadow shadow-black p-4 w-72">
           <div className="flex items-center w-full">
@@ -192,21 +200,48 @@ const ProductView = ({ product, allProducts }) => {
 
     {/* Size Selection */}
     <div className="mb-4">
-      <span className="text-sm text-cream">Size: </span>
-      <div className="flex gap-4">
-        {sizes.map((size, index) => (
+        <span className="text-sm text-cream">Size: </span>
+        <div className="flex gap-4">
+          {product.sizes.map((size, index) => (
+            <div
+              key={index}
+              className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
+                selectedSize === size ? "border-black" : ""
+              }`}
+              onClick={() => setSelectedSize(size)}
+            >
+              {size}
+            </div>
+          ))}
           <div
-            key={index}
-            className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
-              selectedSize === size ? "border-black" : ""
+            className={`w-fit hover:bg-discount-color border border-gray-300 rounded-3xl transition-all px-4  h-10  flex items-center justify-center cursor-pointer ${
+              selectedSize === "Custom" ? "border-black" : ""
             }`}
-            onClick={() => setSelectedSize(size)}
+            onClick={() => setIsCustomSizeVisible(true)}
           >
-            {size}
+            Custom size
           </div>
-        ))}
+        </div>
+        {customSize && (
+          <div className="mt-2 text-sm text-gray-600">
+            Custom Size Selected: Chest {customSize.chest} cm, Sleeve{" "}
+            {customSize.sleeve} cm, Shoulder {customSize.shoulder} cm, Waist{" "}
+            {customSize.waist} cm
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Render CustomSize popup */}
+      {isCustomSizeVisible && (
+       <CustomSize
+       onClose={() => setIsCustomSizeVisible(false)}
+       onApply={(selectedSizes) => {
+         setCustomSize(selectedSizes);
+         setSelectedSize("Custom");
+       }}
+     />
+     
+      )}
 
     {/* Quantity and Add to Cart */}
     <h3 className="my-2 text-black">Quantity:</h3>

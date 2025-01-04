@@ -27,7 +27,7 @@ module.exports = {
         'gradient-custom': 'linear-gradient(to right, #6a11cb, #2575fc)',
       },
       animation: {
-        "scroll-left-gallery": "scroll-left-gallery 50s linear infinite",
+        "scroll-left-gallery": "scroll-left-gallery 2s linear infinite",
         "scroll-left": "scroll-left 15s linear infinite",
         "scroll-up": "scroll-up 15s linear infinite",
         "scroll-down": "scroll-down 15s linear infinite",
@@ -39,6 +39,8 @@ module.exports = {
         dropdown: "dropdown 0.2s ease-in-out",
         "dropdown-out": "dropdown-out 0.2s ease-in-out",
         "fade-in-out": "fade-in-out 2s infinite",
+        popup: 'popup 0.3s ease-out',
+
       },
       keyframes: {
         "scroll-left": {
@@ -46,8 +48,8 @@ module.exports = {
           "100%": { transform: "translateX(-50%)" },
         },
         "scroll-left-gallery": {
-          "0%": { transform: "translateX(100%)" },
-          "100%": { transform: "translateX(-100%)" },
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-5%)" },
         },
         "scroll-up": {
           "0%": { transform: "translateY(0%)" },
@@ -91,6 +93,10 @@ module.exports = {
           "0%, 100%": { opacity: "0" },
           "50%": { opacity: "1" },
         },
+        popup: {
+          '0%': { opacity: 0, transform: 'scale(0.8)' },
+          '100%': { opacity: 1, transform: 'scale(1)' }
+        }
       },
     },
   },

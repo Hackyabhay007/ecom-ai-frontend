@@ -72,11 +72,11 @@ const ProductList = ({ products, layout }) => {
 
       {/* Pagination Controls */}
       {currentProducts.length > 0 && (
-        <div className="flex justify-center mt-4">
+        <div className="text-sm md:text-base flex justify-center mt-4">
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className="px-4 py-2 border rounded-lg"
+            className="md:px-4 py-2  px-3 border md:rounded-lg rounded-md"
           >
             Previous
           </button>
@@ -87,7 +87,7 @@ const ProductList = ({ products, layout }) => {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-4 py-2 mx-1 border rounded-lg ${
+                className={`md:px-4 py-2  px-3 border md:rounded-lg rounded-md mx-1 ${
                   currentPage === page
                     ? "bg-black text-white"
                     : "bg-white text-black hover:bg-gray-200"
@@ -101,7 +101,7 @@ const ProductList = ({ products, layout }) => {
           <button
             onClick={nextPage}
             disabled={currentPage >= totalPages}
-            className="px-4 py-2 border rounded-lg"
+            className="md:px-4 py-2  px-3 border md:rounded-lg rounded-md"
           >
             Next
           </button>

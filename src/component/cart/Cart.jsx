@@ -3,10 +3,13 @@ import { useSelector } from "react-redux";
 import CartItem from "./CartItem";
 import CartRelatedProducts from "./CartRelatedProducts";
 import { useRouter } from "next/router";
-
+import Link from "next/link";
 const Cart = () => {
   const { items } = useSelector((state) => state.cart);
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
   const router = useRouter();
 
   const handleShopNow = () => {
@@ -14,10 +17,12 @@ const Cart = () => {
   };
 
   return (
-    <div className="flex flex-col-reverse md:flex-row h-fit md:h-[550px]">
+    <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
       {/* Left Component - Related Products */}
       <div className="md:w-1/2 p-5 border-r overflow-y-scroll scrollbar-custom">
-        <h2 className="text-xl capitalize text-theme-blue font-bold px-4 mb-10">Product you may like</h2>
+        <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:px-4 mb-5 md:mb-10">
+          Product you may like
+        </h2>
         {items.length > 0 ? (
           <CartRelatedProducts />
         ) : (
@@ -30,10 +35,14 @@ const Cart = () => {
         <div className="p-6 flex-1 overflow-y-scroll scrollbar-custom">
           {items.length === 0 ? (
             <div className="flex flex-col h-full justify-center gap-5 items-center">
-              <h2 className="text-xl font-bold text-theme-blue mb-1">Your Cart is Empty</h2>
-              <h1><i class="ri-store-3-line text-5xl  text-theme-blue"></i></h1>
+              <h2 className="text-xl font-bold text-theme-blue mb-1">
+                Your Cart is Empty
+              </h2>
+              <h1>
+                <i class="ri-store-2-line md:text-9xl text-7xl  text-theme-blue opacity-40"></i>
+              </h1>
               <button
-                className="bg-theme-blue text-white rounded-md px-6 py-2 text-sm font-bold uppercase hover:bg-discount-color hover:text-theme-blue transition-all duration-100"
+                className="bg-theme-blue text-white rounded-md px-6 py-2 text-xs md:text-sm font-bold uppercase hover:bg-discount-color hover:text-theme-blue transition-all duration-100"
                 onClick={handleShopNow}
               >
                 Shop Now
@@ -41,7 +50,9 @@ const Cart = () => {
             </div>
           ) : (
             <>
-              <h2 className="text-xl capitalize text-theme-blue font-bold mb-10">Your Cart</h2>
+              <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:mb-10">
+                Your Cart
+              </h2>
               {items.map((item) => (
                 <CartItem key={item.id} item={item} />
               ))}
@@ -52,14 +63,20 @@ const Cart = () => {
         {/* Subtotal and Action Buttons */}
         <div className="p-4 bg-white border-t">
           <div className="flex justify-between px-2 mb-6">
-            <p className="text-lg font-bold text-theme-blue">Subtotal:</p>
-            <p className="text-lg font-bold text-cream">₹{subtotal}</p>
+            <p className="md:text-lg text-md font-bold text-theme-blue">
+              Subtotal:
+            </p>
+            <p className="md:text-lg text-md font-bold text-cream">
+              ₹{subtotal}
+            </p>
           </div>
-          <div className="flex gap-5 px-2">
-            <button className="border border-theme-blue font-bold bg-white text-theme-blue w-1/2 px-4 py-3 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100 hover:border-transparent">
-              View Cart
-            </button>
-            <button className="bg-theme-blue uppercase font-bold text-white w-1/2 px-4 py-3 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100">
+          <div className="flex gap-2 md:gap-4 md:px-2 px-1 w-full">
+            <Link href="/shop" passHref>
+              <button className="border border-theme-blue text-sm md:text-base uppercase md:font-bold bg-white text-theme-blue w-full px-10 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100 hover:border-transparent">
+                Shop
+              </button>
+            </Link>
+            <button className="bg-theme-blue text-sm md:text-base uppercase md:font-bold text-white w-full px-2 md:px-4 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100">
               Checkout
             </button>
           </div>

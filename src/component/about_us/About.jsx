@@ -50,7 +50,7 @@ const About = () => {
   ];
 
   return (
-    <div className="mb-20">
+    <div className="mb-20 pt-16 md:pt-0">
       <AboutBreadCrumb />
 
       {/* About Us Section */}

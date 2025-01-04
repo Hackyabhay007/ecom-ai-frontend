@@ -11,7 +11,7 @@ const BreadcrumbAuth = () => {
   const currentPage = pathSegments[pathSegments.length - 1];
 
   return (
-    <div className="py-14 bg-light-BG">
+    <div className="md:py-14 pt-28 pb-11 bg-light-BG">
       {/* Dynamic Heading */}
       <h1 className="md:text-4xl text-3xl font-bold text-center text-[#1F1F1F] mb-4">
         {currentPage ? currentPage.replace("-", " ").toUpperCase() : "Home"}

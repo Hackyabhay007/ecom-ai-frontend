@@ -1,10 +1,18 @@
-import React from "react";
-
+import React, { useState } from "react";
+import LoyaltyPointsPopup from "./LoyaltyPointsPopup";
 const DashboardContent = () => {
+  const [isLoyaltyPopupOpen, setIsLoyaltyPopupOpen] = useState(false);
+  const [loyaltyPoints, setLoyaltyPoints] = useState(40);
+
   const cards = [
     { label: "Total Orders", value: 12, icon: "ri-shopping-cart-line" },
     { label: "Completed Orders", value: 23, icon: "ri-check-line" },
-    { label: "Your Loyalty Points", value: 40, icon: "ri-coin-line" },
+    {
+      label: "Your Loyalty Points",
+      value: loyaltyPoints,
+      icon: "ri-coin-line",
+      onClick: () => setIsLoyaltyPopupOpen(true),
+    },
   ];
 
   const recentOrders = [
@@ -40,7 +48,8 @@ const DashboardContent = () => {
         {cards.map((card, index) => (
           <div
             key={index}
-            className="p-4 py-6 border shadow-md rounded-lg flex items-center justify-between bg-white"
+            className="p-4 py-6 border shadow-md rounded-lg flex items-center justify-between bg-white cursor-pointer"
+            onClick={card.onClick}
           >
             <div>
               <h3 className="text-sub-color text-sm md:text-base">{card.label}</h3>
@@ -110,6 +119,12 @@ const DashboardContent = () => {
           </tbody>
         </table>
       </div>
+      {isLoyaltyPopupOpen && (
+        <LoyaltyPointsPopup
+          points={loyaltyPoints}
+          onClose={() => setIsLoyaltyPopupOpen(false)}
+        />
+      )}
     </div>
   );
 };

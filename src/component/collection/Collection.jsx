@@ -52,7 +52,7 @@ function Collection() {
       </div>
 
       {/* Heading */}
-      <h2 className="text-center text-white text-4xl md:text-6xl my-14 font-bold">
+      <h2 className="text-center text-white text-3xl md:text-6xl my-14 font-bold">
         New Collection
       </h2>
 
@@ -76,7 +76,7 @@ function Collection() {
           {collectionData.map((item, index) => (
             <div
               key={index}
-              className="snap-center flex-shrink-0 w-[calc(100%/3.2)] max-w-[calc(100%/3)] transition-transform duration-300 ease-in-out"
+              className="snap-center flex-shrink-0 w-[calc(100%/3)] md:w-[calc(100%/3.2)] max-w-[calc(100%/3)] transition-transform duration-300 ease-in-out"
             >
               <div className="border border-white rounded-xl p-1 md:p-3 overflow-visible shadow-[0_5px_15px_rgba(255,255,255,0.4)] bg-white/10">
                 <Image
@@ -84,7 +84,7 @@ function Collection() {
                   alt={item.alt}
                   width={500}
                   height={500}
-                  className={`h-[150px] md:h-[450px] rounded-md object-cover ${
+                  className={`h-[200px] md:h-[450px] rounded-md object-cover ${
                     index === currentIndex + 1
                       ? "border-2 border-cyan-500 shadow shadow-cyan-200 md:scale-100 scale-150 transition-all duration-300 delay-100 ease-in-out"
                       : ""

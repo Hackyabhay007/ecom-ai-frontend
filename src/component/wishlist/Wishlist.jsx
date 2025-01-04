@@ -33,7 +33,7 @@ const Wishlist = () => {
   });
 
   return (
-    <div className="mb-10">
+    <div className="mb-10 pt-16 md:pt-0">
       <WishlistBreadCrumb />
       <WishlistGridLayout
         onLayoutChange={handleLayoutChange}

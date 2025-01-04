@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 function Loader() {
   return (
-    <div className="flex justify-center mt-28 w-screen h-screen">
+    <div className="flex justify-center md:mt-28 py-40 md:py-0 w-screen h-screen">
       {/* Parent logo */}
       <div className="relative w-[200px] h-[200px]">
         {/* Main logo */}

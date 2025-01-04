@@ -81,7 +81,7 @@ function Hero() {
 
   return (
     <div
-      className="relative w-full min-h-[80%] h-[600px] md:h-screen overflow-hidden"
+      className="relative  w-full min-h-[80%] h-[700px] md:h-screen overflow-hidden"
       onMouseEnter={handlePause}
       onMouseLeave={handleResume}
       onTouchStart={handlePause}

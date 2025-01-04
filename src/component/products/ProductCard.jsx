@@ -15,6 +15,7 @@ const ProductCard = ({ product, layout }) => {
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isCartAdded, setIsCartAdded] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const {
     id,
@@ -63,7 +64,18 @@ const ProductCard = ({ product, layout }) => {
     if (tag === "NEW") return "bg-[#D2EF9A] font-bold";
     return "bg-gray-300";
   };
+ useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
 
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   return (
     <>
       <div
@@ -75,7 +87,7 @@ const ProductCard = ({ product, layout }) => {
         {/* Image Section */}
         <div
           className={`relative ${
-            layout === "list" ? "lg:w-1/4 w-1/2" : "w-full"
+            layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
           } h-64 md:h-96 group`}
         >
           <Image
@@ -194,6 +206,14 @@ const ProductCard = ({ product, layout }) => {
         <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50">
           Added to Cart
         </div>
+      )}
+       {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed md:bottom-20 bottom-28 md:right-20 text-xs  w-fit bg-white text-black border-2 border-gray-200 px-4 py-2 rounded-full shadow-lg transition-all hover:bg-gray-200"
+        >
+          ↑ TOP
+        </button>
       )}
     </>
   );

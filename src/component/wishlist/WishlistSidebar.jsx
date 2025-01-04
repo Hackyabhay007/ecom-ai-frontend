@@ -22,7 +22,7 @@ const WishlistSidebar = () => {
 
       {/* Wishlist Sidebar with sliding effect */}
       <div
-        className={`fixed right-0 md:w-1/3 w-full my-10  md:my-0 h-[80%]  md:h-full bg-white p-5  shadow-2xl z-50 rounded-3xl transform ${
+        className={`fixed top-11 md:top-0 right-0 md:w-1/3 w-full my-10  md:my-0 h-[80%]  md:h-full bg-white p-5  shadow-2xl z-50 rounded-3xl transform ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 ease-in-out flex flex-col`}
       >
@@ -64,8 +64,9 @@ const WishlistSidebar = () => {
               </div>
             ))
           ) : (
-            <div className="flex justify-center items-center py-10">
-              <p className="text-gray-500 text-center">
+            <div className="flex flex-col text-sub-color justify-center items-center py-10">
+              <i class="ri-heart-add-fill text-6xl opacity-40"></i>
+              <p className=" text-center">
                 Your wishlist is empty!
               </p>
             </div>

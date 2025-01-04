@@ -39,12 +39,12 @@ const CartItem = ({ item }) => {
         />
         <div>
           <h4
-            className="font-medium cursor-pointer"
+            className="font-medium cursor-pointer md:text-base text-xs"
             onClick={handleProductClick}
           >
             {item.name}
           </h4>
-          <p className="text-sm text-gray-500">₹{item.price}</p>
+          <p className="md:text-sm text-xs text-gray-500">₹{item.price}</p>
         </div>
       </d>
       <div className="flex items-center gap-5 md:gap-10">

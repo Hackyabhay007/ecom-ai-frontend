@@ -38,7 +38,7 @@ function Navbar() {
 
   if (isMobile) {
     return (
-      <nav className="bg-white text-black p-4 shadow-md">
+      <nav className="bg-white fixed w-full z-50 text-black p-4 shadow-md">
         {/* Top Navigation Bar */}
         <div className="flex items-center justify-between">
           {/* Menu Icon */}
@@ -97,7 +97,7 @@ function Navbar() {
                 }`}
                 onClick={() => navigateTo("/")}
               >
-                Home
+               <i class="ri-home-line"></i> Home
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
@@ -107,7 +107,7 @@ function Navbar() {
                 }`}
                 onClick={() => navigateTo("/shop")}
               >
-                Shop
+               <i class="ri-shopping-bag-line"></i>  Shop
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
@@ -117,7 +117,7 @@ function Navbar() {
                 }`}
                 onClick={() => navigateTo("/about")}
               >
-                About
+               <i class="ri-information-2-line"></i> About us
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
@@ -127,7 +127,7 @@ function Navbar() {
                 }`}
                 onClick={() => navigateTo("/contact-us")}
               >
-                Contact Us
+              <i class="ri-customer-service-line"></i> Contact Us
               </li>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
@@ -137,7 +137,7 @@ function Navbar() {
                 }`}
                 onClick={() => navigateTo("/wishlist")}
               >
-                Wishlist
+                <i class="ri-heart-line"></i> Wishlist
               </li>
             </ul>
           </div>

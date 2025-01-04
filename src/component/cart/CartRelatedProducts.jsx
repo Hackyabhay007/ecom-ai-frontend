@@ -36,9 +36,9 @@ const CartRelatedProducts = () => {
 
             {/* Product Details */}
             <div className="flex flex-col flex-1 space-y-1">
-              <h4 className="text-md">{product.name}</h4>
+              <h4 className="md:text-md text-sm">{product.name}</h4>
               <div className="flex items-center gap-2">
-              <p className="text-black text-md">₹{product.price}</p>
+              <p className="text-black md:text-md text-sm">₹{product.price}</p>
               <p className="text-sub-color line-through text-xs">₹{product.prevPrice}</p>
               </div> 
             </div>

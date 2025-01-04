@@ -45,7 +45,7 @@ function CheckoutContainer() {
   };
 
   return (
-    <div className="container mx-auto p-6 mb-20 md:mb-2">
+    <div className="container py-20 md:py-0 mx-auto p-6  md:mb-2">
       <Timeline step={step} /> {/* Add the Timeline component here */}
       {step === 1 && (
         <CheckoutDetails
