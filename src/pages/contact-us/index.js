@@ -11,7 +11,7 @@ const ContactUsPage = () => {
     // Simulate loading delay
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 400); // You can adjust the time (e.g., 1 second)
+    }, 500); // You can adjust the time (e.g., 1 second)
 
     return () => clearTimeout(timer); // Clean up the timeout on unmount
   }, []);
@@ -27,6 +27,7 @@ const ContactUsPage = () => {
       ) : (
         <>
           <Navbar />
+         
           <ContactBreadCrumb />
           <ContactUsForm />
           <Footer />
