@@ -8,6 +8,8 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../../../../redux/slices/cartSlice";
 import ProductDetailsInfo from "./ProductDetailsInfo";
 import CustomSize from "./CustomSize";
+import HandleInfo from "./HandleInfo";
+import ImageCarousel from "./ImageCrousal";
 const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
@@ -78,20 +80,6 @@ const ProductView = ({ product, allProducts }) => {
   );
   const [slideDirection, setSlideDirection] = useState("");
 
-  const handleImageClick = (selectedImage) => {
-    if (selectedImage !== mainImage) {
-      setSlideDirection("right-to-left");
-      setTimeout(() => {
-        const updatedImages = [
-          mainImage,
-          ...additionalImages.filter((img) => img !== selectedImage),
-        ];
-        setMainImage(selectedImage);
-        setAdditionalImages(updatedImages);
-        setSlideDirection("");
-      }, 300);
-    }
-  };
 
   const getAverageRating = () => {
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
@@ -117,7 +105,7 @@ const ProductView = ({ product, allProducts }) => {
 
   return (
     <div className="mb-10 md:mb-0">
-            {warning && (
+      {warning && (
         <div className="fixed top-20 right-10 z-50 flex flex-col items-center bg-white text-[#112A46] border-t-4 border-red-500  rounded-b-lg shadow shadow-black p-4 w-72">
           <div className="flex items-center w-full">
             <i className="ri-error-warning-line mr-3 text-xl"></i>
@@ -133,28 +121,12 @@ const ProductView = ({ product, allProducts }) => {
       )}
 
       {/* Product Images and Details */}
-      <div className="w-full container mx-auto py-8 px-2">
+      <div className="w-full container mx-auto py-8 px-2 flex flex-col md:flex-row">
   {/* Images Section */}
-  <div className="flex w-full">
-    {[mainImage, ...additionalImages].map((img, index) => (
-      <div
-        key={index}
-        className="relative flex-1 h-96  overflow-hidden"
-        style={{ flexBasis: `${100 / (additionalImages.length + 1)}%` }}
-      >
-        <Image
-          src={img}
-          alt={`Product Image ${index + 1}`}
-          layout="fill"
-          objectFit="cover"
-          className=""
-        />
-      </div>
-    ))}
-  </div>
+  <ImageCarousel mainImage={image} additionalImages={additionalImages} />
 
   {/* Product Details Section */}
-  <div className="px-5 py-10">
+  <div className="md:flex-1 px-5 py-10">
     <h1 className="text-2xl mb-2">{name}</h1>
     {/* Star Rating */}
     <div className="flex items-center mb-4">{renderStars(averageRating)}</div>
@@ -200,48 +172,47 @@ const ProductView = ({ product, allProducts }) => {
 
     {/* Size Selection */}
     <div className="mb-4">
-        <span className="text-sm text-cream">Size: </span>
-        <div className="flex gap-4">
-          {product.sizes.map((size, index) => (
-            <div
-              key={index}
-              className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
-                selectedSize === size ? "border-black" : ""
-              }`}
-              onClick={() => setSelectedSize(size)}
-            >
-              {size}
-            </div>
-          ))}
+      <span className="text-sm text-cream">Size: </span>
+      <div className="flex gap-4">
+        {product.sizes.map((size, index) => (
           <div
-            className={`w-fit hover:bg-discount-color border border-gray-300 rounded-3xl transition-all px-4  h-10  flex items-center justify-center cursor-pointer ${
-              selectedSize === "Custom" ? "border-black" : ""
+            key={index}
+            className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
+              selectedSize === size ? "border-black" : ""
             }`}
-            onClick={() => setIsCustomSizeVisible(true)}
+            onClick={() => setSelectedSize(size)}
           >
-            Custom size
+            {size}
           </div>
+        ))}
+        <div
+          className={`w-fit hover:bg-discount-color border border-gray-300 rounded-3xl transition-all px-4 h-10 flex items-center justify-center cursor-pointer ${
+            selectedSize === "Custom" ? "border-black" : ""
+          }`}
+          onClick={() => setIsCustomSizeVisible(true)}
+        >
+          Custom size
         </div>
-        {customSize && (
-          <div className="mt-2 text-sm text-gray-600">
-            Custom Size Selected: Chest {customSize.chest} cm, Sleeve{" "}
-            {customSize.sleeve} cm, Shoulder {customSize.shoulder} cm, Waist{" "}
-            {customSize.waist} cm
-          </div>
-        )}
       </div>
-
-      {/* Render CustomSize popup */}
-      {isCustomSizeVisible && (
-       <CustomSize
-       onClose={() => setIsCustomSizeVisible(false)}
-       onApply={(selectedSizes) => {
-         setCustomSize(selectedSizes);
-         setSelectedSize("Custom");
-       }}
-     />
-     
+      {customSize && (
+        <div className="mt-2 text-sm text-gray-600">
+          Custom Size Selected: Chest {customSize.chest} cm, Sleeve{" "}
+          {customSize.sleeve} cm, Shoulder {customSize.shoulder} cm, Waist{" "}
+          {customSize.waist} cm
+        </div>
       )}
+    </div>
+
+    {/* Render CustomSize popup */}
+    {isCustomSizeVisible && (
+      <CustomSize
+        onClose={() => setIsCustomSizeVisible(false)}
+        onApply={(selectedSizes) => {
+          setCustomSize(selectedSizes);
+          setSelectedSize("Custom");
+        }}
+      />
+    )}
 
     {/* Quantity and Add to Cart */}
     <h3 className="my-2 text-black">Quantity:</h3>
@@ -300,18 +271,18 @@ const ProductView = ({ product, allProducts }) => {
         Share
       </button>
     </div>
+    <HandleInfo categories={categories} product={product} reviews={reviews} />
   </div>
 </div>
 
-
       {/* Additional Sections */}
-      <ProductDetailsInfo categories={categories} />
+      {/* <ProductDetailsInfo categories={categories} />
       <ProductDetails product={product} />
-      <CustomerReview reviews={reviews} />
+      <CustomerReview reviews={reviews} /> */}
+      <RelatedProducts currentProduct={product} allProducts={allProducts} />
       <CustomerComment />
 
       {/* Related Products */}
-      <RelatedProducts currentProduct={product} allProducts={allProducts} />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React from "react";
 
 const CustomerComment = () => (
   <div className="pt-8 bg-[#F7F7F7] p-6 rounded-lg">
-    <h2 className="text-4xl font-bold">Leave a Comment</h2>
+    <h2 className="md:text-4xl text-2xl  font-bold">Leave a Comment</h2>
     <form className="py-4">
       <div className="flex flex-col md:flex-row gap-4">
         <input

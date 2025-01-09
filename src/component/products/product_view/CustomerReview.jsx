@@ -17,12 +17,12 @@ const CustomerReview = ({ reviews }) => {
   };
 
   return (
-    <div className="mt-8 bg-[#F7F7F7] p-6 rounded-lg">
+    <div className="mt-8 bg-[#F7F7F7] p-6  rounded-lg">
       {/* Top Heading */}
       <h2 className="text-xl font-bold">Customer Reviews</h2>
 
       {/* Overall Rating */}
-      <div className="flex gap-5 flex-col md:flex-row  mt-6">
+      <div className="flex flex-wrap gap-5 flex-col   mt-6">
         {/* Rating Overview on Left (w-1/6) */}
         <div className="flex w-full md:w-1/3">
         <div className=" text-center  rounded-lg p-4">
@@ -35,11 +35,11 @@ const CustomerReview = ({ reviews }) => {
         </div>
 
         {/* Rating Bars on Left */}
-        <div className="flex-1 ml-8">
+        <div className="flex-1 w-fit ml-8">
           {Object.keys(ratingBreakdown).map((star) => (
             <div key={star} className="flex items-center pb-2">
               <span className=" text-sm">{star} ★</span>
-              <div className="flex-1 h-2 bg-gray-200 rounded-full mx-2">
+              <div className="flex-1 w-40 h-2 bg-gray-200 rounded-full mx-2">
                 <div
                   className="h-full bg-yellow-500 rounded-full"
                   style={{ width: `${ratingBreakdown[star]}%` }}

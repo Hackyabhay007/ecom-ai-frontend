@@ -15,7 +15,7 @@ const ProductDetailsInfo = ({ categories }) => {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-7 my-6 px-5 md:px-10">
+    <div className="flex flex-col md:flex-row gap-7 my-6 pb-40 md:py-5 px-5 md:px-10 overflow-auto max-h-screen">
       {/* Left Column */}
       <div className="md:w-1/2 w-full ">
         {/* Payment Options */}

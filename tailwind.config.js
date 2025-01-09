@@ -34,6 +34,10 @@ module.exports = {
         "scroll-up-gallery": "scroll-up-gallery 2s linear infinite",
         slideInLeft: 'slideInLeft 0.3s ease-in-out',
         slideInRight: 'slideInRight 0.3s ease-in-out',
+        handleInfoSlideInRight: 'handleInfoSlideInRight 0.5s ease-in-out forwards',
+        handleInfoSlideOutLeft: 'handleInfoSlideOutLeft 0.5s ease-in-out forwards',
+        handleInfoSlideInBottom: 'handleInfoSlideInBottom 0.5s ease-in-out forwards',
+        handleInfoSlideOutTop: 'handleInfoSlideOutTop 0.5s ease-in-out forwards',
         "progress-bar": "progress-bar 2s linear",
         'scale-up': 'scale-up 0.3s ease-out',
         dropdown: "dropdown 0.2s ease-in-out",
@@ -96,7 +100,27 @@ module.exports = {
         popup: {
           '0%': { opacity: 0, transform: 'scale(0.8)' },
           '100%': { opacity: 1, transform: 'scale(1)' }
-        }
+        },
+        slideInBottom: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        handleInfoSlideInRight: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        handleInfoSlideOutLeft: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        handleInfoSlideInBottom: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        handleInfoSlideOutTop: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-100%)' },
+        },
       },
     },
   },

@@ -3,12 +3,12 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../../../redux/slices/cartSlice";
 import products from "../products/data/product_data";
 import Image from "next/image";
+
 const CartRelatedProducts = () => {
   const dispatch = useDispatch();
 
   // Function to shuffle and pick random products
   const getRandomProducts = (products, number) => {
-    // Shuffle products using Fisher-Yates algorithm
     const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
     return shuffledProducts.slice(0, number);
   };
@@ -17,38 +17,52 @@ const CartRelatedProducts = () => {
   const randomProducts = getRandomProducts(products, 5);
 
   const handleAddToCart = (product) => {
-    dispatch(addToCart(product)); // Dispatch add to cart action
+    dispatch(addToCart(product));
   };
 
   return (
-    <div className="space-y-4 md:px-5">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 px-1 md:px-8">
       {randomProducts.map((product) => (
-        <div key={product.id} className="flex items-center justify-between border-b pb-4">
-          <div className="flex items-center gap-4 w-full">
-            {/* Product Image */}
+        <div
+          key={product.id}
+          className="rounded-lg  text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform  h-fit"
+          onClick={() => (window.location.href = `/shop/${product.id}`)}
+        >
+          {/* Image */}
+          <div className="relative w-full h-48">
             <Image
               src={product.image}
               alt={product.name}
-              width={200}
-              height={200}
-              className="w-16 h-16 rounded-lg object-cover"
+              layout="fill"
+              objectFit="cover"
+              className="rounded-t-lg object-top h-fit"
             />
+          </div>
 
-            {/* Product Details */}
-            <div className="flex flex-col flex-1 space-y-1">
-              <h4 className="md:text-md text-sm">{product.name}</h4>
-              <div className="flex items-center gap-2">
-              <p className="text-black md:text-md text-sm">₹{product.price}</p>
-              <p className="text-sub-color line-through text-xs">₹{product.prevPrice}</p>
-              </div> 
+          {/* Product Information */}
+          <div className="p-2 md:p-4">
+            <h3 className="font-medium text-sm md:text-md text-black text-center overflow-hidden text-ellipsis whitespace-nowrap">
+              {product.name}
+            </h3>
+
+            <div className="flex flex-wrap mb-3 gap-2 items-center justify-center">
+              <span className=" text-black md:text-sm text-xs">₹{product.price}</span>
+              {product.prevPrice && (
+                <span className="text-xs text-sub-color line-through">
+                  ₹{product.prevPrice}
+                </span>
+              )}
+             
             </div>
 
-            {/* Add to Cart Button */}
             <button
-              className="border rounded border-black px-2 py-1 hover:bg-black hover:text-white transition-all duration-150 ease-in-out"
-              onClick={() => handleAddToCart(product)}
+              className="mt-2 w-full text-black border hover:text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-gray-800"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(product);
+              }}
             >
-              <i class="ri-shopping-cart-line"></i>
+              <i className="ri-shopping-cart-line text-center"></i> <span className="md:block hidden">Add to Cart</span> 
             </button>
           </div>
         </div>
