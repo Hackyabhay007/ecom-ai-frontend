@@ -35,10 +35,10 @@ const Filter = ({ onApplyFilters }) => {
     <div>
       {/* Mobile Filter Toggle Button */}
       <button
-        className="md:hidden w-1/6 text-theme-blue border border-theme-blue py-1 font-semibold rounded-md hover:bg-black hover:text-white hover:font-thin mb-4"
+        className="md:hidden w-1/6  rotate-90 px-4  text-start font-semibold rounded-md hover:bg-black hover:text-white hover:font-thin "
         onClick={() => setIsMobileFilterOpen(true)}
       >
-        <i className="ri-sound-module-line"></i>
+        <i className="ri-sound-module-line text-2xl"></i>
       </button>
 
       {/* Filter Sidebar */}

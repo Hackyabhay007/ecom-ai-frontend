@@ -173,7 +173,7 @@ const ProductView = ({ product, allProducts }) => {
     {/* Size Selection */}
     <div className="mb-4">
       <span className="text-sm text-cream">Size: </span>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         {product.sizes.map((size, index) => (
           <div
             key={index}
@@ -216,8 +216,8 @@ const ProductView = ({ product, allProducts }) => {
 
     {/* Quantity and Add to Cart */}
     <h3 className="my-2 text-black">Quantity:</h3>
-    <div className="flex items-center gap-4 mb-6">
-      <div className="flex items-center w-1/4 border rounded-lg">
+    <div className="flex flex-wrap items-center gap-4 mb-6">
+      <div className="flex items-center w-40  border rounded-lg">
         <button
           className="px-3 py-2"
           onClick={() => handleQuantityChange("decrement")}
@@ -238,7 +238,7 @@ const ProductView = ({ product, allProducts }) => {
         </button>
       </div>
       <button
-        className={`w-3/4 rounded-lg px-6 py-2 text-black ${
+        className={`w-full rounded-lg px-6 py-2 text-black ${
           isAdded ? "bg-discount-color" : "bg-white border-2 border-cream"
         }`}
         onClick={handleAddToCart}
@@ -258,12 +258,7 @@ const ProductView = ({ product, allProducts }) => {
       Buy It Now
     </button>
     <div className="flex gap-4 mt-4">
-      <button className="text-black flex items-center gap-2">
-        <span>
-          <i className="ri-expand-width-fill text-xl border rounded-lg p-2"></i>
-        </span>{" "}
-        Compare
-      </button>
+     
       <button className="text-black flex items-center gap-2">
         <span>
           <i className="ri-share-fill text-xl border rounded-lg p-2"></i>

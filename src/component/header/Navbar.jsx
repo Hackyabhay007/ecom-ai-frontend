@@ -95,6 +95,14 @@ function Navbar() {
                 className={`cursor-pointer hover:text-theme-blue ${
                   router.pathname === "/" ? "text-theme-blue font-semibold" : ""
                 }`}
+                onClick={() => user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")}
+              >
+               <i class="ri-user-line"></i> sign up / register
+              </li> 
+              <li
+                className={`cursor-pointer hover:text-theme-blue ${
+                  router.pathname === "/" ? "text-theme-blue font-semibold" : ""
+                }`}
                 onClick={() => navigateTo("/")}
               >
                <i class="ri-home-line"></i> Home

@@ -131,22 +131,22 @@ function Hero() {
       </div>
 
       {/* Carousel Controls */}
-      {/* <div className="absolute -bottom-6 left-[30%] md:left-[40%] transform -translate-y-1/2 z-20">
+      <div className="absolute left-2  top-2/3 md:top-1/2 transform -translate-y-1/2 z-20">
         <button
           onClick={handlePrev}
-          className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
+        className="backdrop-blur-sm  bg-white/40 hover:bg-white/50 text-2xl px-1 font-thin rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-left-s-line"></i>
         </button>
-      </div> */}
-      {/* <div className="absolute -bottom-6 right-[30%] md:right-[40%] transform -translate-y-1/2 z-20">
+      </div>
+      <div className="absolute top-2/3 md:top-1/2  right-2 transform -translate-y-1/2 z-20">
         <button
           onClick={handleNext}
-          className="text-white text-2xl p-2 rounded-full focus:outline-none cursor-pointer"
+          className="backdrop-blur-sm  bg-white/40 hover:bg-white/50 text-2xl px-1 rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-right-s-line"></i>
         </button>
-      </div> */}
+      </div>
 
       {/* Dots Indicator */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">

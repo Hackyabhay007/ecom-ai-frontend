@@ -15,7 +15,7 @@ const QuickView = ({ product, onClose }) => {
     averageRating = 0,
     categories = [],
     color = [],
-    size= [],
+    size = [],
   } = product;
 
   const dispatch = useDispatch();
@@ -28,11 +28,8 @@ const QuickView = ({ product, onClose }) => {
   const [isProgressVisible, setIsProgressVisible] = useState(false);
 
   useEffect(() => {
-    // Disable background scrolling and interaction
     document.body.style.overflow = "hidden";
-
     return () => {
-      // Re-enable scrolling and interaction when modal is closed
       document.body.style.overflow = "";
     };
   }, []);
@@ -68,20 +65,15 @@ const QuickView = ({ product, onClose }) => {
       })
     );
 
-    setWarning(""); // Clear warning on successful addition
-    setIsAdded(true); // Indicate item was added
+    setWarning("");
+    setIsAdded(true);
 
-    // Reset isAdded after 3 seconds
     setTimeout(() => setIsAdded(false), 3000);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 z-50">
-      {/* Warning Notification */}
-   
-
-      {/* Modal Content */}
-      <div className="bg-white w-full md:w-2/3 h-full md:h-auto md:max-h-[90%] rounded-lg overflow-hidden flex flex-col md:flex-row transform px-1 pb-2 animate-scale-up">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 pb-20 md:pb-5 z-50">
+      <div className="bg-white w-full md:w-2/3 h-full md:h-auto md:max-h-[90%] rounded-lg flex flex-col md:flex-row transform px-1 pb-2 animate-scale-up sm:overflow-hidden overflow-y-auto">
         {/* Close Button */}
         <button
           className="absolute top-4 right-4 bg-gray-200 hover:bg-black hover:text-white transition-all duration-300 rounded-full w-8 h-8 flex items-center justify-center text-black"
@@ -91,13 +83,13 @@ const QuickView = ({ product, onClose }) => {
         </button>
 
         {/* Images Section */}
-        <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom ">
+        <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom">
           <Image
             src={image}
             alt={name}
             width={300}
             height={300}
-            className="rounded-lg object-cover "
+            className="rounded-lg object-cover"
           />
           {additionalImages.map((img, index) => (
             <Image
@@ -112,7 +104,7 @@ const QuickView = ({ product, onClose }) => {
         </div>
 
         {/* Product Details Section */}
-        <div className="md:w-2/3 w-full p-6 flex flex-col ">
+        <div className="md:w-2/3 w-full p-6 flex flex-col">
           <h1 className="text-2xl font-bold mb-2">{name}</h1>
 
           {/* Star Rating */}
@@ -143,7 +135,7 @@ const QuickView = ({ product, onClose }) => {
 
           {/* Colors */}
           <div className="mb-4">
-            <span className="text-md font-bold  ">Color: </span>
+            <span className="text-md font-bold">Color: </span>
             <div className="flex my-2 gap-2">
               {color.map((color, index) => (
                 <div
@@ -178,8 +170,8 @@ const QuickView = ({ product, onClose }) => {
 
           {/* Quantity and Add to Cart */}
           <h3 className="my-2 text-md font-semibold">Quantity:</h3>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center w-1/4 border rounded-lg">
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <div className="flex items-center min-w-20 w-1/3 border rounded-lg">
               <button
                 className="px-3 py-2"
                 onClick={() => handleQuantityChange("decrement")}
@@ -200,7 +192,7 @@ const QuickView = ({ product, onClose }) => {
               </button>
             </div>
             <button
-              className={`w-3/4 rounded-lg px-6 py-2 ${
+              className={`w-full  rounded-lg px-6 py-2 ${
                 isAdded
                   ? "bg-green-500 text-white"
                   : "bg-white border-2 border-gray-300"

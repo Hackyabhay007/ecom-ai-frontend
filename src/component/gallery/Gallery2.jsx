@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-
+import ImageStackSlider from "./ImageStackSlider";
 const galleryData = [
   {
     type: "image",
@@ -80,21 +80,7 @@ function Gallery2() {
 
       {/* Image 2 */}
       <div className="relative w-full h-[40%] md:h-full md:w-1/2 group">
-        <Image
-          src="/images/gallery/galleryA2.png"
-          alt="Gallery A2"
-          width={500}
-          height={500}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-500">
-          <h2 className="text-white text-4xl font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Oversize T-Shirt
-          </h2>
-          <button className="bg-white text-black text-lg rounded-lg shadow-lg py-2 px-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            View All
-          </button>
-        </div>
+      <ImageStackSlider />
       </div>
     </div>
   );
