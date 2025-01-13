@@ -80,7 +80,6 @@ const ProductView = ({ product, allProducts }) => {
   );
   const [slideDirection, setSlideDirection] = useState("");
 
-
   const getAverageRating = () => {
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     return reviews.length ? Math.round(totalRating / reviews.length) : 0;
@@ -122,153 +121,133 @@ const ProductView = ({ product, allProducts }) => {
 
       {/* Product Images and Details */}
       <div className="w-full container mx-auto py-8 px-2 flex flex-col md:flex-row">
-  {/* Images Section */}
-  <ImageCarousel mainImage={image} additionalImages={additionalImages} />
+        {/* Images Section */}
+        <ImageCarousel mainImage={image} additionalImages={additionalImages} />
 
-  {/* Product Details Section */}
-  <div className="md:flex-1 px-5 py-10">
-    <h1 className="text-2xl mb-2">{name}</h1>
-    {/* Star Rating */}
-    <div className="flex items-center mb-4">{renderStars(averageRating)}</div>
-
-    {/* Pricing Details */}
-    <div className="flex items-center gap-4 mb-4">
-      <span className="text-xl text-cream">₹{price}</span>
-      <span className="text-sub-color line-through">₹{prevPrice}</span>
-      <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
-        -{discount}%
-      </span>
-    </div>
-
-    {/* Category */}
-    <div className="mb-4">
-      <span className="text-sm text-cream">Category: </span>
-      {categories.map((category, index) => (
-        <span
-          key={index}
-          className="text-sm text-sub-color cursor-pointer mr-2"
-        >
-          {category}
-        </span>
-      ))}
-    </div>
-
-    {/* Colors */}
-    <div className="mb-4">
-      <span className="text-sm text-cream">Color: </span>
-      <div className="flex gap-2">
-        {colors.map((color, index) => (
-          <div
-            key={index}
-            className={`w-6 h-6 rounded-full border-2 cursor-pointer ${
-              selectedColor === color ? "border-black" : ""
-            }`}
-            style={{ backgroundColor: color }}
-            onClick={() => setSelectedColor(color)}
-          />
-        ))}
-      </div>
-    </div>
-
-    {/* Size Selection */}
-    <div className="mb-4">
-      <span className="text-sm text-cream">Size: </span>
-      <div className="flex flex-wrap gap-4">
-        {product.sizes.map((size, index) => (
-          <div
-            key={index}
-            className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
-              selectedSize === size ? "border-black" : ""
-            }`}
-            onClick={() => setSelectedSize(size)}
-          >
-            {size}
+        {/* Product Details Section */}
+        <div className="md:flex-1 px-5 py-10">
+          <h1 className="text-2xl font-bold text-theme-blue mb-2">{name}</h1>
+          {/* Star Rating */}
+          {/* <div className="flex items-center mb-4">{renderStars(averageRating)}</div> */}
+          {/* Category */}
+          <div className="mb-4">
+            <span className="text-sm text-theme-blue">Category: </span>
+            {categories.map((category, index) => (
+              <span
+                key={index}
+                className="text-xs text-theme-blue cursor-pointer mr-2"
+              >
+                {category}
+              </span>
+            ))}
           </div>
-        ))}
-        <div
-          className={`w-fit hover:bg-discount-color border border-gray-300 rounded-3xl transition-all px-4 h-10 flex items-center justify-center cursor-pointer ${
-            selectedSize === "Custom" ? "border-black" : ""
-          }`}
-          onClick={() => setIsCustomSizeVisible(true)}
-        >
-          Custom size
+
+          {/* Pricing Details */}
+          <div className="flex items-center gap-4 mb-4">
+            <span className="text-md text-theme-blue font-bold">₹{price}</span>
+            <span className="text-sub-color text-sm line-through">₹{prevPrice}</span>
+            {/* <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
+        -{discount}%
+      </span> */}
+          </div>
+
+          {/* Colors */}
+          <div className="mb-4">
+            <span className="text-sm text-cream">Color: </span>
+            <div className="flex gap-2">
+              {colors.map((color, index) => (
+                <div
+                  key={index}
+                  className={`w-8 h-8 rounded-lg border-2 cursor-pointer ${
+                    selectedColor === color ? "border-black" : ""
+                  }`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setSelectedColor(color)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Size Selection */}
+          <div className="mb-4 text-xs">
+            <span className="text-sm text-cream">Size: </span>
+            <div className="flex flex-wrap gap-4">
+              {product.sizes.map((size, index) => (
+                <div
+                  key={index}
+                  className={`w-14 h-8  border px-2 rounded-lg flex items-center justify-center cursor-pointer ${
+                    selectedSize === size ? "border-black" : ""
+                  }`}
+                  onClick={() => setSelectedSize(size)}
+                >
+                  {size}
+                </div>
+              ))}
+              <div
+                className={`w-fit hover:bg-discount-color border border-gray-300 rounded-lg transition-all px-4 h-8 flex items-center justify-center cursor-pointer ${
+                  selectedSize === "Custom" ? "border-black" : ""
+                }`}
+                onClick={() => setIsCustomSizeVisible(true)}
+              >
+                Custom size
+              </div>
+            </div>
+            {customSize && (
+              <div className="mt-2 text-sm text-gray-600">
+                Custom Size Selected: Chest {customSize.chest} cm, Sleeve{" "}
+                {customSize.sleeve} cm, Shoulder {customSize.shoulder} cm, Waist{" "}
+                {customSize.waist} cm
+              </div>
+            )}
+          </div>
+
+          {/* Render CustomSize popup */}
+          {isCustomSizeVisible && (
+            <CustomSize
+              onClose={() => setIsCustomSizeVisible(false)}
+              onApply={(selectedSizes) => {
+                setCustomSize(selectedSizes);
+                setSelectedSize("Custom");
+              }}
+            />
+          )}
+
+          {/* Add to Cart and Buy Now */}
+          <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap items-center gap-4 mb-6">
+            <button
+              className={`flex-1 w-full md:w-1/2 px-6 py-2 bg-black text-black  ${
+                isAdded ? "bg-discount-color " : "bg-black text-white"
+              }`}
+              onClick={handleAddToCart}
+            >
+              {isAdded ? (
+                <>
+                  <i className="ri-luggage-cart-line mr-2"></i> Added to Cart
+                </>
+              ) : (
+                "Add to Cart"
+              )}
+            </button>
+            <button className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
+              Buy It Now
+            </button>
+          </div>
+
+          <div className="flex gap-4 mt-4">
+            <button className="text-black flex items-center gap-2">
+              <span>
+                <i className="ri-share-fill text-xl border rounded-lg p-2"></i>
+              </span>{" "}
+              Share
+            </button>
+          </div>
+          <HandleInfo
+            categories={categories}
+            product={product}
+            reviews={reviews}
+          />
         </div>
       </div>
-      {customSize && (
-        <div className="mt-2 text-sm text-gray-600">
-          Custom Size Selected: Chest {customSize.chest} cm, Sleeve{" "}
-          {customSize.sleeve} cm, Shoulder {customSize.shoulder} cm, Waist{" "}
-          {customSize.waist} cm
-        </div>
-      )}
-    </div>
-
-    {/* Render CustomSize popup */}
-    {isCustomSizeVisible && (
-      <CustomSize
-        onClose={() => setIsCustomSizeVisible(false)}
-        onApply={(selectedSizes) => {
-          setCustomSize(selectedSizes);
-          setSelectedSize("Custom");
-        }}
-      />
-    )}
-
-    {/* Quantity and Add to Cart */}
-    <h3 className="my-2 text-black">Quantity:</h3>
-    <div className="flex flex-wrap items-center gap-4 mb-6">
-      <div className="flex items-center w-40  border rounded-lg">
-        <button
-          className="px-3 py-2"
-          onClick={() => handleQuantityChange("decrement")}
-        >
-          -
-        </button>
-        <input
-          type="text"
-          value={quantity}
-          readOnly
-          className="w-full text-center"
-        />
-        <button
-          className="px-3 py-2"
-          onClick={() => handleQuantityChange("increment")}
-        >
-          +
-        </button>
-      </div>
-      <button
-        className={`w-full rounded-lg px-6 py-2 text-black ${
-          isAdded ? "bg-discount-color" : "bg-white border-2 border-cream"
-        }`}
-        onClick={handleAddToCart}
-      >
-        {isAdded ? (
-          <>
-            <i className="ri-luggage-cart-line mr-2"></i> Added to Cart
-          </>
-        ) : (
-          "Add to Cart"
-        )}
-      </button>
-    </div>
-
-    {/* Buy Now, Compare, Share */}
-    <button className="bg-black text-white w-full px-6 py-2 rounded-lg mb-4">
-      Buy It Now
-    </button>
-    <div className="flex gap-4 mt-4">
-     
-      <button className="text-black flex items-center gap-2">
-        <span>
-          <i className="ri-share-fill text-xl border rounded-lg p-2"></i>
-        </span>{" "}
-        Share
-      </button>
-    </div>
-    <HandleInfo categories={categories} product={product} reviews={reviews} />
-  </div>
-</div>
 
       {/* Additional Sections */}
       {/* <ProductDetailsInfo categories={categories} />

@@ -40,7 +40,7 @@ const SettingsTab = () => {
 
   return (
     <div className="p-4 border rounded-xl my-2">
-      {/* Information Section */}
+      {/* Information Section data  */}
       <h2 className="text-xl font-bold mb-4">Information</h2>
       <div className="border rounded-lg p-6 bg-white">
         {/* Avatar Upload */}

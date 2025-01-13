@@ -41,7 +41,7 @@ const CategoryDropdown = () => {
       >
         <div className="flex flex-col justify-center items-center">
           <i className=" md:hidden ri-list-unordered"></i>
-          <span className="text-xs md:text-base">Category</span>
+          <span className="text-xs  md:text-base">Category</span>
         </div>
 
         <i

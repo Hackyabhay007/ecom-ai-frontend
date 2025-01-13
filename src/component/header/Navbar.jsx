@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { toggleWishlistSidebar } from "../../../redux/slices/wishSlice";
 import Search from "../search/Search";
 import CategoryDropdown from "../category/CategoryDropdown";
+import NavCategory from "./NavCategory";
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -99,6 +100,9 @@ function Navbar() {
               >
                <i class="ri-user-line"></i> sign up / register
               </li> 
+              <div>
+              <NavCategory/>
+              </div>
               <li
                 className={`cursor-pointer hover:text-theme-blue ${
                   router.pathname === "/" ? "text-theme-blue font-semibold" : ""
@@ -196,7 +200,7 @@ function Navbar() {
           Shop
         </div>
         <div className="">
-          <CategoryDropdown />
+         <NavCategory/> 
         </div>
         <div
           className={`cursor-pointer hover:text-theme-blue ${
