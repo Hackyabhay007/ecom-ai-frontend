@@ -42,14 +42,6 @@ function Navbar() {
       <nav className="bg-white fixed w-full z-50 text-black p-4 shadow-md">
         {/* Top Navigation Bar */}
         <div className="flex items-center justify-between">
-          {/* Menu Icon */}
-          <i
-            className={`text-2xl cursor-pointer ${
-              isMenuOpen ? "ri-close-line" : "ri-menu-2-line"
-            }`}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          ></i>
-
           {/* Logo */}
           <Link href="/">
             <div className="flex justify-center items-center relative w-20 h-10">
@@ -59,7 +51,7 @@ function Navbar() {
                 alt="Logo"
                 width={500}
                 height={500}
-                className="absolute w-20  "
+                className="absolute w-20"
               />
               {/* Smaller logo */}
               <Image
@@ -73,87 +65,110 @@ function Navbar() {
           </Link>
 
           {/* Right Icons */}
-          <div className="flex space-x-4 items-center">
+          <div className="flex space-x-4 items-center justify-end">
             <i
-              className="ri-user-line text-2xl cursor-pointer hover:text-black"
-              onClick={() =>
-                user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")
-              }
+              className="ri-search-line text-2xl cursor-pointer hover:text-black"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            ></i>
+            <i
+              className={`text-2xl cursor-pointer transition-all duration-300 ease-in-out ${
+                isMenuOpen
+                  ? "ri-close-line rotate-180"
+                  : "ri-pause-large-line rotate-90"
+              }`}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
             ></i>
           </div>
+          {isSearchOpen && (
+            <Search onClose={() => setIsSearchOpen(false)} isMobile={false} />
+          )}
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="mt-2 p-4 rounded-md">
+        <div
+          className={`fixed top-19 right-0 h-screen w-full bg-white shadow-lg z-40 transform transition-all duration-300 ease-in-out ${
+            isMenuOpen
+              ? "animate-slideInLeft translate-x-0"
+              : "animate-slideInRight translate-x-full"
+          }`}
+        >
+          <div className="mt-2 py-4 h-full">
             {/* Menu Items */}
-            <ul className="space-y-4">
+            <ul className="space-y-0">
               {/* Search Bar */}
-              <li>
+              {/* <li>
                 <Search onClose={() => setIsMenuOpen(false)} isMobile={true} />
-              </li>
+              </li> */}
               <li
-                className={`cursor-pointer hover:text-theme-blue ${
+                className={`cursor-pointer bg-light-BG hover:text-theme-blue border-b border-gray-400 text-lg  p-5  ${
                   router.pathname === "/" ? "text-theme-blue font-semibold" : ""
                 }`}
-                onClick={() => user ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")}
+                onClick={() =>
+                  user
+                    ? navigateTo("/auth/dashboard")
+                    : navigateTo("/auth/login")
+                }
               >
-               <i class="ri-user-line"></i> sign up / register
-              </li> 
-              <div>
-              <NavCategory/>
+                <i className="ri-user-line pr-4 "></i> Sign In / Register
+              </li>
+                <div className="md:hidden">
+                  <NavCategory />
+                </div>
+              <div className=" space-y-6 py-4 px-2">
+                <li
+                  className={`cursor-pointer px-4 hover:text-theme-blue ${
+                    router.pathname === "/"
+                      ? "text-theme-blue font-semibold"
+                      : ""
+                  }`}
+                  onClick={() => navigateTo("/")}
+                >
+                  <i className="ri-home-line"></i> Home
+                </li>
+                <li
+                  className={`cursor-pointer px-4 hover:text-theme-blue ${
+                    router.pathname === "/shop"
+                      ? "text-theme-blue font-semibold"
+                      : ""
+                  }`}
+                  onClick={() => navigateTo("/shop")}
+                >
+                  <i className="ri-shopping-bag-line"></i> Shop
+                </li>
+                <li
+                  className={`cursor-pointer px-4 hover:text-theme-blue ${
+                    router.pathname === "/about"
+                      ? "text-theme-blue font-semibold"
+                      : ""
+                  }`}
+                  onClick={() => navigateTo("/about")}
+                >
+                  <i className="ri-information-2-line"></i> About us
+                </li>
+                <li
+                  className={`cursor-pointer px-4 hover:text-theme-blue ${
+                    router.pathname === "/contact-us"
+                      ? "text-theme-blue font-semibold"
+                      : ""
+                  }`}
+                  onClick={() => navigateTo("/contact-us")}
+                >
+                  <i className="ri-customer-service-line"></i> Contact Us
+                </li>
+                <li
+                  className={`cursor-pointer px-4 hover:text-theme-blue ${
+                    router.pathname === "/wishlist"
+                      ? "text-theme-blue font-semibold"
+                      : ""
+                  }`}
+                  onClick={() => navigateTo("/wishlist")}
+                >
+                  <i className="ri-heart-line"></i> Wishlist
+                </li>
               </div>
-              <li
-                className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/" ? "text-theme-blue font-semibold" : ""
-                }`}
-                onClick={() => navigateTo("/")}
-              >
-               <i class="ri-home-line"></i> Home
-              </li>
-              <li
-                className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/shop"
-                    ? "text-theme-blue font-semibold"
-                    : ""
-                }`}
-                onClick={() => navigateTo("/shop")}
-              >
-               <i class="ri-shopping-bag-line"></i>  Shop
-              </li>
-              <li
-                className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/about"
-                    ? "text-theme-blue font-semibold"
-                    : ""
-                }`}
-                onClick={() => navigateTo("/about")}
-              >
-               <i class="ri-information-2-line"></i> About us
-              </li>
-              <li
-                className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/contact-us"
-                    ? "text-theme-blue font-semibold"
-                    : ""
-                }`}
-                onClick={() => navigateTo("/contact-us")}
-              >
-              <i class="ri-customer-service-line"></i> Contact Us
-              </li>
-              <li
-                className={`cursor-pointer hover:text-theme-blue ${
-                  router.pathname === "/wishlist"
-                    ? "text-theme-blue font-semibold"
-                    : ""
-                }`}
-                onClick={() => navigateTo("/wishlist")}
-              >
-                <i class="ri-heart-line"></i> Wishlist
-              </li>
             </ul>
           </div>
-        )}
+        </div>
       </nav>
     );
   }
@@ -184,25 +199,25 @@ function Navbar() {
       {/* Navigation Links */}
       <div className="flex items-center space-x-14">
         <div
-          className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/" ? "text-theme-blue font-semibold" : ""
+          className={`cursor-pointer hover:text-theme-blue border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
+            router.pathname === "/" ? "text-theme-blue font-semibold border-b-2 border-theme-blue" : ""
           }`}
           onClick={() => navigateTo("/")}
         >
           Home
         </div>
         <div
-          className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/shop" ? "text-theme-blue font-semibold" : ""
+          className={`cursor-pointer hover:text-theme-blue border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
+            router.pathname === "/shop" ? "text-theme-blue font-semibold border-b-2 border-theme-blue" : ""
           }`}
           onClick={() => navigateTo("/shop")}
         >
           Shop
         </div>
         <div className="">
-         <NavCategory/> 
+          <NavCategory />
         </div>
-        <div
+        {/* <div
           className={`cursor-pointer hover:text-theme-blue ${
             router.pathname === "/about" ? "text-theme-blue font-semibold" : ""
           }`}
@@ -219,7 +234,7 @@ function Navbar() {
           onClick={() => navigateTo("/contact-us")}
         >
           Contact Us
-        </div>
+        </div> */}
       </div>
 
       {/* Right Icons */}

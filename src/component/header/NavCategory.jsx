@@ -51,15 +51,15 @@ const NavCategory = () => {
   }, [activeCategory]);
 
   return (
-    <div className="relative">
+    <div className="relative ">
       {/* Navigation Menu */}
-      <div className="flex flex-col space-y-1 md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around border-b-2 border-gray-500 pb-3 md:pb-0 md:border-none bg-white z-50">
-        {["woman", "man", "kids"].map((category) => (
+      <div className="flex px-5 text-xl md:text-base  text-black md:px-0  bg-light-BG md:bg-white flex-col space-y-8  md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around   pt-10 pb-5 md:py-0 s md:pb-0 md:border-none  z-50">
+        {["men", "woman", "kids"].map((category) => (
           <div
             key={category}
             ref={categoryRefs[category]}
-            className={`cursor-pointer hover:text-theme-blue ${
-              activeCategory === category ? "text-theme-blue font-semibold" : ""
+            className={`cursor-pointer hover:text-theme-blue  border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
+              activeCategory === category ? "text-theme-blue font-semibold border-b-2 border-theme-blue" : ""
             }`}
             onClick={() => toggleCategoryDropdown(category)}
           >
@@ -71,7 +71,7 @@ const NavCategory = () => {
       {/* Dropdown */}
       <div
         ref={dropdownRef}
-        className={`fixed   inset-x-0 top-20 bg-white z-40 ${
+        className={` fixed  inset-x-0 top-20 z-50 ${
           activeCategory
             ? "block animate-dropdown"
             : isAnimating

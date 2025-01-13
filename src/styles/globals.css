@@ -42,12 +42,12 @@ body {
 }
 
 .scrollbar-custom2::-webkit-scrollbar-track {
-  background-color: #E1E1E1; /* Light track color */
+  background-color: #5c3f3f; /* Light track color */
   border-radius: 30px;
 }
 
 .scrollbar-custom2::-webkit-scrollbar-thumb {
-  background-color: #000000; /* Darker thumb color */
+  background-color: #E1E1E1; /* Darker thumb color */
   border-radius: 30px;
 }
 

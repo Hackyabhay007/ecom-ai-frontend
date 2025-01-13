@@ -10,7 +10,7 @@ const Category = ({ activeCategory = "woman" }) => {
       { name: "Jacket", image: "/images/category/woman/cat4.jpg" },
       { name: "Dress", image: "/images/category/woman/cat5.jpg" },
     ],
-    man: [
+    men: [
       { name: "Shirt", image: "/images/category/man/cat1.jpg" },
       { name: "Pants", image: "/images/category/man/cat2.jpg" },
       { name: "Suit", image: "/images/category/man/cat3.jpg" },
@@ -40,7 +40,7 @@ const Category = ({ activeCategory = "woman" }) => {
   const categoryData = categories[activeCategory] || [];
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-white bg-zinc-900">
       <h2 className="text-2xl font-bold mb-6 capitalize">{activeCategory}&#39;s Categories</h2>
       <div className="relative">
         {/* Left Arrow */}

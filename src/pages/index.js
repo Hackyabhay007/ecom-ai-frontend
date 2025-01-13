@@ -16,7 +16,7 @@ export default function HomePage() {
       <Navbar/>
      <Hero/>
      <Category/>
-     <Collection/>
+     {/* <Collection/> */}
      <Gallery/> 
      <Gallery2/>
      <Best_seller/>

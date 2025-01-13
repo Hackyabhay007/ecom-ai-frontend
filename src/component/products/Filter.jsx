@@ -10,7 +10,11 @@ const Filter = ({ onApplyFilters }) => {
   });
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
+  const [isSticky, setIsSticky] = useState(false);
+  const [buttonStyle, setButtonStyle] = useState({
+    position: "absolute",
+    top: "15rem", // Initial position (e.g., 60 relative to the top)
+  });
   const handleFilterChange = (key, value) => {
     const updatedFilters = { ...filters, [key]: value };
     setFilters(updatedFilters);
@@ -30,15 +34,27 @@ const Filter = ({ onApplyFilters }) => {
       document.body.style.overflow = "auto";
     };
   }, [isMobileFilterOpen]);
+  useEffect(() => {
+    const handleScroll = () => {
+      const threshold = 10; // Adjust based on design
+      setIsSticky(window.scrollY > threshold);
+    };
 
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
   return (
     <div>
       {/* Mobile Filter Toggle Button */}
       <button
-        className="md:hidden w-1/6  rotate-90 px-4  text-start font-semibold rounded-md hover:bg-black hover:text-white hover:font-thin "
+        className={`md:hidden w-full  py-2 px-10 bg-white fixed z-50 text-end font-semibold rounded-md  ${
+          isSticky ? "top-5" : "top-60"
+        }`}
         onClick={() => setIsMobileFilterOpen(true)}
       >
-        <i className="ri-sound-module-line text-2xl"></i>
+       <p className="text-xl"> <i className="ri-sound-module-line text-xl"></i> Filter</p>
       </button>
 
       {/* Filter Sidebar */}

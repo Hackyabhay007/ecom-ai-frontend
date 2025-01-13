@@ -10,10 +10,13 @@ import ProductDetailsInfo from "./ProductDetailsInfo";
 import CustomSize from "./CustomSize";
 import HandleInfo from "./HandleInfo";
 import ImageCarousel from "./ImageCrousal";
+import products from "../data/product_data";
 const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(
+    product.colors?.[0] || null
+  );
   const [selectedSize, setSelectedSize] = useState(null);
   const [warning, setWarning] = useState("");
   const [isAdded, setIsAdded] = useState(false);
@@ -32,7 +35,7 @@ const ProductView = ({ product, allProducts }) => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedColor || !selectedSize) {
+    if (!selectedSize) {
       setWarning("Please select both color and size.");
       setIsProgressVisible(true);
 
@@ -104,21 +107,6 @@ const ProductView = ({ product, allProducts }) => {
 
   return (
     <div className="mb-10 md:mb-0">
-      {warning && (
-        <div className="fixed top-20 right-10 z-50 flex flex-col items-center bg-white text-[#112A46] border-t-4 border-red-500  rounded-b-lg shadow shadow-black p-4 w-72">
-          <div className="flex items-center w-full">
-            <i className="ri-error-warning-line mr-3 text-xl"></i>
-            <p className="font-bold">{warning}</p>
-          </div>
-          {/* Progressive Bar */}
-          <div className="relative mt-2 w-full h-1 bg-red-300 overflow-hidden rounded">
-            {isProgressVisible && (
-              <div className="absolute top-0 left-0 h-1 bg-[#112A46] animate-progress-bar"></div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Product Images and Details */}
       <div className="w-full container mx-auto py-8 px-2 flex flex-col md:flex-row">
         {/* Images Section */}
@@ -135,9 +123,10 @@ const ProductView = ({ product, allProducts }) => {
             {categories.map((category, index) => (
               <span
                 key={index}
-                className="text-xs text-theme-blue cursor-pointer mr-2"
+                className="text-xs text-theme-blue cursor-pointer mr-1"
               >
                 {category}
+                {index < categories.length - 1 && " ,"}
               </span>
             ))}
           </div>
@@ -145,7 +134,9 @@ const ProductView = ({ product, allProducts }) => {
           {/* Pricing Details */}
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">₹{price}</span>
-            <span className="text-sub-color text-sm line-through">₹{prevPrice}</span>
+            <span className="text-sub-color text-sm line-through">
+              ₹{prevPrice}
+            </span>
             {/* <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
         -{discount}%
       </span> */}
@@ -191,6 +182,11 @@ const ProductView = ({ product, allProducts }) => {
               >
                 Custom size
               </div>
+              {warning && !selectedSize && (
+                <div className="text-red-700 text-sm mt-2 capitalize">
+                  <i class="ri-information-fill"></i> Please select a size
+                </div>
+              )}
             </div>
             {customSize && (
               <div className="mt-2 text-sm text-gray-600">
@@ -222,7 +218,7 @@ const ProductView = ({ product, allProducts }) => {
             >
               {isAdded ? (
                 <>
-                  <i className="ri-luggage-cart-line mr-2"></i> Added to Cart
+                  <i className="ri-luggage-cart-line mr-2"></i> Added
                 </>
               ) : (
                 "Add to Cart"
@@ -231,6 +227,12 @@ const ProductView = ({ product, allProducts }) => {
             <button className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
               Buy It Now
             </button>
+          </div>
+          {/* Product Description */}
+          <div className="my-8">
+            <p className="text-theme-blue text-sm leading-relaxed">
+              {product.description}
+            </p>
           </div>
 
           <div className="flex gap-4 mt-4">
@@ -254,7 +256,7 @@ const ProductView = ({ product, allProducts }) => {
       <ProductDetails product={product} />
       <CustomerReview reviews={reviews} /> */}
       <RelatedProducts currentProduct={product} allProducts={allProducts} />
-      <CustomerComment />
+      {/* <CustomerComment /> */}
 
       {/* Related Products */}
     </div>
