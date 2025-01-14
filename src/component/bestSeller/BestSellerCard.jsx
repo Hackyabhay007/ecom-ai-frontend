@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 
-function BestSellerCard({ image, rating, price, prevPrice, discount }) {
+function BestSellerCard({ image, rating, price, prevPrice, discount ,title }) {
   return (
     <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col">
       <Image

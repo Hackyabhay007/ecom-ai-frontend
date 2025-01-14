@@ -1,5 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Image from "next/image";
 import {
   toggleWishlistSidebar,
   removeFromWishlist,
@@ -45,7 +46,7 @@ const WishlistSidebar = () => {
                 key={item.id}
                 className="flex items-center justify-between border-b pb-2"
               >
-                <img
+                <Image
                   src={item.image}
                   alt={item.name}
                   className="w-16 h-16 object-cover rounded"
@@ -66,9 +67,7 @@ const WishlistSidebar = () => {
           ) : (
             <div className="flex flex-col text-sub-color justify-center items-center py-10">
               <i class="ri-heart-add-fill text-6xl opacity-40"></i>
-              <p className=" text-center">
-                Your wishlist is empty!
-              </p>
+              <p className=" text-center">Your wishlist is empty!</p>
             </div>
           )}
         </div>

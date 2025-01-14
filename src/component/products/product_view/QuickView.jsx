@@ -91,10 +91,10 @@ const QuickView = ({ product, onClose }) => {
             height={300}
             className="rounded-lg object-cover"
           />
-          {additionalImages.map((img, index) => (
+          {additionalImages.map((Image, index) => (
             <Image
               key={index}
-              src={img}
+              src={Image}
               alt={`Additional Image ${index + 1}`}
               width={300}
               height={100}
@@ -117,7 +117,9 @@ const QuickView = ({ product, onClose }) => {
           {/* Pricing Details */}
           <div className="flex items-center gap-4 mb-4">
             <span className="text-lg">₹{price}</span>
-            <span className="line-through text-sub-color text-sm">₹{prevPrice}</span>
+            <span className="line-through text-sub-color text-sm">
+              ₹{prevPrice}
+            </span>
             <span className="bg-discount-color text-black px-2 py-1 rounded-full text-xs">
               -{discount}%
             </span>

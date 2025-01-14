@@ -4,7 +4,7 @@ import Link from "next/link";
 const ProfileArea = () => {
   return (
     <div className="flex items-center gap-4">
-      <img
+      <Image
         src="/profile-placeholder.png"
         alt="Profile Icon"
         className="w-8 h-8 rounded-full"

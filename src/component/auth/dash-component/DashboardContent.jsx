@@ -19,8 +19,16 @@ const DashboardContent = () => {
     {
       order: "#001",
       products: [
-        { name: "Product A", image: "/images/collection/collection1.png", tags: ["Women", "Clothing"] },
-        { name: "Product B", image: "/images/collection/collection2.png", tags: ["Men", "Accessories"] },
+        {
+          name: "Product A",
+          image: "/images/collection/collection1.png",
+          tags: ["Women", "Clothing"],
+        },
+        {
+          name: "Product B",
+          image: "/images/collection/collection2.png",
+          tags: ["Men", "Accessories"],
+        },
       ],
       pricing: "$100",
       status: "Delivered",
@@ -28,7 +36,11 @@ const DashboardContent = () => {
     {
       order: "#002",
       products: [
-        { name: "Product C", image: "/images/collection/collection1.png", tags: ["Unisex", "Footwear"] },
+        {
+          name: "Product C",
+          image: "/images/collection/collection1.png",
+          tags: ["Unisex", "Footwear"],
+        },
       ],
       pricing: "$50",
       status: "Pending",
@@ -52,8 +64,12 @@ const DashboardContent = () => {
             onClick={card.onClick}
           >
             <div>
-              <h3 className="text-sub-color text-sm md:text-base">{card.label}</h3>
-              <p className="text-black text-lg md:text-2xl font-bold">{card.value}</p>
+              <h3 className="text-sub-color text-sm md:text-base">
+                {card.label}
+              </h3>
+              <p className="text-black text-lg md:text-2xl font-bold">
+                {card.value}
+              </p>
             </div>
             <i className={`${card.icon} text-2xl md:text-3xl`}></i>
           </div>
@@ -81,7 +97,7 @@ const DashboardContent = () => {
                 <td className="px-2 md:px-4 py-2">
                   {order.products.map((product, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2">
-                      <img
+                      <Image
                         src={product.image}
                         alt={product.name}
                         className="w-8 h-8 md:w-12 md:h-12 object-cover rounded"
@@ -90,12 +106,9 @@ const DashboardContent = () => {
                         <p className="font-bold text-xs md:text-sm">
                           {product.name}
                         </p>
-                      <div className="text-xs w-20 md:w-28 text-left overflow-hidden text-ellipsis whitespace-nowrap text-sub-color">
+                        <div className="text-xs w-20 md:w-28 text-left overflow-hidden text-ellipsis whitespace-nowrap text-sub-color">
                           {product.tags.map((tag, idx) => (
-                            <span
-                              key={idx}
-                              className="mr-1 md:mr-2"
-                            >
+                            <span key={idx} className="mr-1 md:mr-2">
                               {tag}
                             </span>
                           ))}

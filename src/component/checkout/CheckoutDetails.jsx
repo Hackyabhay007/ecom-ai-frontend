@@ -31,7 +31,8 @@ function CheckoutDetails({ onContinue, productDetails }) {
     if (!formData.landmark.trim()) errors.landmark = "Landmark is required";
     if (!formData.state.trim()) errors.state = "State is required";
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    if (!formData.phoneNumber.trim()) errors.phoneNumber = "Phone Number is required";
+    if (!formData.phoneNumber.trim())
+      errors.phoneNumber = "Phone Number is required";
 
     return errors;
   };
@@ -52,20 +53,24 @@ function CheckoutDetails({ onContinue, productDetails }) {
       {/* Left Section: Product Card */}
       <div className="w-full lg:w-1/2 flex-shrink-0">
         <div className="p-4 flex flex-col h-full">
-          <img
+          <Image
             src={productDetails.image}
             alt="Product"
             className="w-full object-cover mb-4"
             style={{ height: "250px" }}
           />
           <div>
-            <h2 className="text-lg font-semibold">{productDetails.productName}</h2>
+            <h2 className="text-lg font-semibold">
+              {productDetails.productName}
+            </h2>
             <p className="text-sub-color">Qty: {productDetails.quantity}</p>
             <p className="text-sub-color">Price: {productDetails.price}</p>
             <p className="bg-theme-blue text-sm font-t rounded-full w-fit text-white px-2">
               Discount: - {productDetails.discountPercentage}%
             </p>
-            <p className="text-black font-bold">Total: {productDetails.total}</p>
+            <p className="text-black font-bold">
+              Total: {productDetails.total}
+            </p>
           </div>
         </div>
       </div>
@@ -73,7 +78,9 @@ function CheckoutDetails({ onContinue, productDetails }) {
       {/* Right Section: Form */}
       <div className="w-full lg:w-1/2 flex-shrink-0">
         <div className="p-6 flex flex-col h-full">
-          <h2 className="text-4xl text-center font-bold mb-5 text-black">Personal Details</h2>
+          <h2 className="text-4xl text-center font-bold mb-5 text-black">
+            Personal Details
+          </h2>
           <form className="space-y-4 flex-grow flex flex-col">
             <div className="border pl-2 pb-1 border-black rounded-md">
               <label className="block text-sm pl-1 my-1">Country/Region</label>

@@ -9,10 +9,12 @@ const images = [
   "/images/gallery/gallery5.png",
 ];
 
-const ImageStackSlider = () => {
+const ImageStackSlider = ({catalogdata}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
+
+  
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -58,7 +60,7 @@ const ImageStackSlider = () => {
     >
       {/* Stacked Images */}
       <div className="relative h-full flex items-center justify-center">
-        {images.map((image, index) => {
+        {catalogdata.map((data, index) => {
           // Calculate position for stacking
           const position = (index - currentIndex + images.length) % images.length;
           const zIndex = images.length - position;
@@ -80,7 +82,7 @@ const ImageStackSlider = () => {
               }}
             >
               <Image
-                src={image}
+                src={data.image}
                 alt={`Gallery Image ${index + 1}`}
                 layout="fill"
                 objectFit="cover"
