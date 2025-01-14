@@ -19,7 +19,7 @@ const ShopArea = () => {
       image: "/images/shop/shop1.jpeg",
       tags: ["NEW"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -42,7 +42,7 @@ const ShopArea = () => {
       image: "/images/shop/shop2.jpeg",
       tags: ["SALE"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -65,7 +65,7 @@ const ShopArea = () => {
       image: "/images/shop/shop3.jpg",
       tags: ["NEW"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -88,7 +88,7 @@ const ShopArea = () => {
       image: "/images/shop/shop4.jpeg",
       tags: ["SALE"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -111,7 +111,7 @@ const ShopArea = () => {
       image: "/images/shop/shop5.jpg",
       tags: ["NEW"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -134,7 +134,7 @@ const ShopArea = () => {
       image: "/images/shop/shop6.jpeg",
       tags: ["SALE"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -157,7 +157,7 @@ const ShopArea = () => {
       image: "/images/shop/shop7.jpeg",
       tags: ["NEW"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -180,7 +180,7 @@ const ShopArea = () => {
       image: "/images/shop/shop8.jpg",
       tags: ["SALE"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -203,7 +203,7 @@ const ShopArea = () => {
       image: "/images/shop/shop9.jpg",
       tags: ["NEW"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",
@@ -226,7 +226,7 @@ const ShopArea = () => {
       image: "/images/shop/shop10.jpg",
       tags: ["NEW"],
       description:
-        "A comfortable full sleeve t-shirt perfect for casual outings.",
+        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
       additionalImages: [
         "/images/shop/additional1.jpg",
         "/images/shop/additional2.jpg",

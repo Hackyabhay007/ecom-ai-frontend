@@ -37,7 +37,7 @@ const ImageStackSlider = ({catalogdata}) => {
     if (isPlaying && progress < 100) {
       const interval = setInterval(() => {
         setProgress((prev) => prev + 0.33); // Progress 0.33 every 30ms to complete in 3 seconds
-      }, 3); // Speed of progress bar update (100% in 3 seconds)
+      }, 4); // Speed of progress bar update (100% in 3 seconds)
       return () => clearInterval(interval); // Cleanup on component unmount or play/pause change
     }
   }, [isPlaying, progress]);

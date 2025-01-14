@@ -24,7 +24,7 @@ const LoyaltyPointsPopup = ({ points, onClose }) => {
             : "scale-100 animate-popup" // Popup animation for opening
         }`}
       >
-        {/* Right Column: Points Display */}
+        {/* Right Column: Points displays */}
         <div className="flex-1 md:p-8 flex flex-col items-center justify-center md:border-r-2 border-gray-300">
           <div className="bg-white rounded-full w-32 h-32 flex items-center ani justify-center text-6xl font-bold text-theme-blue shadow-md shadow-cyan-300 mb-6">
            <span className="">{points}</span>

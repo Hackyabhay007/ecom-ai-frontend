@@ -148,7 +148,7 @@ const AddressTab = () => {
                 name="email"
                 value={newAddress.email}
                 onChange={handleChange}
-                className="w-full py-4 px-4 border rounded-lg"
+                className="w-full  py-4 px-4 border rounded-lg"
               />
             </div>
           </div>

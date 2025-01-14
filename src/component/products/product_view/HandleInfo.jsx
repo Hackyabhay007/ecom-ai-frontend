@@ -176,7 +176,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
   {/* Review Content - Ensure this section is scrollable */}
   <div className="p-2 pb-10 max-h-full overflow-y-auto custom-scrollbar">
     {/* Customer Reviews */}
-    <CustomerReview reviews={reviews} />
+    <CustomerReview reviews={reviews} productImage={product.image} />
   </div>
 </div>
 

@@ -7,6 +7,7 @@ import Navbar from "@/component/header/Navbar";
 import Hero from "@/component/hero_section/Hero";
 import Review from "@/component/review/Review";
 import Service from "@/component/services/Service";
+import Category from "@/component/category/Category";
 
 
 export default function HomePage() {
@@ -14,7 +15,8 @@ export default function HomePage() {
     <>
       <Navbar/>
      <Hero/>
-     <Collection/>
+     <Category/>
+     {/* <Collection/> */}
      <Gallery/> 
      <Gallery2/>
      <Best_seller/>

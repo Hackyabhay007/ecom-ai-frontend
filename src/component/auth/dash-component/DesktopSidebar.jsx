@@ -27,7 +27,7 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
         />
         <h3 className="text-xl font-bold">{user?.name}</h3>
         <p className="text-gray-600">{user?.email}</p>
-      </div>
+      </div> 
 
       {/* Navigation Menu */}
       <nav className="space-y-4 text-lg">

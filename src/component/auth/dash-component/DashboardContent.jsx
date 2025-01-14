@@ -91,6 +91,7 @@ const DashboardContent = () => {
             </tr>
           </thead>
           <tbody>
+            {/* order */}
             {recentOrders.map((order, index) => (
               <tr key={index} className="border-b">
                 <td className="px-2 md:px-4 py-2">{order.order}</td>

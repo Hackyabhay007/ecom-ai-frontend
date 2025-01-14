@@ -35,13 +35,13 @@ function Footer() {
               <i className="ri-home-line"></i>
               <span className="text-xs">Home</span>
             </Link>
-            <div className="flex flex-col items-center">
-             
-              <CategoryDropdown />
-            </div>
             <Link href="/shop" className="flex flex-col items-center">
               <i className="ri-shopping-bag-line"></i>
               <span className="text-xs">Shop</span>
+            </Link>
+            <Link href="/wishlist" className="flex flex-col items-center">
+              <i className="ri-heart-line"></i>
+              <span className="text-xs">Wishlist</span>
             </Link>
             <Link href="/cart" className="flex relative flex-col items-center">
               <i className="ri-shopping-cart-line"></i>
@@ -64,14 +64,14 @@ function Footer() {
               <h3 className="text-xl font-bold mb-2">Shop</h3>
               <ul className="text-sub-color space-y-2">
                 <li>
-                  <Link href="/men">Men</Link>
+                  <Link href="/about">About</Link>
                 </li>
                 <li>
-                  <Link href="/women">Women</Link>
+                  <Link href="/contact-us">Contact us</Link>
                 </li>
-                <li>
-                  <Link href="/kids">Kids</Link>
-                </li>
+                {/* <li>
+                  <Link href="/">Kids</Link>
+                </li> */}
               </ul>
             </div>
 

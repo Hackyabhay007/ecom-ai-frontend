@@ -54,7 +54,7 @@ const OrderHistory = () => {
         </h2>
       </div>
 
-      {/* Filters */}
+      {/* filters data */}
       <div className="mb-4 border-b flex justify-around sm:justify-start sm:gap-6">
         {["all", "pending", "delivered"].map((status) => (
           <button

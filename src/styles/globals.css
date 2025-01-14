@@ -35,6 +35,30 @@ body {
 .dark .scrollbar-custom::-webkit-scrollbar-thumb {
   background-color: #aaa; /* Lighter thumb in dark mode */
 }
+/* Custom Horizontal Scrollbar with 1px height */
+.scrollbar-custom2::-webkit-scrollbar {
+  height: 2px; /* Reduced height for the scrollbar */
+  
+}
+
+.scrollbar-custom2::-webkit-scrollbar-track {
+  background-color: #5c3f3f; /* Light track color */
+  border-radius: 30px;
+}
+
+.scrollbar-custom2::-webkit-scrollbar-thumb {
+  background-color: #E1E1E1; /* Darker thumb color */
+  border-radius: 30px;
+}
+
+.scrollbar-custom2::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker thumb color when hovered */
+}
+
+/* Dark mode styling */
+.dark .scrollbar-custom2::-webkit-scrollbar-track {
+  background-color: #444; /* Dark track color */
+}
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
