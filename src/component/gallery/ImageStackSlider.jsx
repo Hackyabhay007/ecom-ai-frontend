@@ -70,7 +70,7 @@ const ImageStackSlider = ({catalogdata}) => {
               : `translateY(${5 * position}%) translateX(${50 * position}px) scale(0.85)`;
 
           return (
-            <div
+            <a href={data.link}
               key={index}
               className={`absolute w-[90%] md:w-[70%] h-[90%] transition-all duration-500 ease-in-out ${
                 position === 0 ? "shadow-xl" : "shadow-md"
@@ -88,7 +88,7 @@ const ImageStackSlider = ({catalogdata}) => {
                 objectFit="cover"
                 className="object-top"
               />
-            </div>
+            </a>
           );
         })}
       </div>

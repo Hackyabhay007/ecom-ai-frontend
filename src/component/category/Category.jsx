@@ -1,7 +1,22 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchcategores } from "../../../redux/slices/categorySlice";
+import { useRouter } from "next/router";
 
 const Category = ({ activeCategory = "woman" }) => {
+  const dispatch = useDispatch();
+  const { categories : data, status, error } = useSelector(
+    (state) => state.categorysection
+  );
+
+  useEffect(()=>{
+      dispatch(fetchcategores())
+  },[dispatch])
+
+  console.log(data ,status)
+
+  const router = useRouter();
   const categories = {
     woman: [
       { name: "Plazo", image: "/images/category/woman/cat1.jpeg" },
@@ -41,7 +56,9 @@ const Category = ({ activeCategory = "woman" }) => {
 
   return (
     <div className="p-6 text-white bg-zinc-900">
-      <h2 className="text-2xl font-bold mb-6 capitalize">{activeCategory}&#39;s Categories</h2>
+      <h2 className="text-2xl font-bold mb-6 capitalize">
+        {activeCategory}&#39;s Categories
+      </h2>
       <div className="relative">
         {/* Left Arrow */}
         <button
@@ -65,15 +82,16 @@ const Category = ({ activeCategory = "woman" }) => {
           className="flex space-x-4 overflow-x-auto scrollbar-custom2 p-2"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {categoryData.map((category, index) => (
+          {data.map((category, index) => (
             <div
+              onClick={()=>router.push(`/store/${category.id}`)}
               key={index}
-              className="flex-shrink-0"
+              className="flex-shrink-0 cursor-pointer"
               style={{ scrollSnapAlign: "start" }}
             >
               <div className="w-full h-96">
                 <Image
-                  src={category.image}
+                  src={category.metadata?.img}
                   alt={category.name}
                   width={500}
                   height={500}

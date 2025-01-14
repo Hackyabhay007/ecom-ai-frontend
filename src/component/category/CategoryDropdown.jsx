@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import CategoryData from "./CategoryData";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchcategores } from "../../../redux/slices/categorySlice";
+
 
 const CategoryDropdown = () => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);

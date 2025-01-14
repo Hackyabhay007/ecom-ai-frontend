@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import BestSellerCard from "./BestSellerCard";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import { fetchproductonhomes } from "../../../redux/slices/productonhomeSlicer.js";
+import axios from "axios";
 
 function BestSeller() {
   const dispatch = useDispatch();
@@ -12,40 +13,41 @@ function BestSeller() {
     error,
   } = useSelector((state) => state.productonhomesection);
 
+  const [pageroutedeatils, setPageroutedeatils] = useState([]);
+
+  const fetchpagedeatils = () => {
+    axios
+      .get(
+        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/home/01JG6HHXRSA1X4HJ64532PHCH9`,
+        {
+          headers: {
+            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res.data.home.result);
+        setPageroutedeatils(res.data.home.result);
+        //data come it
+        // created_at: "2024-12-28T11:48:47.515Z";
+        // deleted_at: null;
+        // id: "01JG6HHXRSA1X4HJ64532PHCH9";
+        // index: 4;
+        // redirect: "default_value";
+        // route: "/items";
+        // text: "default_text";
+        // title: "Product on Homepage";
+        // updated_at: "2025-01-12T12:20:03.799Z";
+      });
+  };
+
   useEffect(() => {
     dispatch(fetchproductonhomes());
+    fetchpagedeatils();
   }, [dispatch]);
 
   // Ensure the data is converted into an array
   const productArray = Array.isArray(best_product) ? best_product : [];
-
-  // collection: null;
-  // collection_id: null;
-  // created_at: "2024-12-25T05:41:08.905Z";
-  // deleted_at: null;
-  // description: "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.";
-  // discountable: true;
-  // external_id: null;
-  // handle: "t-shirt";
-  // height: null;
-  // hs_code: null;
-  // id: "prod_01JFY5AK5P4FE6SF82QHJ6NJWA";
-  // is_giftcard: false;
-  // length: null;
-  // material: null;
-  // metadata: null;
-  // mid_code: null;
-  // origin_country: null;
-  // show_on_home_id: "01JGX7ZGBDY6FE5EGZMN3T556A";
-  // status: "published";
-  // subtitle: null;
-  // thumbnail: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png";
-  // title: "Medusa T";
-  // type: null;
-  // type_id: null;
-  // updated_at: "2024-12-25T05:41:08.905Z";
-  // weight: "400";
-  // width: null;
 
   return (
     <div className="h-fit p-8">
@@ -59,9 +61,9 @@ function BestSeller() {
             always reflects who you really are. Fashion is always Right, and I
             am living proof."
           </p>
-          <button className="bg-white border border-black w-40 rounded-lg p-2 hover:bg-theme-blue hover:text-white transition duration-200 ease-in-out">
-            Shop Now
-          </button>
+          <a href={"/" + pageroutedeatils.redirect} className="text-center bg-white border border-black w-40 rounded-lg p-2 hover:bg-theme-blue hover:text-white transition duration-200 ease-in-out">
+            {pageroutedeatils.text}
+          </a>
         </div>
         <div className="md:w-2/3  flex  overflow-x-scroll space-x-4 scrollbar-custom">
           <div className="flex space-x-4 w-full" style={{ minWidth: "100%" }}>
@@ -71,6 +73,7 @@ function BestSeller() {
                 className="flex-none w-full h-full md:w-2/3 lg:w-1/2 md:px-4"
               >
                 <BestSellerCard
+                  id={item.id}
                   image={item.thumbnail}
                   rating={item?.rating || 0}
                   price={item.price}
@@ -88,34 +91,3 @@ function BestSeller() {
 }
 
 export default BestSeller;
-
-// const dummyData = [
-//   {
-//     image: "/images/bestseller/best1.png",
-//     rating: "4.5",
-//     price: "19.99",
-//     prevPrice: "39.99",
-//     discount: "20",
-//   },
-//   {
-//     image: "/images/bestseller/best2.png",
-//     rating: "4.0",
-//     price: "24.99",
-//     prevPrice: "49.99",
-//     discount: "50",
-//   },
-//   {
-//     image: "/images/bestseller/best3.png",
-//     rating: "4.7",
-//     price: "29.99",
-//     prevPrice: "59.99",
-//     discount: "45",
-//   },
-//   {
-//     image: "/images/bestseller/best4.png",
-//     rating: "4.3",
-//     price: "21.99",
-//     prevPrice: "44.99",
-//     discount: "20",
-//   },
-// ];

@@ -2,43 +2,10 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchreviews } from "../../../redux/slices/reviewSlicer.js";
-
-const reviewsData = [
-  {
-    id: 1,
-    image: "/images/review/review1.png",
-    rating: 5,
-    heading: "Variety of Styles, Good Cloth and Luxury",
-    review:
-      "A customer review is a form of feedback or personal evaluation provided by a customer who has used a product or service.",
-    name: "Rahul Singh",
-    date: "Dec 10, 2024",
-  },
-  {
-    id: 2,
-    image: "/images/review/review2.png",
-    rating: 4,
-    heading: "Affordable Yet Premium Quality",
-    review:
-      "Highly recommended! The material is great, and the designs are even better. Definitely coming back for more.",
-    name: "Abhay Gupta",
-    date: "Dec 9, 2024",
-  },
-  {
-    id: 3,
-    image: "/images/review/review3.png",
-    rating: 5,
-    heading: "Great Shopping Experience",
-    review:
-      "Amazing service and fast delivery. The clothes fit perfectly, and the style is just what I was looking for.",
-    name: "Pramod Birla",
-    date: "Dec 8, 2024",
-  },
-];
+import { motion, AnimatePresence } from "framer-motion";
 
 const Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
   const dispatch = useDispatch();
   const { reviews, status, error } = useSelector(
     (state) => state.reviewsection
@@ -47,15 +14,14 @@ const Review = () => {
   useEffect(() => {
     dispatch(fetchreviews());
   }, [dispatch]);
-  // console.log(reviews);
 
   const nextReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % reviewsData.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 3) % reviews.length);
   };
 
   const prevReview = () => {
     setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + reviewsData.length) % reviewsData.length
+      (prevIndex) => (prevIndex - 3 + reviews.length) % reviews.length
     );
   };
 
@@ -71,10 +37,7 @@ const Review = () => {
   };
 
   function formatLocalDate(isoDate) {
-    // Convert the ISO date to a JavaScript Date object
     const date = new Date(isoDate);
-
-    // Use Intl.DateTimeFormat for localized formatting
     const formattedDate = new Intl.DateTimeFormat("en-IN", {
       year: "numeric",
       month: "long",
@@ -82,108 +45,78 @@ const Review = () => {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-      hour12: true, // Optional, based on preference
+      hour12: true,
     }).format(date);
 
     return formattedDate;
   }
+
+  const reviewsToShow = reviews.slice(currentIndex, currentIndex + 3);
+
+  const animationVariants = {
+    enter: { opacity: 0, x: 50 },
+    center: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -50 },
+  };
+
   return (
-    <div className="p-5 ">
-      <h2 className="text-center text-xl md:text-3xl font-bold mb-8">
+    <div className="p-5 relative h-[350px] w-[98.3vw] overflow-hidden ">
+      <h2 className="text-center text-xl md:text-3xl font-bold mb-8 h-[30px]">
         What People Are Saying
       </h2>
 
       {/* Desktop View */}
-      <div className="hidden lg:grid grid-cols-3 row-end-3 px-5 gap-2">
-        {reviews.map((review) => (
-          <div
-            key={review.id}
-            className="w-full px-5 border-2 border-theme-blue rounded-lg"
-            style={{ height: "auto" }} // Ensuring consistent height across all cards
+      <div className=" grid grid-cols-3 row-end-3 px-5 gap-2 relative h-[250x] overflow-y-hidden  ">
+        <AnimatePresence initial={false}>
+          {reviewsToShow.map((review) => (
+            <motion.div
+              key={review.id}
+              className="w-full px-5 border-2 border-theme-blue rounded-lg"
+              style={{ height: "250px" }}
+              variants={animationVariants}
+              initial="enter"
+              animate="center"
+              // exit="exit"
+              transition={{ duration: 0.2 }}
+            >
+              <div className="relative mb-4 ">
+                <Image
+                  src={review.user_pic}
+                  alt={`Review by ${review.user_name}`}
+                  width={200}
+                  height={200}
+                  className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
+                />
+                <div className="ml-20 my-5">
+                  <div className="text-yellow-600">
+                    {renderStars(review.rating)}
+                  </div>
+                  <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
+                </div>
+                <p className="text-sub-color mt-2">{review.description}</p>
+                <p className="text-sm font-bold mt-2">{review.user_name}</p>
+                <p className="text-sm text-sub-color mt-2">
+                  {formatLocalDate(review.created_at)}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Carousel Navigation */}
+        <div className="absolute top-1/2 left-0 w-full flex justify-between">
+          <button
+            onClick={prevReview}
+            className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full"
           >
-            <div className="relative mb-4">
-              <Image
-                src={review.user_pic}
-                alt={`Review by ${review.user_name}`}
-                width={200}
-                height={200}
-                className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
-              />
-              <div className="ml-20 my-5">
-                <div className="text-yellow-600">
-                  {renderStars(review.rating)}
-                </div>
-                <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
-              </div>
-              <p className="text-sub-color mt-2">{review.description}</p>
-              <p className="text-sm font-bold mt-2">{review.user_name}</p>
-              <p className="text-sm text-sub-color mt-2">
-                {formatLocalDate(review.created_at)}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile View */}
-      <div className="lg:hidden flex justify-center items-center">
-        <div className="relative w-full p-5">
-          <div className="w-full px-5 py-2 border border-theme-blue rounded-lg h-fit">
-            <div className="relative">
-              <Image
-                src={reviewsData[currentIndex].image}
-                alt={`Review by ${reviewsData[currentIndex].name}`}
-                width={200}
-                height={200}
-                className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
-              />
-              <div className="ml-20 mt-4">
-                <div className="text-yellow-600">
-                  {renderStars(reviewsData[currentIndex].rating)}
-                </div>
-                <h3 className="font-semibold text-lg mt-2">
-                  {reviewsData[currentIndex].heading}
-                </h3>
-              </div>
-              <p className="text-sub-color mt-2">
-                {reviewsData[currentIndex].review}
-              </p>
-              <p className="text-sm font-bold mt-2">
-                {reviewsData[currentIndex].name}
-              </p>
-              <p className="text-sm text-sub-color mt-2">
-                {reviewsData[currentIndex].date}
-              </p>
-            </div>
-          </div>
-
-          {/* Carousel Navigation */}
-          <div className="absolute top-1/2 left-0 w-full flex justify-between ">
-            <button
-              onClick={prevReview}
-              className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full"
-            >
-              <i className="ri-arrow-left-s-fill"></i>
-            </button>
-            <button
-              onClick={nextReview}
-              className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full"
-            >
-              <i className="ri-arrow-right-s-fill"></i>
-            </button>
-          </div>
-
-          {/* Carousel Dots */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {reviewsData.map((_, index) => (
-              <div
-                key={index}
-                className={`h-2 w-2 rounded-full ${
-                  index === currentIndex ? "bg-theme-blue" : "bg-gray-400"
-                }`}
-              ></div>
-            ))}
-          </div>
+            <i className="ri-arrow-left-s-fill"></i>
+          </button>
+          <button
+            onClick={nextReview}
+            className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full"
+          >
+            <i className="ri-arrow-right-s-fill"></i>
+          </button>
         </div>
       </div>
     </div>
