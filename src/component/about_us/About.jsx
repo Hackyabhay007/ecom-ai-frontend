@@ -92,6 +92,7 @@ const About = () => {
               alt={`Brand ${index + 1}`}
               layout="fill"
               objectFit="contain"
+             
             />
           </div>
           ))}

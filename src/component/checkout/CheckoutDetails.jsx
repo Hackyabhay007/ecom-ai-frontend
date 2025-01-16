@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function CheckoutDetails({ onContinue, productDetails }) {
+function CheckoutDetails({ onContinue }) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -49,169 +49,123 @@ function CheckoutDetails({ onContinue, productDetails }) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-6 lg:space-y-0">
-      {/* Left Section: Product Card */}
-      <div className="w-full lg:w-1/2 flex-shrink-0">
-        <div className="p-4 flex flex-col h-full">
-          <Image
-            src={productDetails.image}
-            alt="Product"
-            className="w-full object-cover mb-4"
-            style={{ height: "250px" }}
-          />
+    <div className="flex flex-col w-full md:px-60 p-4">
+      <h2 className=" text-xs border-b w-fit border-black md:text-sm text-center  uppercase mb-5 text-black">Personal Details</h2>
+      <form className="space-y-5 flex-grow flex flex-col">
+        <div className="border pl-2 pb-1 border-black">
+          <label className="block text-xs sm:text-sm pl-1 my-1">Country/Region</label>
+          <select
+            name="country"
+            onChange={handleInputChange}
+            className={`w-full font-bold text-xs sm:text-sm`}
+          >
+            <option value="India">India</option>
+            <option value="US">United States</option>
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <h2 className="text-lg font-semibold">
-              {productDetails.productName}
-            </h2>
-            <p className="text-sub-color">Qty: {productDetails.quantity}</p>
-            <p className="text-sub-color">Price: {productDetails.price}</p>
-            <p className="bg-theme-blue text-sm font-t rounded-full w-fit text-white px-2">
-              Discount: - {productDetails.discountPercentage}%
-            </p>
-            <p className="text-black font-bold">
-              Total: {productDetails.total}
-            </p>
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            />
+            {formErrors.firstName && (
+              <p className="text-red-500 text-xs sm:text-sm">{formErrors.firstName}</p>
+            )}
+          </div>
+          <div>
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            />
+            {formErrors.lastName && (
+              <p className="text-red-500 text-xs sm:text-sm">{formErrors.lastName}</p>
+            )}
           </div>
         </div>
-      </div>
-
-      {/* Right Section: Form */}
-      <div className="w-full lg:w-1/2 flex-shrink-0">
-        <div className="p-6 flex flex-col h-full">
-          <h2 className="text-4xl text-center font-bold mb-5 text-black">
-            Personal Details
-          </h2>
-          <form className="space-y-4 flex-grow flex flex-col">
-            <div className="border pl-2 pb-1 border-black rounded-md">
-              <label className="block text-sm pl-1 my-1">Country/Region</label>
-              <select
-                name="country"
-                onChange={handleInputChange}
-                className={`w-full font-bold`}
-              >
-                <option value="India">India</option>
-                <option value="US">United States</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className={`border rounded-md p-2 w-full ${
-                    formErrors.firstName ? "border-error-color" : "border-black"
-                  }`}
-                />
-                {formErrors.firstName && (
-                  <p className="text-red-500 text-sm">{formErrors.firstName}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className={`border rounded-md p-2 w-full ${
-                    formErrors.lastName ? "border-error-color" : "border-black"
-                  }`}
-                />
-                {formErrors.lastName && (
-                  <p className="text-red-500 text-sm">{formErrors.lastName}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <input
-                type="text"
-                name="address"
-                placeholder="Address"
-                value={formData.address}
-                onChange={handleInputChange}
-                className={`border rounded-md p-2 w-full ${
-                  formErrors.address ? "border-error-color" : "border-black"
-                }`}
-              />
-              {formErrors.address && (
-                <p className="text-red-500 text-sm">{formErrors.address}</p>
-              )}
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <input
-                  type="text"
-                  name="landmark"
-                  placeholder="Landmark"
-                  value={formData.landmark}
-                  onChange={handleInputChange}
-                  className={`border rounded-md p-2 w-full ${
-                    formErrors.landmark ? "border-error-color" : "border-black"
-                  }`}
-                />
-                {formErrors.landmark && (
-                  <p className="text-red-500 text-sm">{formErrors.landmark}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  type="text"
-                  name="state"
-                  placeholder="State"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  className={`border rounded-md p-2 w-full ${
-                    formErrors.state ? "border-error-color" : "border-black"
-                  }`}
-                />
-                {formErrors.state && (
-                  <p className="text-red-500 text-sm">{formErrors.state}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  type="text"
-                  name="pincode"
-                  placeholder="Pincode"
-                  value={formData.pincode}
-                  onChange={handleInputChange}
-                  className={`border rounded-md p-2 w-full ${
-                    formErrors.pincode ? "border-error-color" : "border-black"
-                  }`}
-                />
-                {formErrors.pincode && (
-                  <p className="text-red-500 text-sm">{formErrors.pincode}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <input
-                type="text"
-                name="phoneNumber"
-                placeholder="Phone Number"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className={`border rounded-md p-2 w-full ${
-                  formErrors.phoneNumber ? "border-error-color" : "border-black"
-                }`}
-              />
-              {formErrors.phoneNumber && (
-                <p className="text-red-500 text-sm">{formErrors.phoneNumber}</p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-theme-blue text-white py-2 px-4 rounded-md mt-auto w-full"
-            >
-              Continue
-            </button>
-          </form>
+        <div>
+          <input
+            type="text"
+            name="address"
+            placeholder="Address"
+            value={formData.address}
+            onChange={handleInputChange}
+            className={`border p-4 w-full text-xs sm:text-sm border-black`}
+          />
+          {formErrors.address && (
+            <p className="text-red-500 text-xs sm:text-sm">{formErrors.address}</p>
+          )}
         </div>
-      </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <input
+              type="text"
+              name="landmark"
+              placeholder="Landmark"
+              value={formData.landmark}
+              onChange={handleInputChange}
+              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            />
+            {formErrors.landmark && (
+              <p className="text-red-500 text-xs sm:text-sm">{formErrors.landmark}</p>
+            )}
+          </div>
+          <div>
+            <input
+              type="text"
+              name="state"
+              placeholder="State"
+              value={formData.state}
+              onChange={handleInputChange}
+              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            />
+            {formErrors.state && (
+              <p className="text-red-500 text-xs sm:text-sm">{formErrors.state}</p>
+            )}
+          </div>
+          <div>
+            <input
+              type="text"
+              name="pincode"
+              placeholder="Pincode"
+              value={formData.pincode}
+              onChange={handleInputChange}
+              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            />
+            {formErrors.pincode && (
+              <p className="text-red-500 text-xs sm:text-sm">{formErrors.pincode}</p>
+            )}
+          </div>
+        </div>
+        <div>
+          <input
+            type="text"
+            name="phoneNumber"
+            placeholder="Phone Number"
+            value={formData.phoneNumber}
+            onChange={handleInputChange}
+            className={`border p-4 w-full text-xs sm:text-sm border-black`}
+          />
+          {formErrors.phoneNumber && (
+            <p className="text-red-500 text-xs sm:text-sm">{formErrors.phoneNumber}</p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="bg-indigo-950 hover:bg-discount-color transition-all hover:text-black text-sm py-4 text-white hover:font-bold px-4 mt-auto w-full"
+        >
+          Continue
+        </button>
+      </form>
     </div>
   );
 }

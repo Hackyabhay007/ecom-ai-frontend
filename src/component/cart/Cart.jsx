@@ -11,7 +11,13 @@ const Cart = () => {
     0
   );
   const router = useRouter();
-
+  const handleCheckout = () => {
+    const cartItemsString = JSON.stringify(items);
+    router.push({
+      pathname: "/checkout",
+      query: { cartItems: cartItemsString },
+    });
+  };
   const handleShopNow = () => {
     router.push("/shop"); // Navigate to shop page
   };
@@ -76,7 +82,10 @@ const Cart = () => {
                 Shop
               </button>
             </Link>
-            <button className="bg-theme-blue text-sm md:text-base uppercase md:font-bold text-white w-full px-2 md:px-4 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100">
+            <button
+              onClick={handleCheckout}
+              className="bg-theme-blue text-sm md:text-base uppercase md:font-bold text-white w-full px-2 md:px-4 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100"
+            >
               Checkout
             </button>
           </div>

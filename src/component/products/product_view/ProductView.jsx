@@ -10,9 +10,12 @@ import ProductDetailsInfo from "./ProductDetailsInfo";
 import CustomSize from "./CustomSize";
 import HandleInfo from "./HandleInfo";
 import ImageCarousel from "./ImageCrousal";
-import products from "../data/product_data";
+import { useRouter } from "next/router";
+import ProductViewBreadcrumb from "./ProductViewBreadcrumb";
 const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
+  const router = useRouter();
+
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(
     product.colors?.[0] || null
@@ -55,6 +58,7 @@ const ProductView = ({ product, allProducts }) => {
         color: selectedColor,
         size: selectedSize,
         categories: product.categories,
+        discount: product.discount, 
       })
     );
     setWarning(""); // Clear warning on successful addition
@@ -62,6 +66,27 @@ const ProductView = ({ product, allProducts }) => {
 
     // Reset isAdded after 3 seconds
     setTimeout(() => setIsAdded(false), 3000);
+  };
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      setWarning("Please select a size.");
+      setTimeout(() => setWarning(""), 3000);
+      return;
+    }
+    const checkoutProduct = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      image: product.image,
+      color: selectedColor,
+      size: selectedSize,
+      discount: product.discount,
+    };
+    router.push({
+      pathname: "/checkout",
+      query: { product: JSON.stringify(checkoutProduct) },
+    });
   };
 
   const {
@@ -114,6 +139,7 @@ const ProductView = ({ product, allProducts }) => {
 
         {/* Product Details Section */}
         <div className="md:flex-1 px-5 py-10">
+        <ProductViewBreadcrumb categories={categories} />
           <h1 className="text-2xl font-bold text-theme-blue mb-2">{name}</h1>
           {/* Star Rating */}
           {/* <div className="flex items-center mb-4">{renderStars(averageRating)}</div> */}
@@ -224,7 +250,7 @@ const ProductView = ({ product, allProducts }) => {
                 "Add to Cart"
               )}
             </button>
-            <button className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
+            <button onClick={handleBuyNow} className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
               Buy It Now
             </button>
           </div>

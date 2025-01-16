@@ -1,7 +1,7 @@
 import ShopArea from "@/component/products/Shop-area";
 import React, { useState, useEffect } from "react";
 // import Loader from "@/component/loader/Loader";
-import Loader from "@/component/loader/Loader_shop";
+import Loader from "@/component/loader/Loader";
 function Shop() {
   const [isLoading, setIsLoading] = useState(true);
 

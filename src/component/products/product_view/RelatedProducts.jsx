@@ -91,6 +91,7 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
                   layout="fill"
                   objectFit="cover"
                   className="rounded-xl"
+                  
                 />
               </div>
 
