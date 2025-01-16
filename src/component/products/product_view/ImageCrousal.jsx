@@ -28,17 +28,17 @@ const ImageCarousel = ({ mainImage, additionalImages }) => {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-1 md:mr-4 relative">
+    mainImage &&  additionalImages && <div className="flex flex-col md:flex-1 md:mr-4 relative">
       {/* Desktop View (Full viewport height, one image at a time) */}
       <div className="hidden md:block">
-        {[mainImage, ...additionalImages].map((Image, index) => (
+        {[mainImage, ...additionalImages].map((image, index) => (
           <div
             key={index}
             className="relative w-full overflow-hidden mb-2 md:mb-0"
             style={{ height: "100vh" }} // Full viewport height for each image
           >
             <Image
-              src={Image}
+              src={image}
               alt={`Product Image ${index + 1}`}
               layout="fill"
               objectFit="cover" // Ensures the image covers the container
