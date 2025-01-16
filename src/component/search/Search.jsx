@@ -1,11 +1,29 @@
 import React, { useState } from "react";
-import products from "../products/data/product_data";
+// import products from "../products/data/product_data";
 import SearchSuggestion from "./SearchSuggestion";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "../../../redux/slices/productSlice";
+import { useRegion } from "../../contexts/RegionContext.jsx";
+import useProducts from "../../contexts/ProductContext";
+
+  // const dispatch = useDispatch();
+  // const { region } = useRegion();
+
+  // const { products, count, nextPage, status, error } = useSelector(
+  //   (state) => state.products
+  // );
+
+  // useEffect(()=>{
+  //   dispatch(fetchProducts({ pageParam: 1, queryParams: {}, region }));
+  // },[dispatch])
+
+  // console.log(products)
 
 const Search = ({ onClose, isMobile }) => {
   const [query, setQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const { products, count, status, loading, errorState } = useProducts();
 
   const handleSearch = (e) => {
     const searchQuery = e.target.value.toLowerCase();

@@ -8,7 +8,7 @@ const ProductDetails = ({ product }) => {
       
       {/* Specifications Content */}
       <div className="mt-4 text-sm md:text-base">
-        <p>{product.specifications}</p>
+        <p>{product?.specifications}</p>
       </div>
     </div>
   );

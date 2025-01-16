@@ -17,7 +17,7 @@ function BestSellerCard({ id, image, rating, price, prevPrice, discount, title }
       region_id: region.id,
     });
 
-    fetch(`http://localhost:9000/store/products/${id}?${queryParams.toString()}`, {
+    fetch(`${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/${id}?${queryParams.toString()}`, {
       credentials: "include",
       headers: {
         "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",

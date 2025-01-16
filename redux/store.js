@@ -8,6 +8,7 @@ import productonhomesectionSlice from './slices/productonhomeSlicer'
 import reviewsectionSlice from './slices/reviewSlicer.js'
 import featuredsectionSlice from './slices/featuredSlicer.js'
 import categorysectionSlice from './slices/categorySlice'
+import productSlice from './slices/productSlice'
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Using localStorage
 import {
@@ -36,7 +37,8 @@ const rootReducer = combineReducers({
   productonhomesection : productonhomesectionSlice,
   reviewsection : reviewsectionSlice,
   featuredection : featuredsectionSlice,
-  categorysection : categorysectionSlice
+  categorysection : categorysectionSlice,
+  products : productSlice
 });
 
 // Persist the combined reducer

@@ -8,6 +8,7 @@ import {
 } from "../../../redux/slices/wishSlice";
 import { addToCart } from "../../../redux/slices/cartSlice";
 import QuickView from "./product_view/QuickView";
+import { useRegion } from "../../contexts/RegionContext";
 
 const ProductCard = ({ product, layout }) => {
   const router = useRouter();
@@ -15,21 +16,73 @@ const ProductCard = ({ product, layout }) => {
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isCartAdded, setIsCartAdded] = useState(false);
+  const { region } = useRegion();
+  const [products, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [variantPrice, setVariantPrice] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [discount, setdiscount] = useState(0);
+  const [discountedamount, setDiscountedamount] = useState(0);
+  // console.log(discount);
 
   const {
     id,
     name,
     price,
     prevPrice,
-    discount,
-    image,
+    thumbnail: image,
     tags = [],
     description,
     color = [],
     size = [],
   } = product;
 
+  useEffect(() => {
+    setLoading(true);
+
+    const targetVariant = product.variants.find((variant) =>
+      variant.options?.some((option) => option.value.toLowerCase() === "m")
+    );
+
+    if (targetVariant) {
+      setVariantPrice(
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: region.currency_code,
+        }).format(targetVariant.calculated_price?.calculated_amount)
+      );
+      // console.log(
+      //   "Calculated Amount:",
+      //   targetVariant.calculated_price?.calculated_amount
+      // );
+      // console.log("Discount:", product.metadata.discount);
+
+      const calculatedAmount =
+        targetVariant.calculated_price?.calculated_amount;
+      // console.log(
+      //   targetVariant.calculated_price?.calculated_amount *
+      //     product.metadata.discount,
+      //   "targetVariant.calculated_price?.calculated_amount"
+      // );
+      if (product.metadata?.discount) {
+        setdiscount(product.metadata.discount);
+        // console.log();
+      }
+      if (calculatedAmount && product.metadata.discount > 0) {
+        setDiscountedamount( new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: region.currency_code,
+        }).format( calculatedAmount -
+          (calculatedAmount * (product.metadata.discount / 100)))
+        );
+      } else {
+        setDiscountedamount(0); // Or handle the case when there's no valid amount/discount
+      }
+      setLoading(false);
+    } else {
+      setVariantPrice("N/A");
+    }
+  }, [product.metadata ,id, region, discount]);
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
     dispatch(addToWishlist(product));
@@ -76,6 +129,18 @@ const ProductCard = ({ product, layout }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    if (!id || !region) {
+      setLoading(false); // Safeguard to prevent infinite loading
+      return;
+    }
+  }, [id, region, discount]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <div
@@ -159,9 +224,9 @@ const ProductCard = ({ product, layout }) => {
           </h3>
 
           <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
-            <span className="text-sm md:text-md">₹{price}</span>
+            <span className="text-sm md:text-md">{discountedamount}</span>
             <span className="md:text-sm text-xs text-sub-color line-through">
-              ₹{prevPrice}
+              {variantPrice}
             </span>
             <span className="text-black bg-[#D2EF9A] rounded-full px-[6px] py-[3px] font-thin text-xs">
               - {discount}% off
@@ -220,3 +285,85 @@ const ProductCard = ({ product, layout }) => {
 };
 
 export default ProductCard;
+
+// {
+//   "id": "prod_01JFY5AK5P4FE6SF82QHJ6NJWA",
+//   "title": "Medusa T",
+//   "description": "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.",
+//   "handle": "t-shirt",
+//   "thumbnail": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
+//   "discountable": true,
+//   "is_giftcard": false,
+//   "created_at": "2024-12-25T05:41:08.905Z",
+//   "updated_at": "2024-12-25T05:41:08.905Z",
+//   "images": [
+//     {
+//       "id": "img_01JFY5AK7398DYWFB290B3ZM44",
+//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
+//       "created_at": "2024-12-25T05:41:08.905Z"
+//     },
+//     {
+//       "id": "img_01JFY5AK73A19RDP5SNTZ18P70",
+//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-back.png",
+//       "created_at": "2024-12-25T05:41:08.905Z"
+//     },
+//     {
+//       "id": "img_01JFY5AK73YZPYXK0YQ6R78C6X",
+//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-front.png",
+//       "created_at": "2024-12-25T05:41:08.905Z"
+//     },
+//     {
+//       "id": "img_01JFY5AK73A7DWS7CJ14ACV5CE",
+//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-back.png",
+//       "created_at": "2024-12-25T05:41:08.905Z"
+//     }
+//   ],
+//   "options": [
+//     {
+//       "id": "opt_01JFY5AK661B0M2YV7DMS6E8ZS",
+//       "title": "Size",
+//       "values": ["S", "M", "L", "XL"],
+//       "created_at": "2024-12-25T05:41:08.905Z"
+//     },
+//     {
+//       "id": "opt_01JFY5AK67YR2FZZZGSBHZBH22",
+//       "title": "Color",
+//       "values": ["Black", "White"],
+//       "created_at": "2024-12-25T05:41:08.905Z"
+//     }
+//   ],
+//   "variants": [
+//     {
+//       "id": "variant_01JFY5AK8CWYH0GGHH1YMC9VW1",
+//       "title": "S / Black",
+//       "sku": "SHIRT-S-BLACK",
+//       "allow_backorder": false,
+//       "manage_inventory": true,
+//       "created_at": "2024-12-25T05:41:09.008Z"
+//     },
+//     {
+//       "id": "variant_01JFY5AK8DYW4AFX0N1ADMV1XS",
+//       "title": "S / White",
+//       "sku": "SHIRT-S-WHITE",
+//       "allow_backorder": false,
+//       "manage_inventory": true,
+//       "created_at": "2024-12-25T05:41:09.008Z"
+//     },
+//     {
+//       "id": "variant_01JFY5AK8DCHDSV5KC3WY7VNA5",
+//       "title": "M / Black",
+//       "sku": "SHIRT-M-BLACK",
+//       "allow_backorder": false,
+//       "manage_inventory": true,
+//       "created_at": "2024-12-25T05:41:09.008Z"
+//     },
+//     {
+//       "id": "variant_01JFY5AK8DYW4AFX0N1ADMV1XS",
+//       "title": "XL / White",
+//       "sku": "SHIRT-XL-WHITE",
+//       "allow_backorder": false,
+//       "manage_inventory": true,
+//       "created_at": "2024-12-25T05:41:09.008Z"
+//     }
+//   ]
+// }

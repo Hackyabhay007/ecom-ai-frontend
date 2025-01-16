@@ -3,18 +3,21 @@ import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchcategores } from "../../../redux/slices/categorySlice";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 const Category = ({ activeCategory = "woman" }) => {
   const dispatch = useDispatch();
-  const { categories : data, status, error } = useSelector(
-    (state) => state.categorysection
-  );
+  const {
+    categories: data,
+    status,
+    error,
+  } = useSelector((state) => state.categorysection);
 
-  useEffect(()=>{
-      dispatch(fetchcategores())
-  },[dispatch])
+  useEffect(() => {
+    dispatch(fetchcategores());
+  }, [dispatch]);
 
-  console.log(data ,status)
+  console.log(data, status);
 
   const router = useRouter();
   const categories = {
@@ -83,25 +86,27 @@ const Category = ({ activeCategory = "woman" }) => {
           style={{ scrollSnapType: "x mandatory" }}
         >
           {data.map((category, index) => (
-            <div
-              onClick={()=>router.push(`/store/${category.id}`)}
-              key={index}
-              className="flex-shrink-0 cursor-pointer"
-              style={{ scrollSnapAlign: "start" }}
-            >
-              <div className="w-full h-96">
-                <Image
-                  src={category.metadata?.img}
-                  alt={category.name}
-                  width={500}
-                  height={500}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <p className="text-left text-sm font-medium mt-2">
-                {category.name}
-              </p>
+            <Link
+            href={{
+              pathname: "/shop",
+              query: { id: category.id }, // Add category ID as a query parameter
+            }}
+            key={index}
+            className="flex-shrink-0 cursor-pointer"
+            style={{ scrollSnapAlign: "start" }}
+          >
+            <div className="w-full h-96">
+              <Image
+                src={category.metadata?.img}
+                alt={category.name}
+                width={500}
+                height={500}
+                className="w-full h-full object-contain"
+              />
             </div>
+            <p className="text-left text-sm font-medium mt-2">{category.name}</p>
+          </Link>
+          
           ))}
         </div>
       </div>

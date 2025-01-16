@@ -238,6 +238,8 @@ const products = [
         colors:["pink","blue","cream","white"],
       },
   ];
+
+  
   
   export default products;
   
