@@ -10,9 +10,11 @@ function Loader() {
         <Image
           src="/images/logo/logo.png"
           alt="Logo"
-          layout="fill"
+         
           objectFit="contain"
           className="relative animate-pulse"
+          width={500}
+          height={500}
         />
         {/* Child logo */}
         <Image

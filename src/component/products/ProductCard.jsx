@@ -97,6 +97,7 @@ const ProductCard = ({ product, layout }) => {
             layout="fill"
             objectFit="cover"
             className="rounded-none"
+            
           />
           {tags.map((tag, index) => (
             <span

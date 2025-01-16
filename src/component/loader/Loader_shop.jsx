@@ -13,6 +13,7 @@ function Loader() {
           layout="fill"
           objectFit="contain"
           className="relative"
+         
         />
         {/* Child logo */}
         {/* <Image

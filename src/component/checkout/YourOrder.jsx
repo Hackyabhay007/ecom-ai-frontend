@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-
+import Image from "next/image";
 function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
   const [order, setOrder] = useState(initialOrder);
   const calculateSubtotal = () => {
@@ -112,6 +112,8 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
                     src={order.image}
                     alt="Product"
                     className="w-14 h-14 md:w-24 md:h-24 rounded-lg"
+                    width={500}
+                    height={500}
                   />
                   <div className="md:ml-4">
                     <h3 className="font-medium">{order.productName}</h3>
@@ -207,7 +209,7 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
       </div>
 
       {/* Loyalty and Points Section */}
-      <div className="bg-blue-100 p-6 rounded-md mt-6">
+      {/* <div className="bg-blue-100 p-6 rounded-md mt-6">
         <h3 className="text-theme-blue text-lg font-semibold border-b-2 pb-1 mb-2 w-fit border-theme-blue">
           The Majestic Peacock Loyalty & Points
         </h3>
@@ -237,7 +239,7 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
             events, forums, or social media groups.
           </li>
         </ul>
-      </div>
+      </div> */}
 
       {/* Continue Button */}
       <div className="mt-6 flex justify-end">
@@ -249,7 +251,8 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
         </button>
       </div>
       </div>
-    </div>
+      </div>
+   
   );
 }
 

@@ -97,6 +97,8 @@ function Hero() {
           alt={currentHero?.title}
           fill
           className="absolute inset-0 object-cover"
+          width={500}
+          height={500}
         />
 
         {/* Overlay */}

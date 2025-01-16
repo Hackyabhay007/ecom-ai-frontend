@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import LoyaltyPointsPopup from "./LoyaltyPointsPopup";
+import Image from "next/image";
 const DashboardContent = () => {
   const [isLoyaltyPopupOpen, setIsLoyaltyPopupOpen] = useState(false);
   const [loyaltyPoints, setLoyaltyPoints] = useState(40);
@@ -102,6 +103,8 @@ const DashboardContent = () => {
                         src={product.image}
                         alt={product.name}
                         className="w-8 h-8 md:w-12 md:h-12 object-cover rounded"
+                        width={500}
+                        height={500}
                       />
                       <div>
                         <p className="font-bold text-xs md:text-sm">

@@ -63,6 +63,7 @@ const Wishlist = () => {
                 layout="fill"
                 objectFit="cover"
                 className="rounded-xl"
+                
               />
             </div>
 

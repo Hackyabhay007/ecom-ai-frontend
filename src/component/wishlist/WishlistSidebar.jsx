@@ -50,6 +50,8 @@ const WishlistSidebar = () => {
                   src={item.image}
                   alt={item.name}
                   className="w-16 h-16 object-cover rounded"
+                  width={500}
+                  height={500}
                 />
                 <div className="flex-1 ml-4">
                   <h3 className="font-medium">{item.name}</h3>

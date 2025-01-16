@@ -36,6 +36,7 @@ const CartRelatedProducts = () => {
               layout="fill"
               objectFit="cover"
               className="rounded-t-lg object-top h-fit"
+              
             />
           </div>
 
