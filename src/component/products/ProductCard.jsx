@@ -52,6 +52,7 @@ const ProductCard = ({ product, layout }) => {
         image,
         color: defaultColor,
         size: defaultSize,
+        discount,
       })
     );
 
@@ -95,7 +96,7 @@ const ProductCard = ({ product, layout }) => {
             alt={name}
             layout="fill"
             objectFit="cover"
-            className="rounded-xl"
+            className="rounded-none"
           />
           {tags.map((tag, index) => (
             <span
@@ -210,7 +211,7 @@ const ProductCard = ({ product, layout }) => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed md:bottom-20 bottom-28 right-5 md:right-20 text-xs  w-fit bg-white text-black border-2 border-gray-200 px-4 py-2 rounded-full shadow-lg transition-all hover:bg-gray-200"
+          className="fixed md:bottom-20 bottom-28 right-5 md:right-20 text-xs  w-fit bg-white text-black  px-4 py-2 rounded-full shadow transition-all hover:bg-gray-100"
         >
           ↑ TOP
         </button>

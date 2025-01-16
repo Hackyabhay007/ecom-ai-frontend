@@ -76,7 +76,7 @@ const ProductList = ({ products, layout }) => {
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className="md:px-4 py-2  px-3 border md:rounded-lg rounded-md"
+            className="md:px-4 py-2  px-3 border md:rounded-sm rounded-none"
           >
             Previous
           </button>
@@ -87,7 +87,7 @@ const ProductList = ({ products, layout }) => {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`md:px-4 py-2  px-3 border md:rounded-lg rounded-md mx-1 ${
+                className={`md:px-4 py-2  px-3 border md:rounded-sm rounded-none mx-1 ${
                   currentPage === page
                     ? "bg-black text-white"
                     : "bg-white text-black hover:bg-gray-200"
@@ -101,7 +101,7 @@ const ProductList = ({ products, layout }) => {
           <button
             onClick={nextPage}
             disabled={currentPage >= totalPages}
-            className="md:px-4 py-2  px-3 border md:rounded-lg rounded-md"
+            className="md:px-4 py-2  px-3 border md:rounded-sm rounded-none"
           >
             Next
           </button>

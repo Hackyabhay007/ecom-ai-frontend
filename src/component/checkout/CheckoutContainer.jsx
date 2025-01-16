@@ -1,26 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CheckoutDetails from "./CheckoutDetails";
 import DisplayDetails from "./DisplayDetails";
 import YourOrder from "./YourOrder";
 import PaymentCheckout from "./PaymentCheckout";
 import Timeline from "./Timeline"; // Import Timeline component
+import { useRouter } from "next/router";
 
 function CheckoutContainer() {
+  const router = useRouter();
+  const { query } = router; // Extract query from the router
   const [step, setStep] = useState(1); // Current step
   const [formData, setFormData] = useState({}); // Form data state
-  const [orderDetails, setOrderDetails] = useState({
-    productName: "Sample Product",
-    image: "images/collection/collection1.png",
-    quantity: 1,
-    discountPercentage: 20,
-    prevPrice: "₹50",
-    price: "₹45",
-    subtotal: "₹45",
-    total: "₹45",
-    clothType: "Cotton",
-    size: "M",
-    shippingCharge: 0, // Free shipping
-  });
+  const [orderItems, setOrderItems] = useState([]); // Order items array
+
+  useEffect(() => {
+    // Safeguard for empty or undefined query
+    if (query.product) {
+      try {
+        setOrderItems([JSON.parse(query.product)]);
+      } catch (error) {
+        console.error("Failed to parse product data:", error);
+      }
+    } else if (query.cartItems) {
+      try {
+        setOrderItems(JSON.parse(query.cartItems));
+      } catch (error) {
+        console.error("Failed to parse cart items data:", error);
+      }
+    }
+  }, [query]);
 
   const handleContinue = (data) => {
     setFormData(data); // Save form data
@@ -45,12 +53,12 @@ function CheckoutContainer() {
   };
 
   return (
-    <div className="container py-20 md:py-0 mx-auto p-6  md:mb-2">
+    <div className="container py-20 md:py-0 mx-auto p-6 md:mb-2">
       <Timeline step={step} /> {/* Add the Timeline component here */}
       {step === 1 && (
         <CheckoutDetails
           onContinue={handleContinue}
-          productDetails={orderDetails}
+          productDetails={orderItems}
         />
       )}
       {step === 2 && (
@@ -62,7 +70,7 @@ function CheckoutContainer() {
       )}
       {step === 3 && (
         <YourOrder
-          order={orderDetails}
+          order={orderItems}
           onEdit={() => setStep(2)}
           onPayment={handlePayment}
         />

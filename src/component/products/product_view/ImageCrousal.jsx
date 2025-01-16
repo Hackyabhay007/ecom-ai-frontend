@@ -4,7 +4,6 @@ import Image from "next/image";
 const ImageCarousel = ({ mainImage, additionalImages }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const imageContainerRef = useRef(null);
-  const [isScrollingX, setIsScrollingX] = useState(true); // State to track horizontal vs vertical scroll
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,21 +18,11 @@ const ImageCarousel = ({ mainImage, additionalImages }) => {
     const container = imageContainerRef.current;
     if (container) {
       container.addEventListener("scroll", handleScroll);
-
-      // Detect scroll direction (x or y)
-      container.addEventListener("wheel", (e) => {
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-          setIsScrollingX(true); // Horizontal scroll
-        } else {
-          setIsScrollingX(false); // Vertical scroll
-        }
-      });
     }
 
     return () => {
       if (container) {
         container.removeEventListener("scroll", handleScroll);
-        container.removeEventListener("wheel", () => {});
       }
     };
   }, []);
@@ -77,18 +66,15 @@ const ImageCarousel = ({ mainImage, additionalImages }) => {
                 objectFit="cover" // Ensures the image covers the container
                 className="bg-cover object-top"
               />
+              {/* Index Display inside the image */}
+              {index === activeIndex && (
+                <div className="absolute bottom-4 right-4 bg-white text-xs text-gray-800 py-1 px-3 rounded-full shadow-lg z-10">
+                  {`${activeIndex + 1} / ${[mainImage, ...additionalImages].length}`}
+                </div>
+              )}
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Fixed Index Display */}
-      <div
-        className={`${
-          isScrollingX ? "fixed top-2/3 left-5" : "absolute "
-        } bg-white text-xs text-gray-800 py-1 px-3 rounded-full shadow-lg z-10 md:hidden`}
-      >
-        {`${activeIndex + 1} / ${[mainImage, ...additionalImages].length}`}
       </div>
     </div>
   );

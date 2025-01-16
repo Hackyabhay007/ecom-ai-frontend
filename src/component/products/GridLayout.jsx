@@ -17,15 +17,15 @@ const GridLayout = ({
         <div className="flex gap-2">
           <button
             onClick={() => onLayoutChange("grid")}
-            className={`px-2 rotate-90 border py-1 text-lg rounded-md ${
+            className={`px-2 rotate-90 border py-1 text-lg rounded-sm ${
               currentLayout === "grid" ? "bg-black text-white" : "bg-gray-100"
             }`}
           >
-            <i className="ri-menu-fill font-semibold  "></i>
+            <i className="ri-menu-fill  "></i>
           </button>
           <button
             onClick={() => onLayoutChange("list")}
-            className={`px-2 py-1 border text-lg rounded-md ${
+            className={`px-2 py-1 border text-lg rounded-sm ${
               currentLayout === "list" ? "bg-black text-white" : "bg-gray-100"
             }`}
           >
@@ -37,9 +37,9 @@ const GridLayout = ({
             type="checkbox"
             checked={showSaleOnly}
             onChange={onSaleToggle}
-            className="w-4 h-4 accent-white"
+            className="w-5 h-5 accent-white rounded-none"
           />
-          <span className="text-sub-color">Sale Product </span>
+          <span className="text-black text-sm ">Sale Product </span>
         </label>
 
       </div>
@@ -48,7 +48,7 @@ const GridLayout = ({
       <div>
         <select
           onChange={onSortChange}
-          className="p-2 border rounded"
+          className="p-2 px-4 border rounded-none"
           defaultValue="best-selling"
         >
           <option value="best-selling">Sort By: Best Selling</option>
