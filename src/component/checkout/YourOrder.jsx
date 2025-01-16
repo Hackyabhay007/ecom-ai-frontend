@@ -22,7 +22,7 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
   };
   return (
     <div>
-      <div className="border border-black rounded-md">
+      
       <div className="border border-black rounded-md ">
         {/* Header Section */}
         <div className="flex justify-between p-4 border-b border-black items-center mb-4">
@@ -94,94 +94,13 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
                     <span className="text-gray-900 font-bold">₹{item.price}</span>
                   </td>
                 </tr>
+                
               ))}
         <div className="px-2 md:px-10">
           <table className=" w-full text-left text-theme-blue ">
-            <thead>
-              <tr className="font-semibold ">
-                <th>Your Product</th>
-                <th className="text-center">Qty</th>
-                <th className="text-center">Saving</th>
-                <th className="text-right">Price</th>
-              </tr>
-            </thead>
+            
             <tbody>
-              {/* Product Row */}
-              <tr className="border-b-2 border-dashed border-gray-600 ">
-                <td className="py-4 pl-2 md:pl-0 flex flex-col items-start md:flex-row md:items-center">
-                  <Image
-                    src={order.image}
-                    alt="Product"
-                    className="w-14 h-14 md:w-24 md:h-24 rounded-lg"
-                    width={500}
-                    height={500}
-                  />
-                  <div className="md:ml-4">
-                    <h3 className="font-medium">{order.productName}</h3>
-                    <p className="text-sm text-gray-500">{order.clothType}</p>
-                    <p className="text-sm text-gray-500">Size: {order.size}</p>
-                  </div>
-                </td>
-                <td className="text-center">
-                  <div className="flex items-center justify-center">
-                    <button className="px-2 bg-blue-500 text-white ">-</button>
-                    <span className="px-2 md:px-3">{order.quantity}</span>
-                    <button className="px-2 bg-blue-500 text-white ">+</button>
-                  </div>
-                </td>
-                <td className="text-center">
-                  <span className="text-red-500 font-semibold">
-                    {order.discountPercentage}%
-                  </span>
-                  <div className="line-through text-gray-500">
-                    {order.prevPrice}
-                  </div>
-                </td>
-                <td className="text-right">
-                  <span className="text-gray-900 font-bold">{order.price}</span>
-                </td>
-              </tr>
-
-              {/* Subtotal and Shipping */}
-              <tr>
-                <td></td>
-                <td></td>
-                <td className="font-semibold text-theme-blue pt-1">Subtotal</td>
-                <td className="text-right font-bold text-black">
-                  ₹{calculateSubtotal()}
-                </td>
-              </tr>
-              <tr className="border-b-2 border-dashed border-gray-600">
-                <td></td>
-                <td></td>
-                <td className="font-semibold text-theme-blue py-2">Shipping</td>
-                <td className="text-right font-bold text-black">
-                  {order.length && order[0].shippingCharge === 0
-                    ? "Free"
-                    : `₹${order[0]?.shippingCharge || 0}`}
-                </td>
-              </tr>
-              {/* Subtotal and Shipping */}
-              <tr className="">
-                <td></td>
-                <td></td>
-                <td className="font-semibold text-theme-blue pt-1">Subtotal</td>
-                <td className="text-right font-bold text-black">
-                  {order.subtotal}
-                </td>
-              </tr>
-              <tr className="border-b-2 border-dashed border-gray-600 ">
-                <td></td>
-                <td></td>
-                <td className="font-semibold text-theme-blue py-2">Shipping</td>
-                <td className="text-right font-bold text-black">
-                  {order.shippingCharge === 0
-                    ? "Free"
-                    : `₹${order.shippingCharge}`}
-                </td>
-              </tr>
-
-              {/* Discount Coupon and Total */}
+             
               <tr>
                 <td className="font-semibold text-theme-blue py-2">Discount Coupon?</td>
                 <td></td>
@@ -193,24 +112,15 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
             </tbody>
           </table>
           </div>
-              {/* Discount Coupon and Total */}
-              <tr>
-                <td className="font-semibold text-theme-blue py-2">
-                  Discount Coupon?
-                </td>
-                <td></td>
-                <td className="font-semibold text-theme-blue py-2">Total</td>
-                <td className="text-right font-bold text-black">
-                  {order.total}
-                </td>
-              </tr>
+            
+             
             </tbody>
           </table>
         </div>
       </div>
 
       {/* Loyalty and Points Section */}
-      {/* <div className="bg-blue-100 p-6 rounded-md mt-6">
+      <div className="bg-blue-100 p-6 rounded-md mt-6">
         <h3 className="text-theme-blue text-lg font-semibold border-b-2 pb-1 mb-2 w-fit border-theme-blue">
           The Majestic Peacock Loyalty & Points
         </h3>
@@ -240,7 +150,7 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
             events, forums, or social media groups.
           </li>
         </ul>
-      </div> */}
+      </div>
 
       {/* Continue Button */}
       <div className="mt-6 flex justify-end">
@@ -252,7 +162,7 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
         </button>
       </div>
       </div>
-      </div>
+      
    
   );
 }
