@@ -11,10 +11,10 @@ import CustomSize from "./CustomSize";
 import HandleInfo from "./HandleInfo";
 import ImageCarousel from "./ImageCrousal";
 import products from "../data/product_data";
-const ProductView = ({ product, allProducts }) => {
+import { useRegion } from "../../../contexts/RegionContext";
+import axios from "axios";
+const ProductView = ({ product, temp, allProducts }) => {
   const dispatch = useDispatch();
-  const router = useRouter();
-
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(
      null
@@ -85,7 +85,6 @@ const ProductView = ({ product, allProducts }) => {
         color: selectedColor,
         size: selectedSize,
         categories: product.categories,
-        discount: product.discount, 
       })
     );
     setWarning(""); // Clear warning on successful addition
@@ -341,7 +340,7 @@ const ProductView = ({ product, allProducts }) => {
                 "Add to Cart"
               )}
             </button>
-            <button onClick={handleBuyNow} className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
+            <button className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
               Buy It Now
             </button>
           </div>
