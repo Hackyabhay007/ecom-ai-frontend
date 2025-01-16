@@ -49,7 +49,7 @@ const Filter = ({ onApplyFilters }) => {
     <div>
       {/* Mobile Filter Toggle Button */}
       <button
-        className={`md:hidden w-full  py-2 px-10 bg-white fixed z-50 text-end font-semibold rounded-md  ${
+        className={`md:hidden w-full  py-2 px-10 bg-white fixed z-40 text-end font-semibold rounded-md  ${
           isSticky ? "top-5" : "top-60"
         }`}
         onClick={() => setIsMobileFilterOpen(true)}
@@ -93,8 +93,8 @@ const Filter = ({ onApplyFilters }) => {
               ].map((item) => (
                 <li
                   key={item.name}
-                  className={`flex py-1 justify-between cursor-pointer ${
-                    filters.category === item.name ? "text-theme-blue" : "text-sub-color"
+                  className={`flex py-1 justify-between text-sm cursor-pointer ${
+                    filters.category === item.name ? "text-theme-blue" : "text-black"
                   }`}
                   onClick={() => handleFilterChange("category", item.name)}
                 >
@@ -113,7 +113,7 @@ const Filter = ({ onApplyFilters }) => {
               {["XS", "S", "M", "L", "XL"].map((size) => (
                 <button
                   key={size}
-                  className={`p-[11px] px-[16px] border rounded-full ${
+                  className={`p-[4px] px-[16px] text-xs border border-gray-900 rounded-sm ${
                     filters.size === size
                       ? "bg-theme-blue text-white"
                       : "bg-white text-black"
@@ -153,17 +153,17 @@ const Filter = ({ onApplyFilters }) => {
               {["blue", "red", "yellow", "green", "black"].map((color) => (
                 <div
                   key={color}
-                  className={`flex items-center font-thin gap-2 border rounded-full py-1 px-1 pr-3 ${
+                  className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
                     filters.color === color ? "border-black" : "border-gray-300"
                   }`}
                   onClick={() => handleFilterChange("color", color)}
                   style={{ cursor: "pointer" }}
                 >
                   <div
-                    className="w-6 h-6 rounded-full"
+                    className="w-4 h-4 rounded-2xl"
                     style={{ backgroundColor: color }}
                   ></div>
-                  <span className="capitalize text-cream">{color}</span>
+                  <span className="capitalize text-xs text-cream">{color}</span>
                 </div>
               ))}
             </div>
@@ -192,7 +192,7 @@ const Filter = ({ onApplyFilters }) => {
                     }}
                     className="form-checkbox text-theme-blue accent-black"
                   />
-                  <span className="text-black">{brand}</span>
+                  <span className="text-black text-sm">{brand}</span>
                 </label>
               ))}
             </div>

@@ -62,6 +62,7 @@ const QuickView = ({ product, onClose }) => {
         color: selectedColor,
         size: selectedSize,
         categories,
+        discount,
       })
     );
 

@@ -42,9 +42,16 @@ module.exports = {
         dropdown: "dropdown 0.2s ease-in-out",
         "dropdown-out": "dropdown-out 0.2s ease-in-out",
         "fade-in-out": "fade-in-out 2s infinite",
+        popup: 'popup 0.3s ease-out',
+        fade1: 'fade 4s infinite',
+        fade2: 'fade 4s infinite 2s', // Delayed by 1 second
         popup: "popup 0.3s ease-out",
       },
       keyframes: {
+        fade: {
+          '0%, 100%': { opacity: 1 },
+          '50%': { opacity: 0 },
+        },
         "scroll-left": {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-50%)" },

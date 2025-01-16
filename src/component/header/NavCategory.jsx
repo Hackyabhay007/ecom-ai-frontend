@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Category from "../category/Category";
+import Link from "next/link";
 
 const NavCategory = () => {
   const [activeCategory, setActiveCategory] = useState(null);
@@ -51,21 +52,22 @@ const NavCategory = () => {
   }, [activeCategory]);
 
   return (
-    <div className="relative ">
+    <div className="relative z-50">
       {/* Navigation Menu */}
       <div className="flex px-5 text-xl md:text-base  text-black md:px-0  bg-light-BG md:bg-white flex-col space-y-8  md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around   pt-10 pb-5 md:py-0 s md:pb-0 md:border-none  z-50">
         {["men", "woman", "kids"].map((category) => (
           <div
             key={category}
             ref={categoryRefs[category]}
-            className={`cursor-pointer hover:text-theme-blue  border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
+            className={`cursor-pointer md:uppercase md:text-sm hover:text-theme-blue  border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
               activeCategory === category ? "text-theme-blue font-semibold border-b-2 border-theme-blue" : ""
             }`}
             onClick={() => toggleCategoryDropdown(category)}
           >
-            {category.charAt(0).toUpperCase() + category.slice(1)}
+        {category.charAt(0).toUpperCase() + category.slice(1)}<i class="ri-arrow-drop-right-line absolute right-5 md:hidden"></i>
           </div>
         ))}
+      <p className="md:hidden"> <Link href="/">Home<i class="ri-arrow-drop-right-line absolute right-5 md:hidden"></i></Link></p> 
       </div>
 
       {/* Dropdown */}
