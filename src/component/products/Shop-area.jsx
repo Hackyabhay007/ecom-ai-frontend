@@ -5,248 +5,36 @@ import Breadcrumb from "./Breadcrumb";
 import GridLayout from "./GridLayout";
 import SelectedFilters from "./SelectedFilters";
 import ProductList from "./product_view/PageList";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "../../../redux/slices/productSlice";
+import { useRegion } from "../../contexts/RegionContext.jsx";
 
 const ShopArea = () => {
-  
-  const [products] = useState([
-    {
-      id: 1,
-      name: "Ragian Full Sleeve T-Shirt",
-      categories: ["clothing", "tshirt"],
-      price: 100,
-      prevPrice: 200,
-      discount: 50,
-      image: "/images/shop/shop1.jpeg",
-      tags: ["NEW"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 2,
-      name: "Kimano Sleeve Top",
-      categories: ["clothing", "top"],
-      price: 40,
-      prevPrice: 60,
-      discount: 33,
-      image: "/images/shop/shop2.jpeg",
-      tags: ["SALE"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 3,
-      name: "Vintage Dress",
-      categories: ["clothing", "dress","t-shirt"],
-      price: 150,
-      prevPrice: 250,
-      discount: 40,
-      image: "/images/shop/shop3.jpg",
-      tags: ["NEW"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 4,
-      name: "Floral Swimsuit",
-      categories: ["clothing", "swimwear"],
-      price: 75,
-      prevPrice: 150,
-      discount: 50,
-      image: "/images/shop/shop4.jpeg",
-      tags: ["SALE"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 5,
-      name: "Partywear Sequin Dress",
-      categories: ["clothing", "dress", "partywear"],
-      price: 120,
-      prevPrice: 240,
-      discount: 50,
-      image: "/images/shop/shop5.jpg",
-      tags: ["NEW"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 6,
-      name: "Casual T-shirt",
-      categories: ["clothing", "tshirt"],
-      price: 30,
-      prevPrice: 60,
-      discount: 50,
-      image: "/images/shop/shop6.jpeg",
-      tags: ["SALE"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 7,
-      name: "Chic Party Dress",
-      categories: ["clothing", "dress", "partywear"],
-      price: 100,
-      prevPrice: 200,
-      discount: 50,
-      image: "/images/shop/shop7.jpeg",
-      tags: ["NEW"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 8,
-      name: "Chic Party Dress",
-      categories: ["clothing", "dress", "partywear"],
-      price: 100,
-      prevPrice: 200,
-      discount: 50,
-      image: "/images/shop/shop8.jpg",
-      tags: ["SALE"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 9,
-      name: "Chic Party Dress",
-      categories: ["clothing", "dress", "partywear"],
-      price: 100,
-      prevPrice: 200,
-      discount: 50,
-      image: "/images/shop/shop9.jpg",
-      tags: ["NEW"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-    {
-      id: 10,
-      name: "Chic Party Dress",
-      categories: ["clothing", "dress", "partywear"],
-      price: 100,
-      prevPrice: 200,
-      discount: 50,
-      image: "/images/shop/shop10.jpg",
-      tags: ["NEW"],
-      description:
-        "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-      additionalImages: [
-        "/images/shop/additional1.jpg",
-        "/images/shop/additional2.jpg",
-      ],
-      specifications: "Product specifications go here.",
-      reviews: [
-        { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-        { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-      ],
-      size:["X","M","L","XL"],
-        color:["pink","blue","cream","white"],
-    },
-  ]);
+  const dispatch = useDispatch();
+  const { region } = useRegion();
 
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const { products, count, nextPage, status, error } = useSelector(
+    (state) => state.products
+  );
+
+  useEffect(()=>{
+    const queryParams = { 
+      limit: 12,
+      fields: "*metadata,-options,-subtitle,-description,-images,+variants,+tag",
+
+      // Add other query params as necessary
+    };
+    dispatch(fetchProducts({ pageParam: 1, queryParams, region }));
+  },[dispatch])
+
+  console.log(products , "from shop area")
+
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [heading, setHeading] = useState("Shop");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [layout, setLayout] = useState("grid");
   const [showSaleOnly, setShowSaleOnly] = useState(false);
-  const [sortBy, setSortBy] = useState(""); // New state for sorting
+  const [sortBy, setSortBy] = useState("");
   const [filters, setFilters] = useState({
     category: "",
     price: [0, 1000],
@@ -254,7 +42,18 @@ const ShopArea = () => {
     brand: [],
     color: "",
   });
+
+  // useEffect(() => {
+  //   dispatch(
+  //     fetchProducts({
+  //       pageParam: 1,
+  //       queryParams: { limit: 12 },
+  //     })
+  //   );
+  // }, [dispatch]);
+
   useEffect(() => {
+    if (!products) return;
     let updatedProducts = products.filter((product) => {
       const matchesCategory =
         !filters.category || product.categories.includes(filters.category);
@@ -299,7 +98,7 @@ const ShopArea = () => {
         break;
     }
 
-    setFilteredProducts(updatedProducts);
+    setFilteredProducts(products);
   }, [products, filters, showSaleOnly, sortBy]);
 
   const clearFilter = (key, value) => {
@@ -329,69 +128,289 @@ const ShopArea = () => {
     setFilters((prev) => ({ ...prev, category }));
     setHeading(category.charAt(0).toUpperCase() + category.slice(1));
   };
+
   return (
     <div className="py-16 md:py-0 md:mb-5">
-      {/* Breadcrumb */}
-      <Breadcrumb
-        heading={heading}
-        subCategory={selectedCategory}
-        onCategorySelect={handleCategorySelect}
-        categories={["T-Shirt", "Dress", "PartyWear", "Gown", "Swimwear"]} // Pass categories here
-      />
-
-      <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">
-        {/* Filter Section */}
-        <div className="w-full md:w-1/4">
-          <Filter onApplyFilters={applyFilters} />
-        </div>
-
-        {/* Product Section */}
-        <div className="container mx-auto px-4">
-          {/* GridLayout Component */}
-          <GridLayout
-            onLayoutChange={setLayout}
-            onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}
-            onSortChange={(e) => setSortBy(e.target.value)}
-            currentLayout={layout}
-            showSaleOnly={showSaleOnly}
+      {status === "loading" && <p>Loading...</p>}
+      {status === "failed" && <p>Error: {error}</p>}
+      {status === "succeeded" && (
+        <>
+          <Breadcrumb
+            heading={heading}
+            subCategory={selectedCategory}
+            onCategorySelect={handleCategorySelect}
+            categories={["T-Shirt", "Dress", "PartyWear", "Gown", "Swimwear"]}
           />
 
-          <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
-            {filteredProducts.length} Product
-            {filteredProducts.length !== 1 ? "s" : ""} found
-            <SelectedFilters
-              filters={filters}
-              onClearFilter={clearFilter}
-              onClearAllFilters={clearAllFilters}
-              defaultPriceRange={[0, 1000]} // Pass default price range as a prop
-            />
-          </div>
-          {/* Products */}
+          <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">
+            <div className="w-full md:w-1/4">
+              <Filter onApplyFilters={applyFilters} />
+            </div>
 
-          {/* <div
-            className={`grid ${
-              layout === "grid"
-                ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                : "grid-cols-1 gap-6"
-            }`}
-          >
-            {filteredProducts.length ? (
-              filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  layout={layout}
+            <div className="container mx-auto px-4">
+              <GridLayout
+                onLayoutChange={setLayout}
+                onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}
+                onSortChange={(e) => setSortBy(e.target.value)}
+                currentLayout={layout}
+                showSaleOnly={showSaleOnly}
+              />
+
+              <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5"> {status === "loading" && <p>Loading...</p>}
+              {status === "failed" && <p>Error: {error}</p>}
+                {filteredProducts.length} Product
+                {filteredProducts.length !== 1 ? "s" : ""} found
+                <SelectedFilters
+                  filters={filters}
+                  onClearFilter={clearFilter}
+                  onClearAllFilters={clearAllFilters}
+                  defaultPriceRange={[0, 1000]}
                 />
-              ))
-            ) : (
-              <p className="text-center col-span-full">No products found.</p>
-            )}
-          </div> */}
-          <ProductList products={filteredProducts} layout={layout} />
-        </div>
-      </div>
+              </div>
+
+              <ProductList products={filteredProducts} layout={layout} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default ShopArea;
+
+
+
+
+  // const [products] = useState([
+  //   {
+  //     id: 1,
+  //     name: "Ragian Full Sleeve T-Shirt",
+  //     categories: ["clothing", "tshirt"],
+  //     price: 100,
+  //     prevPrice: 200,
+  //     discount: 50,
+  //     image: "/images/shop/shop1.jpeg",
+  //     tags: ["NEW"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Kimano Sleeve Top",
+  //     categories: ["clothing", "top"],
+  //     price: 40,
+  //     prevPrice: 60,
+  //     discount: 33,
+  //     image: "/images/shop/shop2.jpeg",
+  //     tags: ["SALE"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Vintage Dress",
+  //     categories: ["clothing", "dress","t-shirt"],
+  //     price: 150,
+  //     prevPrice: 250,
+  //     discount: 40,
+  //     image: "/images/shop/shop3.jpg",
+  //     tags: ["NEW"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Floral Swimsuit",
+  //     categories: ["clothing", "swimwear"],
+  //     price: 75,
+  //     prevPrice: 150,
+  //     discount: 50,
+  //     image: "/images/shop/shop4.jpeg",
+  //     tags: ["SALE"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 5,
+  //     name: "Partywear Sequin Dress",
+  //     categories: ["clothing", "dress", "partywear"],
+  //     price: 120,
+  //     prevPrice: 240,
+  //     discount: 50,
+  //     image: "/images/shop/shop5.jpg",
+  //     tags: ["NEW"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 6,
+  //     name: "Casual T-shirt",
+  //     categories: ["clothing", "tshirt"],
+  //     price: 30,
+  //     prevPrice: 60,
+  //     discount: 50,
+  //     image: "/images/shop/shop6.jpeg",
+  //     tags: ["SALE"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 7,
+  //     name: "Chic Party Dress",
+  //     categories: ["clothing", "dress", "partywear"],
+  //     price: 100,
+  //     prevPrice: 200,
+  //     discount: 50,
+  //     image: "/images/shop/shop7.jpeg",
+  //     tags: ["NEW"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 8,
+  //     name: "Chic Party Dress",
+  //     categories: ["clothing", "dress", "partywear"],
+  //     price: 100,
+  //     prevPrice: 200,
+  //     discount: 50,
+  //     image: "/images/shop/shop8.jpg",
+  //     tags: ["SALE"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 9,
+  //     name: "Chic Party Dress",
+  //     categories: ["clothing", "dress", "partywear"],
+  //     price: 100,
+  //     prevPrice: 200,
+  //     discount: 50,
+  //     image: "/images/shop/shop9.jpg",
+  //     tags: ["NEW"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  //   {
+  //     id: 10,
+  //     name: "Chic Party Dress",
+  //     categories: ["clothing", "dress", "partywear"],
+  //     price: 100,
+  //     prevPrice: 200,
+  //     discount: 50,
+  //     image: "/images/shop/shop10.jpg",
+  //     tags: ["NEW"],
+  //     description:
+  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
+  //     additionalImages: [
+  //       "/images/shop/additional1.jpg",
+  //       "/images/shop/additional2.jpg",
+  //     ],
+  //     specifications: "Product specifications go here.",
+  //     reviews: [
+  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
+  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
+  //     ],
+  //     size:["X","M","L","XL"],
+  //       color:["pink","blue","cream","white"],
+  //   },
+  // ]);

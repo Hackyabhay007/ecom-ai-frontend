@@ -14,12 +14,12 @@ const HandleInfo = ({ categories, product, reviews }) => {
   // Disable scrolling on the background when a modal is open
   useEffect(() => {
     if (isInfoOpen || isDetailsOpen || isReviewOpen) {
-      document.body.style.overflow = 'hidden'; // Disable scrolling on body
+      document.body.style.overflow = "hidden"; // Disable scrolling on body
     } else {
-      document.body.style.overflow = 'auto'; // Re-enable scrolling
+      document.body.style.overflow = "auto"; // Re-enable scrolling
     }
     return () => {
-      document.body.style.overflow = 'auto'; // Clean up when the component is unmounted
+      document.body.style.overflow = "auto"; // Clean up when the component is unmounted
     };
   }, [isInfoOpen, isDetailsOpen, isReviewOpen]);
 
@@ -118,7 +118,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
           className="absolute top-4 right-4 text-black text-2xl z-50"
           onClick={handleInfoClick}
         >
-           <i class="ri-close-line bg-white p-2 rounded-full "></i>
+          <i class="ri-close-line bg-white p-2 rounded-full "></i>
         </button>
 
         <div className="p-6 overflow-auto custom-scrollbar">
@@ -144,7 +144,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
           className="absolute top-4 right-4 text-black text-2xl z-50"
           onClick={handleDetailsClick}
         >
-           <i class="ri-close-line bg-white p-2 rounded-full "></i>
+          <i class="ri-close-line bg-white p-2 rounded-full "></i>
         </button>
 
         <div className="p-6 overflow-auto custom-scrollbar">
@@ -152,9 +152,9 @@ const HandleInfo = ({ categories, product, reviews }) => {
           <ProductDetails product={product} />
         </div>
       </div>
- 
-     {/* Customer Review Sliding Component */}
-<div
+
+      {/* Customer Review Sliding Component */}
+      {/* <div
   className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-50 transition-transform duration-500 ease-in-out ${
     isReviewOpen
       ? "opacity-100 visible md:animate-handleInfoSlideInRight animate-handleInfoSlideInBottom"
@@ -165,7 +165,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
     visibility: visibilityReview,
   }}
 >
-  {/* Close Button */}
+  {/* Close Button 
   <button
     className="absolute top-5 right-4 text-black    text-2xl z-50"
     onClick={handleReviewClick}
@@ -173,13 +173,12 @@ const HandleInfo = ({ categories, product, reviews }) => {
    <i class="ri-close-line bg-white p-2 rounded-full "></i>
   </button>
 
-  {/* Review Content - Ensure this section is scrollable */}
+
   <div className="p-2 pb-10 max-h-full overflow-y-auto custom-scrollbar">
-    {/* Customer Reviews */}
+    
     <CustomerReview reviews={reviews} productImage={product.image} />
   </div>
-</div>
-
+</div> */}
     </div>
   );
 };

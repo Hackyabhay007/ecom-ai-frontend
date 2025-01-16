@@ -28,7 +28,7 @@ const ImageCarousel = ({ mainImage, additionalImages }) => {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-1 md:mr-4 relative">
+    mainImage &&  additionalImages && <div className="flex flex-col md:flex-1 md:mr-4 relative">
       {/* Desktop View (Full viewport height, one image at a time) */}
       <div className="hidden md:block">
         {[mainImage, ...additionalImages].map((image, index) => (
@@ -41,7 +41,6 @@ const ImageCarousel = ({ mainImage, additionalImages }) => {
               src={image}
               alt={`Product Image ${index + 1}`}
               layout="fill"
-             
               objectFit="cover" // Ensures the image covers the container
             />
           </div>
@@ -68,15 +67,16 @@ const ImageCarousel = ({ mainImage, additionalImages }) => {
                 objectFit="cover" // Ensures the image covers the container
                 className="bg-cover object-top"
               />
-              {/* Index Display inside the image */}
-              {index === activeIndex && (
-                <div className="absolute bottom-4 right-4 bg-white text-xs text-gray-800 py-1 px-3 rounded-full shadow-lg z-10">
-                  {`${activeIndex + 1} / ${[mainImage, ...additionalImages].length}`}
-                </div>
-              )}
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Fixed Index Display */}
+      <div
+        className={` bg-white text-xs text-gray-800 py-1 px-3 rounded-full shadow-lg z-10 md:hidden`}
+      >
+        {`${activeIndex + 1} / ${[mainImage, ...additionalImages].length}`}
       </div>
     </div>
   );
