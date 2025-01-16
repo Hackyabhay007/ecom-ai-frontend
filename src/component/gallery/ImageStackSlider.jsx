@@ -86,6 +86,7 @@ const ImageStackSlider = ({catalogdata}) => {
                 alt={`Gallery Image ${index + 1}`}
                 layout="fill"
                 objectFit="cover"
+                
                 className="object-top"
               />
             </a>

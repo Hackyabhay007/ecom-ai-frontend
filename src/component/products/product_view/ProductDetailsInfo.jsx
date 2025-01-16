@@ -31,6 +31,7 @@ const ProductDetailsInfo = ({ categories }) => {
                   layout="fill"
                   objectFit="contain"
                   className="rounded"
+                  
                 />
               </div>
             ))}
