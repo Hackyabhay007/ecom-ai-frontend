@@ -6,7 +6,7 @@ import { addToCart } from "../../../../redux/slices/cartSlice";
 const QuickView = ({ product, onClose }) => {
   const {
     id,
-    name,
+    title : name,
     price,
     prevPrice,
     discount,
@@ -73,7 +73,7 @@ const QuickView = ({ product, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 pb-20 md:pb-5 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 pb-20 md:pb-5 z-50 ">
       <div className="bg-white w-full md:w-2/3 h-full md:h-auto md:max-h-[90%] rounded-lg flex flex-col md:flex-row transform px-1 pb-2 animate-scale-up sm:overflow-hidden overflow-y-auto">
         {/* Close Button */}
         <button

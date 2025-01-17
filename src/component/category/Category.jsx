@@ -17,7 +17,7 @@ const Category = ({ activeCategory = "woman" }) => {
     dispatch(fetchcategores());
   }, [dispatch]);
 
-  console.log(data, status);
+  // console.log(data, status);
 
   const router = useRouter();
   const categories = {

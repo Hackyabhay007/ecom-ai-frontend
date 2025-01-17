@@ -5,8 +5,8 @@ import products from "@/component/products/data/product_data"; // Your products 
 import Navbar from "@/component/header/Navbar";
 import Footer from "@/component/footer/Footer";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../../../redux/slices/productSlice";
-import { useRegion } from "../../contexts/RegionContext.jsx";
+import { fetchProducts } from "../../../../redux/slices/productSlice";
+import { useRegion } from "../../../contexts/RegionContext.jsx";
 
 
   

@@ -24,7 +24,7 @@ import {
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart", "wishlist",], // Specify reducers to persist
+  whitelist: ["cart", "wishlist", ], // Specify reducers to persist
 };
 
 // Combine reducers

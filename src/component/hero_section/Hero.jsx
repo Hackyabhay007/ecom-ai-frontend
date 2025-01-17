@@ -93,12 +93,10 @@ function Hero() {
       >
         {/* Background Image */}
         <Image
-          src={currentHero?.image}
-          alt={currentHero?.title}
-          fill
+          src={currentHero?.image || "/fallback-image.jpg"}
+          alt={currentHero?.title || "Default Title"}
           className="absolute inset-0 object-cover"
-          width={500}
-          height={500}
+          fill
         />
 
         {/* Overlay */}
