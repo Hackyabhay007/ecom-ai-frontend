@@ -33,7 +33,7 @@ const ProductPage = () => {
     };
     dispatch(fetchProducts({ pageParam: 1, queryParams, region }));
     console.log(region)
-  },[dispatch , region])
+  },[dispatch , region , id])
 
   console.log("hi",data,error)
 
@@ -42,7 +42,7 @@ const ProductPage = () => {
   return (
     <>
       <Navbar />
-      <ProductView product={product} temp={data[0]} allProducts={products} />
+      <ProductView product={data[0]}  allProducts={products} />
       <Footer />
     </>
   );

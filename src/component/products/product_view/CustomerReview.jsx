@@ -39,6 +39,32 @@ const CustomerReview = ({ reviews, productImage }) => {
       document.body // Render the modal outside of the component tree
     );
 
+
+    const renderStars = (rating) => {
+      return [...Array(5)].map((_, index) => (
+        <span
+          key={index}
+          style={{ color: index < rating ? "#FFD700" : "#D3D3D3" }}
+        >
+          ★
+        </span>
+      ));
+    };
+  
+    function formatLocalDate(isoDate) {
+      const date = new Date(isoDate);
+      const formattedDate = new Intl.DateTimeFormat("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      }).format(date);
+  
+      return formattedDate;
+    }
   return (
     <div className="mt-8 bg-[#F7F7F7] p-6 rounded-lg">
       {/* Top Heading */}
@@ -100,26 +126,32 @@ const CustomerReview = ({ reviews, productImage }) => {
       </div>
 
       {/* Customer Reviews */}
-      <div className="mt-8">
+      <div className="mt-8 space-y-2 ">
         {reviews.map((review) => (
-          <div key={review.id} className="border-t border-gray-300 py-6">
-            <div className="flex items-start gap-4">
-              {/* <Image
-                src={review.image}
-                alt="Reviewer"
-                width={50}
-                height={50}
-                className="w-12 h-12 object-cover rounded-lg"
-              /> */}
-              <div>
-                <div className="flex items-center pb-2">
-                  <span className="text-yellow-500 mr-2">
-                    {"★".repeat(review.rating)}
-                  </span>
-                  <span className="text-sm text-gray-500">({review.rating})</span>
+            <div
+            key={review.id}
+            className="w-full px-5 border-2 border-theme-blue rounded-lg"
+           
+          >
+            <div className="relative mb-4 ">
+              <Image
+                src={review.user_pic}
+                alt={`Review by ${review.user_name}`}
+                width={200}
+                height={200}
+                className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
+              />
+              <div className="ml-20 my-5">
+                <div className="text-yellow-600">
+                {renderStars(review.rating)}
                 </div>
-                <p className="text-sm text-gray-700">{review.text}</p>
+                <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
               </div>
+              <p className="text-sub-color mt-2">{review.description}</p>
+              <p className="text-sm font-bold mt-2">{review.user_name}</p>
+              <p className="text-sm text-sub-color mt-2">
+                {formatLocalDate(review.created_at)}
+              </p>
             </div>
           </div>
         ))}

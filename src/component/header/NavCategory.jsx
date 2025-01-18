@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Category from "../category/Category";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import Collection from '../collection/index'
 
 const NavCategory = () => {
   const [activeCategory, setActiveCategory] = useState(null);
@@ -65,12 +66,13 @@ const NavCategory = () => {
             className={`cursor-pointer md:uppercase md:text-sm hover:text-theme-blue  border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
               activeCategory === category ? "text-theme-blue font-semibold border-b-2 border-theme-blue" : ""
             }`}
-            onClick={() => {
-              route.push({
-                pathname: "/shop", // Keep the same page
-                query:  { collection:  category}, // Apply remaining queries
-              });
-            }}
+            // onClick={() => {
+            //   route.push({
+            //     pathname: "/shop", // Keep the same page
+            //     query:  { collection:  category}, // Apply remaining queries
+            //   });
+            // }}
+            onClick={() => toggleCategoryDropdown(category)}
           >
         {category.charAt(0).toUpperCase() + category.slice(1)}<i class="ri-arrow-drop-right-line absolute right-5 md:hidden"></i>
           </div>
@@ -89,7 +91,7 @@ const NavCategory = () => {
             : "hidden"
         }`}
       >
-        {activeCategory && <Category activeCategory={activeCategory} />}
+        {true && <Collection />}
       </div>
     </div>
   );

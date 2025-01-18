@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import ProductDetails from "./ProductDetails";
 import CustomerReview from "./CustomerReview.jsx";
@@ -15,7 +15,7 @@ import { useRegion } from "../../../contexts/RegionContext";
 import axios from "axios";
 import { useRouter } from "next/router";
 
-const ProductView = ({ product, temp, allProducts }) => {
+const ProductView = ({  product, allProducts }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(
@@ -23,7 +23,7 @@ const ProductView = ({ product, temp, allProducts }) => {
   );
   const router = useRouter();
   const { region } = useRegion();
-  console.log(temp);
+  console.log(product);
   const [selectedSize, setSelectedSize] = useState(null);
   const [warning, setWarning] = useState("");
   const [isAdded, setIsAdded] = useState(false);
@@ -32,8 +32,39 @@ const ProductView = ({ product, temp, allProducts }) => {
   const [customSize, setCustomSize] = useState(null);
   const [category, setCategory] = useState([]);
   const [price, setPrice] = useState(0);
-  const [discount, setdiscount] = useState(0);
+  const [discount, setDiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
+
+  const [rating, setRating] = useState([]);
+  const [avaragerating, setAvaragerating] = useState(0);
+
+  // store/products/get-product-with-review-and-category/prod_01JHSYYSJD80XCWWVMDM1QV6ZA
+
+  useMemo(() => {
+    if(product){
+      axios
+      .get(
+        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/get-product-with-review-and-category/${product.id}`,
+        {
+          headers: {
+            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+          },
+        }
+      )
+      .then((res) => {
+        const responses = res.data.productsubdetails;
+        console.log(res.data.productsubdetails);
+        if (responses?.reviews) {
+          setRating(responses.reviews);
+          setAvaragerating(responses.averageRating);
+        }
+        if (responses?.categories) {
+          setCategory(responses.categories);
+        }
+      });
+    }
+  }, [product]);
+
 
   const handleBuyNow = () => {
     if (!selectedSize) {
@@ -67,27 +98,7 @@ const ProductView = ({ product, temp, allProducts }) => {
     );
   };
 
-  useEffect(() => {
-    if (temp) {
-      axios
-        .get(
-          `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/get-product-category/${temp.id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-            },
-          }
-        )
-        .then((res) => {
-          console.log(res.data.categories);
-          setCategory(res.data.categories);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  }, [temp]);
+  
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -121,42 +132,60 @@ const ProductView = ({ product, temp, allProducts }) => {
   };
 
 
-  const [mainImage, setMainImage] = useState(temp?.thumbnail);
+  const [mainImage, setMainImage] = useState(product?.thumbnail);
   const [additionalImages, setAdditionalImages] = useState();
   // initialAdditionalImages
   const [slideDirection, setSlideDirection] = useState("");
-
-  const getAverageRating = () => {
-    const totalRating = 0;
-    // const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-    return reviews.length ? Math.round(totalRating / reviews.length) : 0;
-  };
+ 
 
   const renderStars = (rating) => {
-    return [...Array(5)].map((_, index) => (
-      <span
-        key={index}
-        style={{
-          color: index < rating ? "#FFD700" : "#D3D3D3", // Gold for filled, Light Gray for empty
-          fontSize: "1.5rem", // Adjust size as needed
-          marginRight: "0.2rem",
-        }}
-      >
-        ★
-      </span>
+    return Array.from({ length: rating }, (_, i) => (
+      <i key={i} className="ri-star-fill text-yellow-400"></i>
     ));
   };
-
-  // const averageRating = getAverageRating();
-
-  useEffect(() => {
-    if (region) {
-      // setLoading(true);
-
-      const targetVariant = temp?.variants.find((variant) =>
-        variant.options?.some((option) => option.value.toLowerCase() === "m")
+  
+  
+  useMemo(() => {
+      if(region){
+        const targetVariant =
+        selectedSize && selectedColor
+          ? product?.variants.find((v) =>
+              v.options?.some(
+                (option) =>
+                  option.value.toLowerCase() === selectedColor.toLowerCase() &&
+                  v.options?.some(
+                    (option) =>
+                      option.value.toLowerCase() === selectedSize.toLowerCase()
+                  )
+              )
+            )
+          : selectedColor
+          ? product?.variants.find((variant) =>
+              variant.options?.some(
+                (option) =>
+                  option.value.toLowerCase() === selectedColor.toLowerCase()
+              )
+            )
+          : selectedSize
+          ? product?.variants.find((variant) =>
+              variant.options?.some(
+                (option) => option.value.toLowerCase() === selectedSize.toLowerCase()
+              )
+            )
+          : product?.variants.find((variant) =>
+              variant.options?.some(
+                (option) => option.value.toLowerCase() === "m"
+              )
+            );
+  
+      console.log(
+        targetVariant,
+        "this is target vaiant",
+        selectedColor,
+        selectedSize,
+        product
       );
-
+  
       if (targetVariant) {
         setPrice(
           new Intl.NumberFormat("en-US", {
@@ -164,22 +193,22 @@ const ProductView = ({ product, temp, allProducts }) => {
             currency: region?.currency_code,
           }).format(targetVariant.calculated_price?.calculated_amount)
         );
-
+  
         const calculatedAmount =
           targetVariant.calculated_price?.calculated_amount;
-
-        if (temp?.metadata?.discount) {
-          setdiscount(temp?.metadata.discount);
+  
+        if (product.metadata?.discount) {
+          setDiscount(product.metadata.discount);
           // console.log();
         }
-        if (calculatedAmount && temp?.metadata?.discount > 0) {
+        if (calculatedAmount && product.metadata?.discount > 0) {
           setDiscountedamount(
             new Intl.NumberFormat("en-US", {
               style: "currency",
               currency: region?.currency_code,
             }).format(
               calculatedAmount -
-                calculatedAmount * (temp?.metadata?.discount / 100)
+                calculatedAmount * (product.metadata?.discount / 100)
             )
           );
         } else {
@@ -189,29 +218,29 @@ const ProductView = ({ product, temp, allProducts }) => {
       } else {
         setPrice("N/A");
       }
-    }
-  }, [temp, region ,selectedColor , selectedSize]);
+      }
+    }, [product?.metadata,  region, discount, selectedColor, selectedSize]);
 
   useEffect(() => {
-    if (temp?.images) {
-      const images = temp?.images.map((i) => i.url);
+    if (product?.images) {
+      const images = product?.images.map((i) => i.url);
       setAdditionalImages(images);
       console.log(images);
     }
-  }, [temp]);
+  }, [product]);
 
   const colors =
-    temp?.options
+    product?.options
       ?.find((option) => option.title === "Color")
       ?.values.map((v) => v.value) || [];
   const sizes =
-    temp?.options
+    product?.options
       ?.find((option) => option.title === "Size")
       ?.values.map((v) => v.value) || [];
 
   function getPriceForVariant() {
     // Find the variant matching the selected color and size
-    const variant = temp.variants.find(
+    const variant = product.variants.find(
       (v) =>
         v.options.some(
           (o) => o.option.title === "Color" && o.value === selectedColor
@@ -234,16 +263,16 @@ const ProductView = ({ product, temp, allProducts }) => {
       <div className="w-full container mx-auto py-8 px-2 flex flex-col md:flex-row">
         {/* Images Section */}
         <ImageCarousel
-          mainImage={temp?.thumbnail}
+          mainImage={product?.thumbnail}
           additionalImages={additionalImages}
         />
         {/* Product Details Section */}
         <div className="md:flex-1 px-5 py-10">
           <h1 className="text-2xl font-bold text-theme-blue mb-2">
-            {temp?.title}{" "}
+            {product?.title}{" "}
           </h1>
           {/* Star Rating */}
-          {/* <div className="flex items-center mb-4">{renderStars(averageRating)}</div> */}
+          <div className="flex items-center mb-4">{renderStars(avaragerating)}</div>
           {/* Category */}
           <div className="mb-4">
             <span className="text-sm text-theme-blue">Category: </span>
@@ -261,9 +290,9 @@ const ProductView = ({ product, temp, allProducts }) => {
           {/* Pricing Details */}
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">
-              {temp?.metadata?.discount > 0 ?  discountedamount : price}
+              {product?.metadata?.discount > 0 ?  discountedamount : price}
             </span>
-            {temp?.metadata?.discount > 0 && (
+            {product?.metadata?.discount > 0 && (
               <>
                 <span className="text-sub-color text-sm line-through">
                   {price}
@@ -281,7 +310,7 @@ const ProductView = ({ product, temp, allProducts }) => {
               <span className="text-sm text-cream">Color: </span>
               <div className="flex gap-2">
                 {colors.map((color, index) => (
-                  <div
+                  <button
                     key={index}
                     className={`w-8 h-8 rounded-lg border-2 cursor-pointer bg-red-300 ${
                       selectedColor === color ? "border-black" : ""
@@ -301,7 +330,7 @@ const ProductView = ({ product, temp, allProducts }) => {
               <span className="text-sm text-cream">Size: </span>
               <div className="flex flex-wrap gap-4">
                 {sizes.map((size, index) => (
-                  <div
+                  <button
                     key={index}
                     className={`w-14 h-8 border px-2 rounded-lg flex items-center justify-center cursor-pointer ${
                       selectedSize === size ? "border-black" : ""
@@ -312,16 +341,16 @@ const ProductView = ({ product, temp, allProducts }) => {
                     }}
                   >
                     {size}
-                  </div>
+                  </button>
                 ))}
-                <div
+                <button
                   className={`w-fit hover:bg-discount-color border border-gray-300 rounded-lg transition-all px-4 h-8 flex items-center justify-center cursor-pointer ${
                     selectedSize === "Custom" ? "border-black" : ""
                   }`}
                   onClick={() => setIsCustomSizeVisible(true)}
                 >
                   Custom size
-                </div>
+                </button>
                 {warning && !selectedSize && (
                   <div className="text-red-700 text-sm mt-2 capitalize">
                     <i className="ri-information-fill"></i> Please select a size
@@ -385,11 +414,11 @@ const ProductView = ({ product, temp, allProducts }) => {
               Share
             </button>
           </div>
-          {/* <HandleInfo
-            categories={categories}
-            product={temp}
-            reviews={reviews}
-          /> */}
+          <HandleInfo
+            categories={category}
+            product={product}
+            reviews={rating}
+          />
         </div>
       </div>
 

@@ -25,6 +25,7 @@ const ProductCard = ({ product, layout }) => {
   const [discount, setdiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
   console.log(product, " this product was come ");
+  const {size} = router.query
 
   const {
     id,
@@ -35,14 +36,13 @@ const ProductCard = ({ product, layout }) => {
     tags = [],
     description,
     color = [],
-    size = [],
   } = product;
 
   useEffect(() => {
     setLoading(true);
 
     const targetVariant = product.variants.find((variant) =>
-      variant.options?.some((option) => option.value.toLowerCase() === "m")
+      variant.options?.some((option) => option.value.toLowerCase() === size.toLowerCase())
     );
 
     if (targetVariant) {
@@ -52,19 +52,11 @@ const ProductCard = ({ product, layout }) => {
           currency: region.currency_code,
         }).format(targetVariant.calculated_price?.calculated_amount)
       );
-      // console.log(
-      //   "Calculated Amount:",
-      //   targetVariant.calculated_price?.calculated_amount
-      // );
-      // console.log("Discount:", product.metadata.discount);
+     
 
       const calculatedAmount =
         targetVariant.calculated_price?.calculated_amount;
-      // console.log(
-      //   targetVariant.calculated_price?.calculated_amount *
-      //     product.metadata.discount,
-      //   "targetVariant.calculated_price?.calculated_amount"
-      // );
+     
       if (product.metadata?.discount) {
         setdiscount(product.metadata.discount);
         // console.log();
@@ -86,7 +78,7 @@ const ProductCard = ({ product, layout }) => {
     } else {
       setVariantPrice("N/A");
     }
-  }, [product.metadata, id, region, discount]);
+  }, [product.metadata, id, region, discount , size]);
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
     dispatch(addToWishlist(product));
