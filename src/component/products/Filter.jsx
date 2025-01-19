@@ -307,7 +307,7 @@ const Filter = ({ onApplyFilters }) => {
           </div>
 
           {/* Brand Filter */}
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Brand</h3>
             <div className="flex flex-col gap-2">
               {[
@@ -335,7 +335,7 @@ const Filter = ({ onApplyFilters }) => {
                 </label>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
