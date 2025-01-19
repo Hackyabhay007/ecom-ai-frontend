@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 
 const Breadcrumb = ({
   heading,
@@ -6,11 +7,17 @@ const Breadcrumb = ({
   onCategorySelect,
   categories = [],
 }) => {
+  const Route = useRouter()
   const [selectedCategory, setSelectedCategory] = useState("");
+  const {cat_name} = Route.query;
 
   const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-    onCategorySelect(category.toLowerCase());
+    Route.push({
+      pathname: "/shop",
+      query: { cat_id: category.id, cat_name: category.name }, // Add `id` as a query parameter
+    });
+    setSelectedCategory(category.name);
+    onCategorySelect(category.name.toLowerCase());
   };
 
   return (
@@ -39,7 +46,7 @@ const Breadcrumb = ({
             <span
               key={type}
               className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap ${
-                selectedCategory === type
+                cat_name === type.name
                   ? "bg-[#1F1F1F] text-white"
                   : "text-[#1F1F1F] group-hover:bg-[#1F1F1F] group-hover:text-white"
               }`}
@@ -50,7 +57,7 @@ const Breadcrumb = ({
               }}
               onClick={() => handleCategorySelect(type)}
             >
-              {type}
+              {type.name}
             </span>
           ))}
         </div>

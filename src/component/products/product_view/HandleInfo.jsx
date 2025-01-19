@@ -154,31 +154,28 @@ const HandleInfo = ({ categories, product, reviews }) => {
       </div>
 
       {/* Customer Review Sliding Component */}
-      {/* <div
-  className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-50 transition-transform duration-500 ease-in-out ${
-    isReviewOpen
-      ? "opacity-100 visible md:animate-handleInfoSlideInRight animate-handleInfoSlideInBottom"
-      : "opacity-0 invisible md:animate-handleInfoSlideOutLeft animate-handleInfoSlideOutTop"
-  }`}
-  style={{
-    transition: "opacity 0.5s ease-in-out",
-    visibility: visibilityReview,
-  }}
->
-  {/* Close Button 
-  <button
-    className="absolute top-5 right-4 text-black    text-2xl z-50"
-    onClick={handleReviewClick}
-  >
-   <i class="ri-close-line bg-white p-2 rounded-full "></i>
-  </button>
+      <div
+        className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-50 transition-transform duration-500 ease-in-out ${
+          isReviewOpen
+            ? "opacity-100 visible md:animate-handleInfoSlideInRight animate-handleInfoSlideInBottom"
+            : "opacity-0 invisible md:animate-handleInfoSlideOutLeft animate-handleInfoSlideOutTop"
+        }`}
+        style={{
+          transition: "opacity 0.5s ease-in-out",
+          visibility: visibilityReview,
+        }}
+      >
+        <button
+          className="absolute top-5 right-4 text-black    text-2xl z-50"
+          onClick={handleReviewClick}
+        >
+          <i class="ri-close-line bg-white p-2 rounded-full "></i>
+        </button>
 
-
-  <div className="p-2 pb-10 max-h-full overflow-y-auto custom-scrollbar">
-    
-    <CustomerReview reviews={reviews} productImage={product.image} />
-  </div>
-</div> */}
+        <div className="p-2 pb-10 max-h-full overflow-y-auto custom-scrollbar">
+          <CustomerReview reviews={reviews} productImage={product?.thumbnail} />
+        </div>
+      </div>
     </div>
   );
 };

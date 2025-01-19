@@ -9,6 +9,7 @@ import {
 import { addToCart } from "../../../redux/slices/cartSlice";
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
+// import "./Hoverimagechnage.css"
 
 const ProductCard = ({ product, layout }) => {
   const router = useRouter();
@@ -23,7 +24,9 @@ const ProductCard = ({ product, layout }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [discount, setdiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
-  // console.log(discount);
+  console.log(product, " this product was come ");
+  const { size, color, min_price, max_pirce } = router.query;
+  const [notfoundoncurrentvaiant , setNotfoundoncurrentvaiant ] = useState([])
 
   const {
     id,
@@ -33,56 +36,92 @@ const ProductCard = ({ product, layout }) => {
     thumbnail: image,
     tags = [],
     description,
-    color = [],
-    size = [],
   } = product;
 
+  console.log(product.variants[0], " this is product card data");
+
   useEffect(() => {
-    setLoading(true);
+    const fetchVariantDetails = async () => {
+      try {
+        setLoading(true);
 
-    const targetVariant = product.variants.find((variant) =>
-      variant.options?.some((option) => option.value.toLowerCase() === "m")
-    );
+        let targetVariant =
+          size && color
+            ? product?.variants.find((v) =>
+                v.options?.some(
+                  (option) =>
+                    option.value.toLowerCase() === color.toLowerCase() &&
+                    v.options?.some(
+                      (option) =>
+                        option.value.toLowerCase() === size.toLowerCase()
+                    )
+                )
+              )
+            : color
+            ? product?.variants.find((variant) =>
+                variant.options?.some(
+                  (option) => option.value.toLowerCase() === color.toLowerCase()
+                )
+              )
+            : size
+            ? product?.variants.find((variant) =>
+                variant.options?.some(
+                  (option) => option.value.toLowerCase() === size.toLowerCase()
+                )
+              )
+            : product.variants[0];
 
-    if (targetVariant) {
-      setVariantPrice(
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: region.currency_code,
-        }).format(targetVariant.calculated_price?.calculated_amount)
-      );
-      // console.log(
-      //   "Calculated Amount:",
-      //   targetVariant.calculated_price?.calculated_amount
-      // );
-      // console.log("Discount:", product.metadata.discount);
+            if(!targetVariant){
 
-      const calculatedAmount =
-        targetVariant.calculated_price?.calculated_amount;
-      // console.log(
-      //   targetVariant.calculated_price?.calculated_amount *
-      //     product.metadata.discount,
-      //   "targetVariant.calculated_price?.calculated_amount"
-      // );
-      if (product.metadata?.discount) {
-        setdiscount(product.metadata.discount);
-        // console.log();
+              targetVariant =  product.variants[0]
+              setNotfoundoncurrentvaiant(product.variants[0])
+            }
+
+        if (targetVariant) {
+          setVariantPrice(
+            new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: region.currency_code,
+            }).format(targetVariant.calculated_price?.calculated_amount)
+          );
+
+          const calculatedAmount =
+            targetVariant.calculated_price?.calculated_amount;
+
+          if (product.metadata?.discount) {
+            setdiscount(product.metadata.discount);
+          }
+
+          if (calculatedAmount && product.metadata?.discount > 0) {
+            setDiscountedamount(
+              new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: region.currency_code,
+              }).format(
+                calculatedAmount -
+                  calculatedAmount * (product.metadata?.discount / 100)
+              )
+            );
+          } else {
+            setDiscountedamount(0); // Handle no valid amount/discount case
+          }
+          setLoading(false);
+        } else {
+          setVariantPrice("N/A");
+          setLoading(false); // Stop loading in case no variant is found
+        }
+      } catch (error) {
+        console.error("Error fetching variant details:", error);
+        // Handle error gracefully, e.g., show a message or fallback value
+        setVariantPrice("Error fetching price");
+        setDiscountedamount("Error calculating discount");
+        setLoading(false); // Stop loading on error
       }
-      if (calculatedAmount && product.metadata.discount > 0) {
-        setDiscountedamount( new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: region.currency_code,
-        }).format( calculatedAmount -
-          (calculatedAmount * (product.metadata.discount / 100)))
-        );
-      } else {
-        setDiscountedamount(0); // Or handle the case when there's no valid amount/discount
-      }
-      setLoading(false);
-    } else {
-      setVariantPrice("N/A");
-    }
-  }, [product.metadata ,id, region, discount]);
+    };
+
+    fetchVariantDetails();
+  }, [product.metadata, id, region, discount, size, color , max_pirce , min_price]);
+
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
     dispatch(addToWishlist(product));
@@ -113,11 +152,35 @@ const ProductCard = ({ product, layout }) => {
     setTimeout(() => setIsCartAdded(false), 3000); // Remove notification after 3 seconds
   };
 
-  const getTagColor = (tag) => {
-    if (tag === "SALE") return "bg-[#DB4444] text-white font-bold";
-    if (tag === "NEW") return "bg-[#D2EF9A] font-bold";
-    return "bg-gray-300";
+  const discountes = product.metadata?.discount || 0; // Ensure discount is a number
+  const createdAt = new Date(product.created_at);
+  const currentDate = new Date();
+
+  
+
+  // Calculate the difference in days
+  const diffInTime = currentDate - createdAt;
+  const diffInDays = diffInTime / (1000 * 60 * 60 * 24);
+  const getTagColor = () => {
+    console.log(discountes, "createAt");
+
+    if (discountes > 0 && diffInDays <= 3) {
+      // Both discounted and new
+      return "bg-[#FF5733] text-white font-bold"; // Combine styles
+    }
+    if (discount > 0) {
+      // Only discounted
+      return "bg-[#DB4444] text-white font-bold";
+    }
+    if (diffInDays <= 3) {
+      // Only new
+      return "bg-[#D2EF9A] font-bold";
+    }
+
+    // Default case (if neither discounted nor new)
+    return "bg-grey-500 font-semibold text-black";
   };
+
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300);
@@ -128,7 +191,7 @@ const ProductCard = ({ product, layout }) => {
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 100, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -139,8 +202,15 @@ const ProductCard = ({ product, layout }) => {
   }, [id, region, discount]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        {product.title}
+        {variantPrice} {discountedamount}
+      </div>
+    );
   }
+
+  console.log(product.images[1].url, "product.images");
 
   return (
     <>
@@ -148,36 +218,50 @@ const ProductCard = ({ product, layout }) => {
         className={`relative rounded-lg text-center cursor-pointer text-cream ${
           layout === "list" ? "flex" : ""
         }`}
-        onClick={() => router.push(`/shop/${id}`)}
+        onClick={() => router.push(`/shop/product/${id}`)}
       >
         {/* Image Section */}
         <div
           className={`relative ${
             layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
-          } h-64 md:h-96 group`}
+          } h-72 md:h-96 group`}
         >
           <Image
             src={image}
             alt={name}
             layout="fill"
             objectFit="cover"
-            className="rounded-none"
-            
+            className="rounded-2xl hidden max-sm:flex  hover:scale-105 duration-150 shadow-lg  h-72"
           />
-          {tags.map((tag, index) => (
+
+          <div class="product-image-wrapper h-[150%]  overflow-hidden max-sm:hidden flex">
+            <Image layout="fill" src={image} alt={name} class="product-image" />
+            <Image
+              layout="fill"
+              src={product.images[1].url}
+              alt={name}
+              class="product-image-hover"
+            />
+          </div>
+
+          {(discountes > 0 || diffInDays <= 3) && (
             <span
-              key={index}
+              // key={index}
               className={`${getTagColor(
-                tag
-              )} text-black text-xs px-3 py-1 absolute top-2 left-2 rounded-full`}
+                discount
+              )} text-black text-xs px-3 py-1 absolute md:top-2 lg:top-2 xl:top-2 max-sm:bottom-2 left-2    z-20  rounded-full`}
             >
-              {tag}
+              {discountes > 0 && diffInDays <= 3
+                ? "New & Best Price!"
+                : discountes > 0
+                ? "SALE"
+                : "NEW"}
             </span>
-          ))}
+          )}
 
           {/* Heart Icon */}
           <div
-            className="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+            className="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
             onClick={handleAddToWishlist}
           >
             <i
@@ -191,7 +275,7 @@ const ProductCard = ({ product, layout }) => {
 
           {/* Shopping Bag Icon */}
           <div
-            className="absolute bottom-4 right-[10%] md:right-[20%] flex items-center justify-center w-10 h-9 md:w-20 md:h-9 bg-white text-black hover:bg-black hover:text-white  rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
+            className="z-20  absolute bottom-4 right-[10%] md:right-[20%] flex items-center justify-center w-10 h-9 md:w-20 md:h-9 bg-white text-black hover:bg-black hover:text-white  rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
             onClick={handleAddToCart}
           >
             <i className="ri-shopping-bag-2-line text-sm md:text-lg"></i>
@@ -200,7 +284,7 @@ const ProductCard = ({ product, layout }) => {
           {/* Quick View Button (For Non-List Layout - Image Hover) */}
           {layout !== "list" && (
             <div
-              className="absolute bottom-4 left-[30%] md:left-1/4 transform -translate-x-1/2  translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500"
+              className="z-20  absolute bottom-4 left-[30%] md:left-1/4 transform -translate-x-1/2  translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500"
               onClick={(e) => {
                 e.stopPropagation(); // Prevent card click navigation
                 setIsQuickViewOpen(true);
@@ -215,7 +299,7 @@ const ProductCard = ({ product, layout }) => {
 
         {/* Product Information */}
         <div
-          className={`mt-4 ${
+          className={`mt-4 z-20  ${
             layout === "list"
               ? "md:w-3/4 w-1/2 pl-10 flex flex-col justify-center items-start"
               : ""
@@ -225,24 +309,36 @@ const ProductCard = ({ product, layout }) => {
             {name}
           </h3>
 
-          <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
-            <span className="text-sm md:text-md">{discountedamount}</span>
-            <span className="md:text-sm text-xs text-sub-color line-through">
+          {discount > 0 ? (
+            <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
+              <span className="text-sm md:text-md">{discountedamount}</span>
+              <span className="md:text-sm text-xs text-sub-color line-through">
+                {variantPrice}
+              </span>
+              <span className="text-black bg-[#D2EF9A] rounded-full px-[6px] py-[3px] font-thin text-xs">
+                - {discount}% off
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
+              <span className="text-sm md:text-md">{variantPrice}</span>
+              {/* <span className="md:text-sm text-xs text-sub-color line-through">
               {variantPrice}
             </span>
             <span className="text-black bg-[#D2EF9A] rounded-full px-[6px] py-[3px] font-thin text-xs">
               - {discount}% off
-            </span>
-          </div>
+            </span> */}
+            </div>
+          )}
           {layout === "list" && (
             <>
-              <p className="md:text-sm text-xs text-sub-color mb-2 line-clamp-3 break-words">
+              <p className="md:text-sm text-xs text-sub-color mb-2 line-clamp-3 break-words z-30  ">
                 {description}
               </p>
               {/* Quick View Button (For List Layout - Below Description) */}
-              <div className="mt-2">
+              <div className="mt-2 z-20 ">
                 <button
-                  className="px-4 py-2 bg-white text-black rounded-full border border-black text-sm hover:bg-black hover:text-white transition-all duration-150 ease-in-out"
+                  className="z-20  px-4 py-2 bg-white text-black rounded-full border border-black text-sm hover:bg-black hover:text-white transition-all duration-150 ease-in-out"
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent card click navigation
                     setIsQuickViewOpen(true);
@@ -270,7 +366,7 @@ const ProductCard = ({ product, layout }) => {
 
       {/* Added to Cart Notification */}
       {isCartAdded && (
-        <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50">
+        <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 z-20 ">
           Added to Cart
         </div>
       )}
@@ -287,85 +383,3 @@ const ProductCard = ({ product, layout }) => {
 };
 
 export default ProductCard;
-
-// {
-//   "id": "prod_01JFY5AK5P4FE6SF82QHJ6NJWA",
-//   "title": "Medusa T",
-//   "description": "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.",
-//   "handle": "t-shirt",
-//   "thumbnail": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
-//   "discountable": true,
-//   "is_giftcard": false,
-//   "created_at": "2024-12-25T05:41:08.905Z",
-//   "updated_at": "2024-12-25T05:41:08.905Z",
-//   "images": [
-//     {
-//       "id": "img_01JFY5AK7398DYWFB290B3ZM44",
-//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
-//       "created_at": "2024-12-25T05:41:08.905Z"
-//     },
-//     {
-//       "id": "img_01JFY5AK73A19RDP5SNTZ18P70",
-//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-back.png",
-//       "created_at": "2024-12-25T05:41:08.905Z"
-//     },
-//     {
-//       "id": "img_01JFY5AK73YZPYXK0YQ6R78C6X",
-//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-front.png",
-//       "created_at": "2024-12-25T05:41:08.905Z"
-//     },
-//     {
-//       "id": "img_01JFY5AK73A7DWS7CJ14ACV5CE",
-//       "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-back.png",
-//       "created_at": "2024-12-25T05:41:08.905Z"
-//     }
-//   ],
-//   "options": [
-//     {
-//       "id": "opt_01JFY5AK661B0M2YV7DMS6E8ZS",
-//       "title": "Size",
-//       "values": ["S", "M", "L", "XL"],
-//       "created_at": "2024-12-25T05:41:08.905Z"
-//     },
-//     {
-//       "id": "opt_01JFY5AK67YR2FZZZGSBHZBH22",
-//       "title": "Color",
-//       "values": ["Black", "White"],
-//       "created_at": "2024-12-25T05:41:08.905Z"
-//     }
-//   ],
-//   "variants": [
-//     {
-//       "id": "variant_01JFY5AK8CWYH0GGHH1YMC9VW1",
-//       "title": "S / Black",
-//       "sku": "SHIRT-S-BLACK",
-//       "allow_backorder": false,
-//       "manage_inventory": true,
-//       "created_at": "2024-12-25T05:41:09.008Z"
-//     },
-//     {
-//       "id": "variant_01JFY5AK8DYW4AFX0N1ADMV1XS",
-//       "title": "S / White",
-//       "sku": "SHIRT-S-WHITE",
-//       "allow_backorder": false,
-//       "manage_inventory": true,
-//       "created_at": "2024-12-25T05:41:09.008Z"
-//     },
-//     {
-//       "id": "variant_01JFY5AK8DCHDSV5KC3WY7VNA5",
-//       "title": "M / Black",
-//       "sku": "SHIRT-M-BLACK",
-//       "allow_backorder": false,
-//       "manage_inventory": true,
-//       "created_at": "2024-12-25T05:41:09.008Z"
-//     },
-//     {
-//       "id": "variant_01JFY5AK8DYW4AFX0N1ADMV1XS",
-//       "title": "XL / White",
-//       "sku": "SHIRT-XL-WHITE",
-//       "allow_backorder": false,
-//       "manage_inventory": true,
-//       "created_at": "2024-12-25T05:41:09.008Z"
-//     }
-//   ]
-// }

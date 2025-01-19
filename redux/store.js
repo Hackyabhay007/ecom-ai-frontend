@@ -9,7 +9,9 @@ import reviewsectionSlice from './slices/reviewSlicer.js'
 import featuredsectionSlice from './slices/featuredSlicer.js'
 import categorysectionSlice from './slices/categorySlice'
 import productSlice from './slices/productSlice'
+import collectionsectionSlice from './slices/collectionSlice'
 import { persistStore, persistReducer } from "redux-persist";
+
 import storage from "redux-persist/lib/storage"; // Using localStorage
 import {
   FLUSH,
@@ -24,7 +26,7 @@ import {
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart", "wishlist",], // Specify reducers to persist
+  whitelist: ["cart", "wishlist", ], // Specify reducers to persist
 };
 
 // Combine reducers
@@ -38,7 +40,8 @@ const rootReducer = combineReducers({
   reviewsection : reviewsectionSlice,
   featuredection : featuredsectionSlice,
   categorysection : categorysectionSlice,
-  products : productSlice
+  products : productSlice,
+  collection : collectionsectionSlice
 });
 
 // Persist the combined reducer

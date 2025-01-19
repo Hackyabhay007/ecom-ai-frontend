@@ -17,7 +17,7 @@ const Category = ({ activeCategory = "woman" }) => {
     dispatch(fetchcategores());
   }, [dispatch]);
 
-  console.log(data, status);
+  // console.log(data, status);
 
   const router = useRouter();
   const categories = {
@@ -89,7 +89,7 @@ const Category = ({ activeCategory = "woman" }) => {
             <Link
             href={{
               pathname: "/shop",
-              query: { id: category.id }, // Add category ID as a query parameter
+              query: { cat_id: category.id ,cat_name : category.name }, // Add category ID as a query parameter
             }}
             key={index}
             className="flex-shrink-0 cursor-pointer"

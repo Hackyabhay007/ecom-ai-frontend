@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Filter from "@/component/products/Filter";
 import ProductCard from "@/component/products/ProductCard";
 import Breadcrumb from "./Breadcrumb";
@@ -8,26 +8,169 @@ import ProductList from "./product_view/PageList";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../../redux/slices/productSlice";
 import { useRegion } from "../../contexts/RegionContext.jsx";
+import { useRouter } from "next/router";
+import { fetchcategores } from "../../../redux/slices/categorySlice";
+import SkeletonScreen from "./Skeletonscreenshoparea";
 
 const ShopArea = () => {
   const dispatch = useDispatch();
   const { region } = useRegion();
+  const router = useRouter();
+  const { cat_id, size ,color , min_price , max_price } = router.query;
+  const [loading, setloading] = useState(false);
 
   const { products, count, nextPage, status, error } = useSelector(
     (state) => state.products
   );
 
-  useEffect(()=>{
-    const queryParams = { 
-      limit: 12,
-      fields: "*metadata,-options,-subtitle,-description,-images,+variants,+tag",
+  const { categories } = useSelector((state) => state.categorysection);
+  // console.log(category_id, "category_id");
+  
 
-      // Add other query params as necessary
+  useEffect(() => {
+    const fetchFilteredProducts = async () => {
+      setloading(true);
+  
+      const queryParams = {
+        limit: 12,
+        fields: "*metadata,+options,-subtitle,-description,+images,+variants,+tag",
+        category_id: cat_id,
+      };
+  
+      let allProducts = [];
+      let page = 1;
+  
+      // Helper function to calculate the discounted price for a variant
+      const calculateDiscountedPrice = (variant, productMetadata) => {
+        const discount = productMetadata?.discount || 0;
+        const price =
+          variant.calculated_price?.calculated_amount ||
+          variant.original_price?.original_amount;
+  
+        if (!price) return 0; // No valid price, return 0
+        return price && discount
+          ? price - (price * discount) / 100
+          : price
+          ? price
+          : 0;
+      };
+
+      function extractAndFormat(inputString) {
+        console.log("Raw inputString:", inputString);
+      
+        // Predefined valid size options
+        const validSizes = ["xs" ,"s", "m", "l", "xl"];
+      
+        // Return null if inputString is invalid or not a string
+        if (!inputString || typeof inputString !== "string") {
+          console.warn("Invalid or non-string input:", inputString);
+          return { size: null, color: null };
+        }
+      
+        // Split the input string and trim whitespace
+        const parts = inputString.split(" / ").map((item) => item.trim().toLowerCase());
+        // console.log("Split parts:", parts);
+      
+        // Initialize size and color as null
+        let size = null;
+        let color = null;
+      
+        // Check each part to match valid sizes and determine color
+        parts.forEach((part) => {
+          if (validSizes.includes(part)) {
+            size = part; // Match size from predefined options
+          } else if (part.length >= 3) {
+            color = part; // Assign color if it's a string of 3+ characters
+          } else {
+            console.warn("Unrecognized part:", part);
+          }
+        });
+      
+        const result = { size, color };
+        // console.log("Extracted result:", result);
+        return result;
+      }
+      
+  
+      // Fetch products and filter
+      while (allProducts.length < 10) {
+        const response = await dispatch(
+          fetchProducts({ pageParam: page, queryParams, region })
+        ).unwrap();
+  
+        const filteredProducts = response.products
+        
+          .map((product) => {
+
+            
+
+            const validVariants = product.variants.filter((variant) => {
+              const result = extractAndFormat(variant.title);
+              // console.log(extractAndFormat(variant.title) , result , "extractAndFormat(variant.title)" )
+
+              const hasValidSize = size && result.size.toLowerCase() == size.toLowerCase();
+  
+              const hasValidColor = ((result.color) && (color)) ?  result.color.toLowerCase() == color.toLowerCase() : false;
+
+              // console.log(hasValidSize && hasValidColor ,"hasValidSize && hasValidColor" , product.title, variant)
+              if(!hasValidColor) return hasValidSize
+
+  
+              return hasValidSize && hasValidColor;
+            });
+  
+            // If no size or color is provided, use the first variant
+            const variantsToConsider =
+              size || color ? validVariants : [product.variants[0]];
+  
+            // Filter variants by price
+            const priceFilteredVariants = variantsToConsider.filter((variant) => {
+              const discountedPrice = calculateDiscountedPrice(
+                variant,
+                product.metadata
+              );
+              return (
+                discountedPrice &&
+                (!min_price || discountedPrice > min_price) &&
+                (!max_price || discountedPrice < max_price)
+              );
+            });
+  
+            // Return the product with valid variants
+            if (priceFilteredVariants.length > 0) {
+              return { ...product, variants: priceFilteredVariants };
+            }
+            return null;
+          })
+          .filter((product) => product !== null); // Remove invalid products
+  
+        allProducts = [...allProducts, ...filteredProducts];
+        setFilteredProducts(allProducts);
+  
+        // If fewer products are fetched and no more pages are left, break the loop
+        if (response.products.length < 12) break;
+  
+        page++; // Increment the page for the next fetch
+      }
+  
+      // Ensure not to fetch if products are less than 10 after all attempts
+      if (allProducts.length >= 10) {
+        dispatch({
+          type: "SET_PRODUCTS",
+          payload: allProducts.slice(0, 12), // Limit to 12 products
+        });
+        setloading(false);
+      }
     };
-    dispatch(fetchProducts({ pageParam: 1, queryParams, region }));
-  },[dispatch])
+  
+    fetchFilteredProducts();
+    dispatch(fetchcategores());
+  }, [dispatch, cat_id, region, size, color, min_price, max_price]);
+  
+ 
 
-  console.log(products , "from shop area")
+  console.log(products, "from shop area");
+  console.log(categories, "categories");
 
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [heading, setHeading] = useState("Shop");
@@ -43,63 +186,12 @@ const ShopArea = () => {
     color: "",
   });
 
-  // useEffect(() => {
-  //   dispatch(
-  //     fetchProducts({
-  //       pageParam: 1,
-  //       queryParams: { limit: 12 },
-  //     })
-  //   );
-  // }, [dispatch]);
-
   useEffect(() => {
-    if (!products) return;
-    let updatedProducts = products.filter((product) => {
-      const matchesCategory =
-        !filters.category || product.categories.includes(filters.category);
-      const matchesPrice =
-        product.price >= filters.price[0] && product.price <= filters.price[1];
-      const matchesSize =
-        !filters.size || product.categories.includes(filters.size);
-      const matchesBrand =
-        !filters.brand.length ||
-        filters.brand.some((brand) =>
-          product.name.toLowerCase().includes(brand.toLowerCase())
-        );
-      const matchesColor =
-        !filters.color || product.name.toLowerCase().includes(filters.color);
+    window.scrollTo({ top: 100, behavior: "smooth" });
+  }, [products,filteredProducts]);
 
-      return (
-        matchesCategory &&
-        matchesPrice &&
-        matchesSize &&
-        matchesBrand &&
-        matchesColor
-      );
-    });
 
-    if (showSaleOnly) {
-      updatedProducts = updatedProducts.filter((product) =>
-        product.tags.includes("SALE")
-      );
-    }
-
-    switch (sortBy) {
-      case "low-to-high":
-        updatedProducts.sort((a, b) => a.price - b.price);
-        break;
-      case "high-to-low":
-        updatedProducts.sort((a, b) => b.price - a.price);
-        break;
-      case "best-discount":
-        updatedProducts.sort((a, b) => b.discount - a.discount);
-        break;
-      default:
-        break;
-    }
-
-    setFilteredProducts(products);
-  }, [products, filters, showSaleOnly, sortBy]);
+  
 
   const clearFilter = (key, value) => {
     setFilters((prev) => ({
@@ -131,15 +223,18 @@ const ShopArea = () => {
 
   return (
     <div className="py-16 md:py-0 md:mb-5">
-      {status === "loading" && <p>Loading...</p>}
-      {status === "failed" && <p>Error: {error}</p>}
-      {status === "succeeded" && (
-        <>
+      {status === "loading" ||
+        loading ||
+        status === "failed" ||
+        status == undefined ||
+        (status == null  && <SkeletonScreen />)}
+      {/* {status === "failed" && <p>Error: {error}</p>} */}
+      
           <Breadcrumb
             heading={heading}
             subCategory={selectedCategory}
             onCategorySelect={handleCategorySelect}
-            categories={["T-Shirt", "Dress", "PartyWear", "Gown", "Swimwear"]}
+            categories={categories}
           />
 
           <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">
@@ -156,8 +251,10 @@ const ShopArea = () => {
                 showSaleOnly={showSaleOnly}
               />
 
-              <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5"> {status === "loading" && <p>Loading...</p>}
-              {status === "failed" && <p>Error: {error}</p>}
+              <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
+                {" "}
+                {status === "loading" && <p>Loading...</p>}
+                {status === "failed" && <p>Error: {error}</p>}
                 {filteredProducts.length} Product
                 {filteredProducts.length !== 1 ? "s" : ""} found
                 <SelectedFilters
@@ -168,249 +265,16 @@ const ShopArea = () => {
                 />
               </div>
 
-              <ProductList products={filteredProducts} layout={layout} />
+              {status == "loading" && cat_id ? (
+                <p>loading ...</p>
+              ) : (
+                <ProductList products={filteredProducts} layout={layout} />
+              )}
             </div>
           </div>
-        </>
-      )}
+        
     </div>
   );
 };
 
 export default ShopArea;
-
-
-
-
-  // const [products] = useState([
-  //   {
-  //     id: 1,
-  //     name: "Ragian Full Sleeve T-Shirt",
-  //     categories: ["clothing", "tshirt"],
-  //     price: 100,
-  //     prevPrice: 200,
-  //     discount: 50,
-  //     image: "/images/shop/shop1.jpeg",
-  //     tags: ["NEW"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Kimano Sleeve Top",
-  //     categories: ["clothing", "top"],
-  //     price: 40,
-  //     prevPrice: 60,
-  //     discount: 33,
-  //     image: "/images/shop/shop2.jpeg",
-  //     tags: ["SALE"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Vintage Dress",
-  //     categories: ["clothing", "dress","t-shirt"],
-  //     price: 150,
-  //     prevPrice: 250,
-  //     discount: 40,
-  //     image: "/images/shop/shop3.jpg",
-  //     tags: ["NEW"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 4,
-  //     name: "Floral Swimsuit",
-  //     categories: ["clothing", "swimwear"],
-  //     price: 75,
-  //     prevPrice: 150,
-  //     discount: 50,
-  //     image: "/images/shop/shop4.jpeg",
-  //     tags: ["SALE"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 5,
-  //     name: "Partywear Sequin Dress",
-  //     categories: ["clothing", "dress", "partywear"],
-  //     price: 120,
-  //     prevPrice: 240,
-  //     discount: 50,
-  //     image: "/images/shop/shop5.jpg",
-  //     tags: ["NEW"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 6,
-  //     name: "Casual T-shirt",
-  //     categories: ["clothing", "tshirt"],
-  //     price: 30,
-  //     prevPrice: 60,
-  //     discount: 50,
-  //     image: "/images/shop/shop6.jpeg",
-  //     tags: ["SALE"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 7,
-  //     name: "Chic Party Dress",
-  //     categories: ["clothing", "dress", "partywear"],
-  //     price: 100,
-  //     prevPrice: 200,
-  //     discount: 50,
-  //     image: "/images/shop/shop7.jpeg",
-  //     tags: ["NEW"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 8,
-  //     name: "Chic Party Dress",
-  //     categories: ["clothing", "dress", "partywear"],
-  //     price: 100,
-  //     prevPrice: 200,
-  //     discount: 50,
-  //     image: "/images/shop/shop8.jpg",
-  //     tags: ["SALE"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 9,
-  //     name: "Chic Party Dress",
-  //     categories: ["clothing", "dress", "partywear"],
-  //     price: 100,
-  //     prevPrice: 200,
-  //     discount: 50,
-  //     image: "/images/shop/shop9.jpg",
-  //     tags: ["NEW"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  //   {
-  //     id: 10,
-  //     name: "Chic Party Dress",
-  //     categories: ["clothing", "dress", "partywear"],
-  //     price: 100,
-  //     prevPrice: 200,
-  //     discount: 50,
-  //     image: "/images/shop/shop10.jpg",
-  //     tags: ["NEW"],
-  //     description:
-  //       "Cable-knit with a soft blend of Italian wool and cashmere, this cardigan has a two-tone striped motif and a buttoned placket with scalloped edges. It's adorned with a signature Polo label on the sleeve.",
-  //     additionalImages: [
-  //       "/images/shop/additional1.jpg",
-  //       "/images/shop/additional2.jpg",
-  //     ],
-  //     specifications: "Product specifications go here.",
-  //     reviews: [
-  //       { id: 1, rating: 5, text: "Amazing product!", image: "/review1.jpg" },
-  //       { id: 2, rating: 4, text: "Good value for money.", image: "/review2.jpg" },
-  //     ],
-  //     size:["X","M","L","XL"],
-  //       color:["pink","blue","cream","white"],
-  //   },
-  // ]);
