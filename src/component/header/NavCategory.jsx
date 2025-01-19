@@ -91,7 +91,7 @@ const NavCategory = () => {
             : "hidden"
         }`}
       >
-        {true && <Collection />}
+        {activeCategory && <Collection activeCategory={activeCategory} setActiveCategory={setActiveCategory} />}
       </div>
     </div>
   );

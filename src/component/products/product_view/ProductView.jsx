@@ -423,9 +423,9 @@ const ProductView = ({  product, allProducts }) => {
       </div>
 
       {/* Additional Sections */}
-      {/* <ProductDetailsInfo categories={categories} />
+       <ProductDetailsInfo categories={category} />
       <ProductDetails product={product} />
-      <CustomerReview reviews={reviews} /> */}
+      <CustomerReview reviews={rating} />
       {/* <RelatedProducts currentProduct={product} allProducts={allProducts} /> */}
       {/* <CustomerComment /> */}
 

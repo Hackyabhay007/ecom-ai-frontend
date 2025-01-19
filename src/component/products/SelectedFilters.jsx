@@ -8,7 +8,7 @@ const SelectedFilters = ({
   defaultPriceRange,
 }) => {
   const router = useRouter();
-  const { cat_id, cat_name, size, color } = router.query; // Extract `id` from the query
+  const { cat_id, cat_name, size, color , min_price , max_price } = router.query; // Extract `id` from the query
   const hasFiltersApplied = Object.keys(filters).some((key) => {
     if (key === "price") {
       return (
@@ -41,6 +41,9 @@ const SelectedFilters = ({
           </button>
         </span>
       )}
+      {
+        
+      }
 
       {filters.price[0] !== defaultPriceRange[0] ||
       filters.price[1] !== defaultPriceRange[1] ? (
@@ -60,12 +63,11 @@ const SelectedFilters = ({
           {size}
           <button
             onClick={() => {
-              const { ...remainingQueries } = router.query; // Remove `id` while keeping other queries
+              const { size, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
               router.push({
                 pathname: router.pathname, // Keep the same page
                 query: {
                   ...remainingQueries,
-                  size: "M",
                 }, // Apply remaining queries
               });
             }}

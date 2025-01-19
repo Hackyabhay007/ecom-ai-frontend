@@ -13,11 +13,11 @@ const CustomerReview = ({ reviews, productImage }) => {
   ).toFixed(1);
 
   const ratingBreakdown = {
-    5: (reviews.filter((review) => review.rating === 5).length / totalRatings) * 100,
-    4: (reviews.filter((review) => review.rating === 4).length / totalRatings) * 100,
-    3: (reviews.filter((review) => review.rating === 3).length / totalRatings) * 100,
-    2: (reviews.filter((review) => review.rating === 2).length / totalRatings) * 100,
-    1: (reviews.filter((review) => review.rating === 1).length / totalRatings) * 100,
+    5: ((reviews.filter((review) => review.rating === 5).length / totalRatings) * 100).toFixed(0),
+    4: ((reviews.filter((review) => review.rating === 4).length / totalRatings) * 100).toFixed(0),
+    3: ((reviews.filter((review) => review.rating === 3).length / totalRatings) * 100).toFixed(0),
+    2: ((reviews.filter((review) => review.rating === 2).length / totalRatings) * 100).toFixed(0),
+    1: ((reviews.filter((review) => review.rating === 1).length / totalRatings) * 100).toFixed(0),
   };
 
   // Render the full-screen modal using a portal

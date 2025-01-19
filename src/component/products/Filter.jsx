@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchcategores } from "../../../redux/slices/categorySlice";
 import axios from "axios";
 import { useRouter } from "next/router";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const Filter = ({ onApplyFilters }) => {
   const {
@@ -11,7 +13,14 @@ const Filter = ({ onApplyFilters }) => {
     error,
   } = useSelector((state) => state.categorysection);
   const Route = useRouter();
-    const { cat_id, cat_name, size : seleted_size, color: seleted_color } = Route.query; // Extract `id` from the query
+  const {
+    cat_id,
+    cat_name,
+    size: seleted_size,
+    color: seleted_color,
+    min_price,
+    max_price,
+  } = Route.query; // Extract `id` from the query
 
   const [categroies, setCategroies] = useState([]);
   const dispatch = useDispatch();
@@ -49,6 +58,15 @@ const Filter = ({ onApplyFilters }) => {
     }
   }, [data]);
 
+  const [priceRange, setPriceRange] = useState({
+    min: min_price || 0,
+    max: max_price || 1000,
+  });
+  const [Range, setRange] = useState({
+    min: 0,
+    max: 1000,
+  });
+
   const [filters, setFilters] = useState({
     category: "",
     price: [0, 1000],
@@ -84,6 +102,17 @@ const Filter = ({ onApplyFilters }) => {
     };
   }, [isMobileFilterOpen]);
 
+  // Handle the change for the min or max price
+  const handlePriceChange = (type, value) => {
+    setRange({ ...Range, [type]: value });
+  };
+
+  // Handle the slider change
+  const handleSliderChange = (value) => {
+    setPriceRange({ min: value[0], max: value[1] });
+    
+    // setRange({ min: value[0], max: value[1] });
+  };
   return (
     <div>
       <button
@@ -118,16 +147,17 @@ const Filter = ({ onApplyFilters }) => {
             Filter
           </h2>
 
+          {/* Product Type Filter */}
           <div className="mb-4">
-            <h3 className="text-md font-semibold text-black mb-2">Product Type</h3>
+            <h3 className="text-md font-semibold text-black mb-2">
+              Product Type
+            </h3>
             <ul>
               {categroies.map((item) => (
                 <li
                   key={item.name}
                   className={`flex py-1 justify-between text-sm cursor-pointer ${
-                    cat_name === item.name
-                      ? "text-theme-blue"
-                      : "text-black"
+                    cat_name === item.name ? "text-theme-blue" : "text-black"
                   }`}
                   onClick={() => {
                     updateQueryParams({ cat_id: item.id, cat_name: item.name });
@@ -141,6 +171,7 @@ const Filter = ({ onApplyFilters }) => {
             <hr className="my-4" />
           </div>
 
+          {/* Size Filter */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Size</h3>
             <div className="flex flex-wrap gap-2 text-sm">
@@ -163,32 +194,120 @@ const Filter = ({ onApplyFilters }) => {
             </div>
             <hr className="my-4" />
           </div>
-           {/* Colors */}
-           <div className="mb-4">
+
+          {/* <div className="mb-4">
+            <h3 className="text-md font-semibold text-black mb-2">Price Range</h3>
+            <input
+              type="range"
+              min="0"
+              max="1000"
+              value={filters.price[1]}
+              className="w-full h-1 accent-black"
+              onChange={(e) =>
+                handleFilterChange("price", [0, Number(e.target.value)])
+              }
+            />
+            <p className="text-sm text-sub-color mt-2">
+              ₹{filters.price[0]} - ₹{filters.price[1]}
+            </p>
+            <hr className="my-4" />
+          </div> */}
+          <div className="mb-4">
+            <h3 className="text-md font-semibold text-black mb-2">Price</h3>
+            <div className="flex items-center gap-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Min Price
+                </label>
+                <input
+                  type="number"
+                  className="border border-gray-300 rounded p-2 w-24"
+                  value={Range.min}
+                  onChange={(e) =>
+                    handlePriceChange("min", Number(e.target.value))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Max Price
+                </label>
+                <input
+                  type="number"
+                  className="border border-gray-300 rounded p-2 w-24"
+                  value={Range.max}
+                  onChange={(e) =>
+                    handlePriceChange("max", Number(e.target.value))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 px-2 w-full overflow-hidden">
+              {/* Slider for Price */}
+              <Slider
+                range
+                min={0}
+                max={Range.max}
+                className="px-2 mt-2"
+                step={10}
+                trackStyle={{ backgroundColor: "black" }} // Set the track color to black
+                handleStyle={{
+                  backgroundColor: "black", // Set the handle color to black
+                  borderColor: "black", // Set the handle border color to black
+                }}
+                value={[priceRange.min, priceRange.max]}
+                onChange={handleSliderChange}
+                marks={{
+                  0: `₹0`,
+                  1000: `₹1000`,
+                  5000: `₹5000`,
+                  10000: `₹10000`,
+                }}
+              />
+
+              <div className="flex justify-between text-sm">
+                <span>₹{priceRange.min}</span>
+                <span>₹{priceRange.max}</span>
+              </div>
+                <button onClick={()=>updateQueryParams({min_price : priceRange.min , max_price : priceRange.max })} className=" border-2 border-black bg-white text-black py-1 rounded-md hover:bg-black hover:text-white duration-150 ">
+                  Apply
+                </button>
+            </div>
+          </div>
+
+          {/* Colors Filter */}
+          <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Colors</h3>
             <div className="flex flex-wrap gap-2">
-              {["blue", "red", "yellow", "green", "black","White"].map((color) => (
-                <div
-                  key={color}
-                  className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
-                    color === seleted_color ? "border-black" : "border-gray-300"
-                  }`}
-                  onClick={() => updateQueryParams({ color: color })}
-                  style={{ cursor: "pointer" }}
-                >
+              {["blue", "red", "yellow", "green", "black", "white"].map(
+                (color) => (
                   <div
-                    className="w-4 h-4 rounded-2xl bg-zinc-900 border-2"
-                    style={{ backgroundColor: color }}
-                  ></div>
-                  <span className="capitalize text-xs text-cream">{color}</span>
-                </div>
-              ))}
+                    key={color}
+                    className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
+                      color === seleted_color
+                        ? "border-black"
+                        : "border-gray-300"
+                    }`}
+                    onClick={() => updateQueryParams({ color: color })}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div
+                      className="w-4 h-4 rounded-2xl border-2"
+                      style={{ backgroundColor: color }}
+                    ></div>
+                    <span className="capitalize text-xs text-cream">
+                      {color}
+                    </span>
+                  </div>
+                )
+              )}
             </div>
             <hr className="my-4" />
           </div>
 
-          {/* Brand */}
-          {/* <div className="mb-4">
+          {/* Brand Filter */}
+          <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Brand</h3>
             <div className="flex flex-col gap-2">
               {[
@@ -205,25 +324,18 @@ const Filter = ({ onApplyFilters }) => {
                   <input
                     type="checkbox"
                     checked={filters.brand.includes(brand)}
-                    onChange={(e) => {
-                      const selectedBrands = filters.brand || [];
-                      if (e.target.checked) {
-                        handleFilterChange("brand", [...selectedBrands, brand]);
-                      } else {
-                        handleFilterChange(
-                          "brand",
-                          selectedBrands.filter((b) => b !== brand)
-                        );
-                      }
+                    onChange={() => {
+                      const newBrandFilter = filters.brand.includes(brand)
+                        ? filters.brand.filter((b) => b !== brand)
+                        : [...filters.brand, brand];
+                      handleFilterChange("brand", newBrandFilter);
                     }}
-                    className="form-checkbox text-theme-blue accent-black"
                   />
-                  <span className="text-black text-sm">{brand}</span>
+                  {brand}
                 </label>
               ))}
             </div>
-            <hr className="my-4" />
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

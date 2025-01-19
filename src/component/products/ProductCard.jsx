@@ -25,7 +25,8 @@ const ProductCard = ({ product, layout }) => {
   const [discount, setdiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
   console.log(product, " this product was come ");
-  const {size} = router.query
+  const { size, color, min_price, max_pirce } = router.query;
+  const [notfoundoncurrentvaiant , setNotfoundoncurrentvaiant ] = useState([])
 
   const {
     id,
@@ -35,50 +36,92 @@ const ProductCard = ({ product, layout }) => {
     thumbnail: image,
     tags = [],
     description,
-    color = [],
   } = product;
 
+  console.log(product.variants[0], " this is product card data");
+
   useEffect(() => {
-    setLoading(true);
+    const fetchVariantDetails = async () => {
+      try {
+        setLoading(true);
 
-    const targetVariant = product.variants.find((variant) =>
-      variant.options?.some((option) => option.value.toLowerCase() === size.toLowerCase())
-    );
+        let targetVariant =
+          size && color
+            ? product?.variants.find((v) =>
+                v.options?.some(
+                  (option) =>
+                    option.value.toLowerCase() === color.toLowerCase() &&
+                    v.options?.some(
+                      (option) =>
+                        option.value.toLowerCase() === size.toLowerCase()
+                    )
+                )
+              )
+            : color
+            ? product?.variants.find((variant) =>
+                variant.options?.some(
+                  (option) => option.value.toLowerCase() === color.toLowerCase()
+                )
+              )
+            : size
+            ? product?.variants.find((variant) =>
+                variant.options?.some(
+                  (option) => option.value.toLowerCase() === size.toLowerCase()
+                )
+              )
+            : product.variants[0];
 
-    if (targetVariant) {
-      setVariantPrice(
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: region.currency_code,
-        }).format(targetVariant.calculated_price?.calculated_amount)
-      );
-     
+            if(!targetVariant){
 
-      const calculatedAmount =
-        targetVariant.calculated_price?.calculated_amount;
-     
-      if (product.metadata?.discount) {
-        setdiscount(product.metadata.discount);
-        // console.log();
+              targetVariant =  product.variants[0]
+              setNotfoundoncurrentvaiant(product.variants[0])
+            }
+
+        if (targetVariant) {
+          setVariantPrice(
+            new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: region.currency_code,
+            }).format(targetVariant.calculated_price?.calculated_amount)
+          );
+
+          const calculatedAmount =
+            targetVariant.calculated_price?.calculated_amount;
+
+          if (product.metadata?.discount) {
+            setdiscount(product.metadata.discount);
+          }
+
+          if (calculatedAmount && product.metadata?.discount > 0) {
+            setDiscountedamount(
+              new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: region.currency_code,
+              }).format(
+                calculatedAmount -
+                  calculatedAmount * (product.metadata?.discount / 100)
+              )
+            );
+          } else {
+            setDiscountedamount(0); // Handle no valid amount/discount case
+          }
+          setLoading(false);
+        } else {
+          setVariantPrice("N/A");
+          setLoading(false); // Stop loading in case no variant is found
+        }
+      } catch (error) {
+        console.error("Error fetching variant details:", error);
+        // Handle error gracefully, e.g., show a message or fallback value
+        setVariantPrice("Error fetching price");
+        setDiscountedamount("Error calculating discount");
+        setLoading(false); // Stop loading on error
       }
-      if (calculatedAmount && product.metadata?.discount > 0) {
-        setDiscountedamount(
-          new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: region.currency_code,
-          }).format(
-            calculatedAmount -
-              calculatedAmount * (product.metadata?.discount / 100)
-          )
-        );
-      } else {
-        setDiscountedamount(0); // Or handle the case when there's no valid amount/discount
-      }
-      setLoading(false);
-    } else {
-      setVariantPrice("N/A");
-    }
-  }, [product.metadata, id, region, discount , size]);
+    };
+
+    fetchVariantDetails();
+  }, [product.metadata, id, region, discount, size, color , max_pirce , min_price]);
+
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
     dispatch(addToWishlist(product));
@@ -112,6 +155,8 @@ const ProductCard = ({ product, layout }) => {
   const discountes = product.metadata?.discount || 0; // Ensure discount is a number
   const createdAt = new Date(product.created_at);
   const currentDate = new Date();
+
+  
 
   // Calculate the difference in days
   const diffInTime = currentDate - createdAt;
@@ -157,10 +202,15 @@ const ProductCard = ({ product, layout }) => {
   }, [id, region, discount]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        {product.title}
+        {variantPrice} {discountedamount}
+      </div>
+    );
   }
 
-  console.log(product.images[1].url ,"product.images")
+  console.log(product.images[1].url, "product.images");
 
   return (
     <>

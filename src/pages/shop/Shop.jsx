@@ -13,15 +13,15 @@ function Shop() {
       setIsLoading(false);
 
       // Separate condition: Check if 'size' exists in the query
-      if (!router.query.size) {
-        router.push({
-          pathname: router.pathname,
-          query: {
-            ...router.query, // Preserve existing query parameters
-            size: "M", // Add 'size' parameter if not present
-          },
-        });
-      }
+      // if (!router.query.size) {
+      //   router.push({
+      //     pathname: router.pathname,
+      //     query: {
+      //       ...router.query, // Preserve existing query parameters
+      //       size: "M", // Add 'size' parameter if not present
+      //     },
+      //   });
+      // }
     }, 1000); // Adjust time as needed (1 second in this case)
 
     return () => clearTimeout(timer); // Cleanup timeout on unmount

@@ -5,11 +5,10 @@ import { fetchcollections } from "../../../redux/slices/collectionSlice";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-
-const index = ({ activeCategory = "woman" }) => {
-    const dispatch = useDispatch();
+const index = ({ activeCategory , setActiveCategory }) => {
+  const dispatch = useDispatch();
   const {
-    collections:data,
+    collections: data,
     status,
     error,
   } = useSelector((state) => state.collection);
@@ -18,10 +17,11 @@ const index = ({ activeCategory = "woman" }) => {
     dispatch(fetchcollections());
   }, [dispatch]);
 
+  console.log(data);
+
   console.log(data, status);
 
   const router = useRouter();
-
 
   const scrollRef = useRef(null);
 
@@ -36,7 +36,7 @@ const index = ({ activeCategory = "woman" }) => {
   return (
     <div className="p-6 text-white bg-zinc-900">
       <h2 className="text-2xl font-bold mb-6 capitalize">
-         Categories
+        {activeCategory}'s collections
       </h2>
       <div className="relative">
         {/* Left Arrow */}
@@ -61,38 +61,43 @@ const index = ({ activeCategory = "woman" }) => {
           className="flex space-x-4 overflow-x-auto scrollbar-custom2 p-2"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {data.map((category, index) => (
-            <Link
-            href={{
-              pathname: "/shop",
-              query: { id: category.id }, // Add category ID as a query parameter
-            }}
-            key={index}
-            className="flex-shrink-0 cursor-pointer"
-            style={{ scrollSnapAlign: "start" }}
-          >
-            <div className="w-full h-96">
-              <Image
-                src={category.metadata?.img}
-                alt={category.name}
-                width={500}
-                layout=""
-                height={500}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <p className="text-left text-sm font-medium mt-2">{category.name}</p>
-          </Link>
-          
-          ))}
+          {(data || [])
+            .filter(
+              (i) =>
+                typeof i.handle === "string" &&
+                typeof activeCategory === "string" &&
+                i.handle.toLowerCase() === activeCategory.toLowerCase()
+            )
+            .flatMap((i) => i.metadata?.categories || []) // Flatten and get categories
+            .map((category, index) => (
+              <Link
+                href={{
+                  pathname: "/shop",
+                  query: { cat_id: category.id , cat_name : category.name }, // Add category ID as a query parameter
+                }}
+                onClick={()=>setActiveCategory(null)}
+                key={index}
+                className="flex-shrink-0 cursor-pointer"
+                style={{ scrollSnapAlign: "start" }}
+              >
+                <div className="w-full h-96">
+                  <Image
+                    src={category.image || "/placeholder.png"} // Provide a fallback image
+                    alt={category.name || "Category"}
+                    width={500}
+                    height={500}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <p className="text-left text-sm font-medium mt-2">
+                  {category.name || "Unnamed Category"}
+                </p>
+              </Link>
+            ))}
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default index
-
-
-
-
+export default index;

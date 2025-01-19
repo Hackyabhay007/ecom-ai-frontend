@@ -16,7 +16,7 @@ const ShopArea = () => {
   const dispatch = useDispatch();
   const { region } = useRegion();
   const router = useRouter();
-  const { cat_id, size ,color } = router.query;
+  const { cat_id, size ,color , min_price , max_price } = router.query;
   const [loading, setloading] = useState(false);
 
   const { products, count, nextPage, status, error } = useSelector(
@@ -25,6 +25,7 @@ const ShopArea = () => {
 
   const { categories } = useSelector((state) => state.categorysection);
   // console.log(category_id, "category_id");
+  
 
   useEffect(() => {
     const fetchFilteredProducts = async () => {
@@ -32,62 +33,131 @@ const ShopArea = () => {
   
       const queryParams = {
         limit: 12,
-        fields:
-          "*metadata,+options,-subtitle,-description,+images,+variants,+tag",
+        fields: "*metadata,+options,-subtitle,-description,+images,+variants,+tag",
         category_id: cat_id,
       };
   
       let allProducts = [];
       let page = 1;
   
-      // Fetch products until we have at least 10 valid products
-      if (size || color) {
-        while (allProducts.length < 10) {
-          const response = await dispatch(
-            fetchProducts({ pageParam: page, queryParams, region })
-          ).unwrap(); // Assuming dispatch returns a Promise
+      // Helper function to calculate the discounted price for a variant
+      const calculateDiscountedPrice = (variant, productMetadata) => {
+        const discount = productMetadata?.discount || 0;
+        const price =
+          variant.calculated_price?.calculated_amount ||
+          variant.original_price?.original_amount;
   
-          const filteredProducts = response.products.filter((product) => {
-            // Check for size
-            const hasValidSize = size
-              ? product.options.some(
-                  (option) =>
-                    option.title === "Size" &&
-                    option.values.some((value) => [size.toLowerCase()].includes(value.value.toLowerCase()))
-                )
-              : true;
-  
-            // Check for color
-            const hasValidColor = color
-              ? product.options.some(
-                  (option) =>
-                    option.title === "Color" &&
-                    option.values.some((value) => [color.toLowerCase()].includes(value.value.toLowerCase()))
-                )
-              : true;
+        if (!price) return 0; // No valid price, return 0
+        return price && discount
+          ? price - (price * discount) / 100
+          : price
+          ? price
+          : 0;
+      };
 
-            console.log(hasValidColor,"hasValidColor")
-            console.log(hasValidSize,"hasValidSize")
-  
-            return hasValidSize && hasValidColor;
-          });
-  
-          allProducts = [...allProducts, ...filteredProducts];
-          console.log(allProducts , "this was all products")
-          setFilteredProducts(allProducts);
-  
-          // If products fetched are less than 12 and no more pages are left, break the loop
-          if (response.products.length < 12) break;
-  
-          page++; // Increment the page for the next fetch
+      function extractAndFormat(inputString) {
+        console.log("Raw inputString:", inputString);
+      
+        // Predefined valid size options
+        const validSizes = ["xs" ,"s", "m", "l", "xl"];
+      
+        // Return null if inputString is invalid or not a string
+        if (!inputString || typeof inputString !== "string") {
+          console.warn("Invalid or non-string input:", inputString);
+          return { size: null, color: null };
         }
+      
+        // Split the input string and trim whitespace
+        const parts = inputString.split(" / ").map((item) => item.trim().toLowerCase());
+        // console.log("Split parts:", parts);
+      
+        // Initialize size and color as null
+        let size = null;
+        let color = null;
+      
+        // Check each part to match valid sizes and determine color
+        parts.forEach((part) => {
+          if (validSizes.includes(part)) {
+            size = part; // Match size from predefined options
+          } else if (part.length >= 3) {
+            color = part; // Assign color if it's a string of 3+ characters
+          } else {
+            console.warn("Unrecognized part:", part);
+          }
+        });
+      
+        const result = { size, color };
+        // console.log("Extracted result:", result);
+        return result;
+      }
+      
+  
+      // Fetch products and filter
+      while (allProducts.length < 10) {
+        const response = await dispatch(
+          fetchProducts({ pageParam: page, queryParams, region })
+        ).unwrap();
+  
+        const filteredProducts = response.products
+        
+          .map((product) => {
+
+            
+
+            const validVariants = product.variants.filter((variant) => {
+              const result = extractAndFormat(variant.title);
+              // console.log(extractAndFormat(variant.title) , result , "extractAndFormat(variant.title)" )
+
+              const hasValidSize = size && result.size.toLowerCase() == size.toLowerCase();
+  
+              const hasValidColor = ((result.color) && (color)) ?  result.color.toLowerCase() == color.toLowerCase() : false;
+
+              // console.log(hasValidSize && hasValidColor ,"hasValidSize && hasValidColor" , product.title, variant)
+              if(!hasValidColor) return hasValidSize
+
+  
+              return hasValidSize && hasValidColor;
+            });
+  
+            // If no size or color is provided, use the first variant
+            const variantsToConsider =
+              size || color ? validVariants : [product.variants[0]];
+  
+            // Filter variants by price
+            const priceFilteredVariants = variantsToConsider.filter((variant) => {
+              const discountedPrice = calculateDiscountedPrice(
+                variant,
+                product.metadata
+              );
+              return (
+                discountedPrice &&
+                (!min_price || discountedPrice > min_price) &&
+                (!max_price || discountedPrice < max_price)
+              );
+            });
+  
+            // Return the product with valid variants
+            if (priceFilteredVariants.length > 0) {
+              return { ...product, variants: priceFilteredVariants };
+            }
+            return null;
+          })
+          .filter((product) => product !== null); // Remove invalid products
+  
+        allProducts = [...allProducts, ...filteredProducts];
+        setFilteredProducts(allProducts);
+  
+        // If fewer products are fetched and no more pages are left, break the loop
+        if (response.products.length < 12) break;
+  
+        page++; // Increment the page for the next fetch
       }
   
       // Ensure not to fetch if products are less than 10 after all attempts
       if (allProducts.length >= 10) {
         dispatch({
           type: "SET_PRODUCTS",
-          payload: allProducts.slice(0, 12), // Limit to the required 12 products
+          payload: allProducts.slice(0, 12), // Limit to 12 products
         });
         setloading(false);
       }
@@ -95,9 +165,8 @@ const ShopArea = () => {
   
     fetchFilteredProducts();
     dispatch(fetchcategores());
-  }, [dispatch, cat_id, region, size, color]); // Include color in dependency array
+  }, [dispatch, cat_id, region, size, color, min_price, max_price]);
   
-
  
 
   console.log(products, "from shop area");
