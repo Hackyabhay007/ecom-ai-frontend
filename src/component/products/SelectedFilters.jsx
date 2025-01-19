@@ -77,6 +77,44 @@ const SelectedFilters = ({
           </button>
         </span>
       )}
+      {
+        min_price &&  <span className="border border-sub-color  px-2 py-1 rounded-full">
+        {"greater then : " + min_price}
+        <button
+          onClick={() => {
+            const { min_price, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
+            router.push({
+              pathname: router.pathname, // Keep the same page
+              query: {
+                ...remainingQueries,
+              }, // Apply remaining queries
+            });
+          }}
+          className="ml-2 text-red-500"
+        >
+          &times;
+        </button>
+      </span>
+      }
+      {
+        max_price &&  <span className="border border-sub-color  px-2 py-1 rounded-full">
+        {"less then : " + max_price}
+        <button
+          onClick={() => {
+            const { max_price, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
+            router.push({
+              pathname: router.pathname, // Keep the same page
+              query: {
+                ...remainingQueries,
+              }, // Apply remaining queries
+            });
+          }}
+          className="ml-2 text-red-500"
+        >
+          &times;
+        </button>
+      </span>
+      }
 
       {filters.brand.length > 0 &&
         filters.brand.map((brand) => (
