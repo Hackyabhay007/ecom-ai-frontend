@@ -6,18 +6,18 @@ import { fetchProducts } from "../../../redux/slices/productSlice";
 import { useRegion } from "../../contexts/RegionContext.jsx";
 import useProducts from "../../contexts/ProductContext";
 
-  // const dispatch = useDispatch();
-  // const { region } = useRegion();
+// const dispatch = useDispatch();
+// const { region } = useRegion();
 
-  // const { products, count, nextPage, status, error } = useSelector(
-  //   (state) => state.products
-  // );
+// const { products, count, nextPage, status, error } = useSelector(
+//   (state) => state.products
+// );
 
-  // useEffect(()=>{
-  //   dispatch(fetchProducts({ pageParam: 1, queryParams: {}, region }));
-  // },[dispatch])
+// useEffect(()=>{
+//   dispatch(fetchProducts({ pageParam: 1, queryParams: {}, region }));
+// },[dispatch])
 
-  // console.log(products)
+// // console.log(products)
 
 const Search = ({ onClose, isMobile }) => {
   const [query, setQuery] = useState("");
@@ -62,7 +62,6 @@ const Search = ({ onClose, isMobile }) => {
       }`}
     >
       <div className="md:flex hidden justify-between items-center mb-4">
-        
         <i
           className="ri-close-line text-xl cursor-pointer hover:bg-black hover:text-white transition-all rounded-full px-1"
           onClick={onClose}

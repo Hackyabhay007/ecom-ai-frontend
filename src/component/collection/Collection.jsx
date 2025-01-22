@@ -28,7 +28,7 @@ function Collection() {
           }
         )
         .then((res) => {
-          // // console.log(res.data.home.result , "this is res come from home ")
+          // console.log(res.data.home.result, "this is res come from home ");
           setrouteofpage(res.data.home.result);
         });
       return resposne;
@@ -41,7 +41,7 @@ function Collection() {
     dispatch(fetchhightlight());
   }, [currentIndex]);
 
-  // // console.log(collectionData, typeof(collectionData))
+  // console.log(collectionData, typeof collectionData);
   // Scrolls to the given index
   const scrollToIndex = (index) => {
     const container = scrollContainerRef.current;

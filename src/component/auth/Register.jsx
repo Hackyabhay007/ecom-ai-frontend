@@ -1,18 +1,30 @@
-import React, { useState } from "react";
+import React, { useActionState, useState } from "react";
 import { useRouter } from "next/router";
+import { signup } from "@/lib/data/customer";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Register = () => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstname] = useState("");
+  const [lastName, setLastname] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState();
   const [password, setPassword] = useState("");
   const [isUser, setIsUser] = useState(false); // Checkbox state
-  const { register } = useAuth();
+  const [checkpassword, setCheckpassword] = useState(false);
   const router = useRouter();
+  const { fetchUserData } = useAuth();
+  const [message, formAction] = useActionState(signup, null);
 
   const handleRegister = (e) => {
     e.preventDefault(); // Prevent form submission reload
-    register(name, email, password, isUser); // Include isUser in register payload
+    const secretKey = process.env.NEXT_PUBLIC_REVALIDATE_SECRET; // Must be a 32-byte secret
+
+    fetchUserData(
+      signup({}, { firstName, lastName, email, password, phone }, secretKey)
+    ).then((res) => {
+      console.log(res);
+      router.push("/shop");
+    }); // Include isUser in register payload
   };
 
   return (
@@ -23,12 +35,20 @@ const Register = () => {
           Register
         </h2>
         <form className="space-y-6" onSubmit={handleRegister}>
-          <div>
+          <div className="flex w-full  gap-2">
             <input
               type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstname(e.target.value)}
+              className="border p-3 rounded-xl w-full"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastname(e.target.value)}
               className="border p-3 rounded-xl w-full"
               required
             />
@@ -45,17 +65,33 @@ const Register = () => {
           </div>
           <div>
             <input
-              type="password"
+              type="number"
+              placeholder="Phone Number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="border p-3 rounded-xl w-full"
+              required
+            />
+          </div>
+          <div className="flex  gap-2 items-center">
+            <input
+              type={checkpassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="border p-3 rounded-xl w-full"
               required
             />
+            <input
+              className="size-[20px] "
+              onChange={() => setCheckpassword((prev) => !prev)}
+              type="checkbox"
+              title="see password"
+            />
           </div>
 
           {/* Checkbox for Register as User */}
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <input
               type="checkbox"
               id="registerAsUser"
@@ -66,7 +102,7 @@ const Register = () => {
             <label htmlFor="registerAsUser" className="text-sm text-sub-color">
               Register as user
             </label>
-          </div>
+          </div> */}
 
           <div className="flex justify-start items-center">
             <button

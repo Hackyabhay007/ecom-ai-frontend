@@ -13,11 +13,11 @@ export const fetchfeatureds = createAsyncThunk(
         },
       }
     ); // Replace with your API endpoint
-    console.log(response.data.featureds, " this is get rescome from featured");
+    // console.log(response.data.featureds, " this is get rescome from featured");
     return response.data.featureds; // Assume the API returns an array of featureds
   }
 );
-// console.log("")
+// // console.log("")
 fetchfeatureds();
 
 const featuredsectionSlice = createSlice({
@@ -35,7 +35,7 @@ const featuredsectionSlice = createSlice({
       })
       .addCase(fetchfeatureds.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // console.log(action.payload);
+        // // console.log(action.payload);
         state.featureds = action.payload;
       })
       .addCase(fetchfeatureds.rejected, (state, action) => {

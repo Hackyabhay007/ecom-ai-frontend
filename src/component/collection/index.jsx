@@ -5,7 +5,7 @@ import { fetchcollections } from "../../../redux/slices/collectionSlice";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-const index = ({ activeCategory , setActiveCategory }) => {
+const index = ({ activeCategory, setActiveCategory }) => {
   const dispatch = useDispatch();
   const {
     collections: data,
@@ -17,9 +17,9 @@ const index = ({ activeCategory , setActiveCategory }) => {
     dispatch(fetchcollections());
   }, [dispatch]);
 
-  console.log(data);
+  // console.log(data);
 
-  console.log(data, status);
+  // console.log(data, status);
 
   const router = useRouter();
 
@@ -73,9 +73,9 @@ const index = ({ activeCategory , setActiveCategory }) => {
               <Link
                 href={{
                   pathname: "/shop",
-                  query: { cat_id: category.id , cat_name : category.name }, // Add category ID as a query parameter
+                  query: { cat_id: category.id, cat_name: category.name }, // Add category ID as a query parameter
                 }}
-                onClick={()=>setActiveCategory(null)}
+                onClick={() => setActiveCategory(null)}
                 key={index}
                 className="flex-shrink-0 cursor-pointer"
                 style={{ scrollSnapAlign: "start" }}

@@ -14,7 +14,7 @@ export const fetchhightlight = createAsyncThunk(
         },
       }
     ); // Replace with your API endpoint
-    // // console.log(response.data.highlights, " this is get res");
+    // console.log(response.data.highlights, " this is get res");
     return response.data.highlights; // Assume the API returns an array of hightlight
   }
 );

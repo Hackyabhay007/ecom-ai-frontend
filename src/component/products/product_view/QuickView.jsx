@@ -41,7 +41,7 @@ const QuickView = ({ product, onClose }) => {
       )
       .then((res) => {
         const responses = res.data.productsubdetails;
-        console.log(res.data.productsubdetails);
+        // console.log(res.data.productsubdetails);
         if (responses?.reviews) {
           setRating(responses.reviews);
           setAvaragerating(responses.averageRating);
@@ -78,19 +78,9 @@ const QuickView = ({ product, onClose }) => {
               (option) => option.value.toLowerCase() === temp_size.toLowerCase()
             )
           )
-        : product?.variants.find((variant) =>
-            variant.options?.some(
-              (option) => option.value.toLowerCase() === "m"
-            )
-          );
+        : product?.variants[0];
 
-    console.log(
-      targetVariant,
-      "this is target vaiant",
-      temp_color,
-      temp_size,
-      product
-    );
+  
 
     if (targetVariant) {
       setVariantPrice(
@@ -156,7 +146,7 @@ const QuickView = ({ product, onClose }) => {
         id,
         name,
         price,
-        quantity,
+        quantity: 1,
         image,
         color: selectedColor,
         size: selectedSize,
@@ -192,7 +182,7 @@ const QuickView = ({ product, onClose }) => {
         )
     );
 
-    console.log(variant?.calculated_price?.calculated_amount);
+    // console.log(variant?.calculated_price?.calculated_amount);
 
     // Return the price if a variant is found
     setVariantPrice(variant?.calculated_price?.calculated_amount);

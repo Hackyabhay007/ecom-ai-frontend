@@ -1,28 +1,56 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { setAddresses } from "@/lib/data/cart";
+import { useRegion } from "@/contexts/RegionContext";
+import { useCart } from "@/contexts/CartContext";
 
 function CheckoutDetails({ onContinue }) {
+  const { cart, updateCart } = useCart();
+  const { region } = useRegion();
+
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    address: "",
+    firstName: cart?.shipping_address?.first_name || "",
+    lastName: cart?.shipping_address?.last_name || "",
+    address: cart?.shipping_address?.address_1 || "",
+    address_2: cart?.shipping_address?.address_2 || "",
     landmark: "",
-    state: "",
-    pincode: "",
-    phoneNumber: "",
+    state: cart?.shipping_address?.province || "",
+    pincode: cart?.shipping_address?.postal_code || "",
+    phoneNumber: cart?.shipping_address?.phone || "",
+    email: cart?.customer?.email || "",
+    city: cart?.shipping_address?.city || "",
+    country: "India",
   });
 
-  const [formErrors, setFormErrors] = useState({}); // Track errors
+  const [formErrors, setFormErrors] = useState({});
 
+  // Update form data when `cart` changes
+  useEffect(() => {
+    setFormData({
+      firstName: cart?.shipping_address?.first_name || "",
+      lastName: cart?.shipping_address?.last_name || "",
+      address: cart?.shipping_address?.address_1 || "",
+      address_2: cart?.shipping_address?.address_2 || "",
+      landmark: "",
+      state: cart?.shipping_address?.province || "",
+      pincode: cart?.shipping_address?.postal_code || "",
+      phoneNumber: cart?.shipping_address?.phone || "",
+      email: cart?.customer?.email || "",
+      city: cart?.shipping_address?.city || "",
+      country: "India",
+    });
+  }, [cart]);
+
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Clear error for the field when user starts typing
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
+  // Validate form fields
   const validateForm = () => {
     const errors = {};
     if (!formData.firstName.trim()) errors.firstName = "First Name is required";
@@ -31,38 +59,50 @@ function CheckoutDetails({ onContinue }) {
     if (!formData.landmark.trim()) errors.landmark = "Landmark is required";
     if (!formData.state.trim()) errors.state = "State is required";
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    if (!formData.phoneNumber.trim())
-      errors.phoneNumber = "Phone Number is required";
+    if (!formData.email.trim()) errors.email = "Email is required";
+    if (!formData.phoneNumber.trim()) errors.phoneNumber = "Phone Number is required";
 
     return errors;
   };
 
-  const handleSubmit = () => {
+  // Handle form submission
+  const handleSubmit = async () => {
     const errors = validateForm();
     if (Object.keys(errors).length === 0) {
-      // No errors, proceed with submission
-      onContinue(formData);
+      const formattedData = {
+        shipping_address: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          address_1: formData.address,
+          address_2: formData.address_2,
+          landmark: formData.landmark,
+          postal_code: formData.pincode,
+          city: formData.city,
+          province: formData.state,
+          country_code: "in",
+          phone: formData.phoneNumber,
+        },
+        email: formData.email,
+        same_as_billing: "on",
+      };
+
+      try {
+        await setAddresses(null, formattedData, updateCart);
+        onContinue(formData);
+      } catch (error) {
+        console.error("Error setting addresses:", error);
+      }
     } else {
-      // Set errors and prevent submission
       setFormErrors(errors);
     }
   };
 
   return (
-    <div className="flex flex-col w-full md:px-60 p-4">
-      <h2 className=" text-xs border-b w-fit border-black md:text-sm text-center  uppercase mb-5 text-black">Personal Details</h2>
+    <div className="flex flex-col w-full md:px-[10vw]  p-4">
+      <h2 className="text-xs border-b w-fit border-black md:text-sm text-center uppercase mb-5 text-black">
+        Personal Details
+      </h2>
       <form className="space-y-5 flex-grow flex flex-col">
-        <div className="border pl-2 pb-1 border-black">
-          <label className="block text-xs sm:text-sm pl-1 my-1">Country/Region</label>
-          <select
-            name="country"
-            onChange={handleInputChange}
-            className={`w-full font-bold text-xs sm:text-sm`}
-          >
-            <option value="India">India</option>
-            <option value="US">United States</option>
-          </select>
-        </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <input
@@ -71,7 +111,7 @@ function CheckoutDetails({ onContinue }) {
               placeholder="First Name"
               value={formData.firstName}
               onChange={handleInputChange}
-              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+              className="border p-4 w-full text-xs sm:text-sm border-black"
             />
             {formErrors.firstName && (
               <p className="text-red-500 text-xs sm:text-sm">{formErrors.firstName}</p>
@@ -84,13 +124,25 @@ function CheckoutDetails({ onContinue }) {
               placeholder="Last Name"
               value={formData.lastName}
               onChange={handleInputChange}
-              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+              className="border p-4 w-full text-xs sm:text-sm border-black"
             />
             {formErrors.lastName && (
               <p className="text-red-500 text-xs sm:text-sm">{formErrors.lastName}</p>
             )}
           </div>
         </div>
+
+        <div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleInputChange}
+            className="border p-4 w-full text-xs sm:text-sm border-black"
+          />
+        </div>
+
         <div>
           <input
             type="text"
@@ -98,12 +150,13 @@ function CheckoutDetails({ onContinue }) {
             placeholder="Address"
             value={formData.address}
             onChange={handleInputChange}
-            className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            className="border p-4 w-full text-xs sm:text-sm border-black"
           />
           {formErrors.address && (
             <p className="text-red-500 text-xs sm:text-sm">{formErrors.address}</p>
           )}
         </div>
+
         <div className="grid grid-cols-3 gap-4">
           <div>
             <input
@@ -112,7 +165,7 @@ function CheckoutDetails({ onContinue }) {
               placeholder="Landmark"
               value={formData.landmark}
               onChange={handleInputChange}
-              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+              className="border p-4 w-full text-xs sm:text-sm border-black"
             />
             {formErrors.landmark && (
               <p className="text-red-500 text-xs sm:text-sm">{formErrors.landmark}</p>
@@ -125,7 +178,7 @@ function CheckoutDetails({ onContinue }) {
               placeholder="State"
               value={formData.state}
               onChange={handleInputChange}
-              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+              className="border p-4 w-full text-xs sm:text-sm border-black"
             />
             {formErrors.state && (
               <p className="text-red-500 text-xs sm:text-sm">{formErrors.state}</p>
@@ -133,18 +186,19 @@ function CheckoutDetails({ onContinue }) {
           </div>
           <div>
             <input
-              type="text"
+              type="number"
               name="pincode"
               placeholder="Pincode"
               value={formData.pincode}
               onChange={handleInputChange}
-              className={`border p-4 w-full text-xs sm:text-sm border-black`}
+              className="border p-4 w-full text-xs sm:text-sm border-black"
             />
             {formErrors.pincode && (
               <p className="text-red-500 text-xs sm:text-sm">{formErrors.pincode}</p>
             )}
           </div>
         </div>
+
         <div>
           <input
             type="text"
@@ -152,12 +206,13 @@ function CheckoutDetails({ onContinue }) {
             placeholder="Phone Number"
             value={formData.phoneNumber}
             onChange={handleInputChange}
-            className={`border p-4 w-full text-xs sm:text-sm border-black`}
+            className="border p-4 w-full text-xs sm:text-sm border-black"
           />
           {formErrors.phoneNumber && (
             <p className="text-red-500 text-xs sm:text-sm">{formErrors.phoneNumber}</p>
           )}
         </div>
+
         <button
           type="button"
           onClick={handleSubmit}

@@ -28,7 +28,7 @@ const Filter = ({ onApplyFilters }) => {
   const getCountOfProductFromCategory = async () => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/category/get-cetegory-with-product-count`,
+        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/category/get-category-with-product-count`,
         {
           headers: {
             "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,

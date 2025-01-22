@@ -8,6 +8,8 @@ import { toggleWishlistSidebar } from "../../../redux/slices/wishSlice";
 import Search from "../search/Search";
 import CategoryDropdown from "../category/CategoryDropdown";
 import NavCategory from "./NavCategory";
+import { useCart } from "@/contexts/CartContext";
+
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -16,9 +18,19 @@ function Navbar() {
   const { user } = useAuth();
   const dispatch = useDispatch();
 
-  const { items } = useSelector((state) => state.cart);
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const { cart } = useCart();
 
+  // console.log(cart);
+
+  // console.log(cart, " this is cart");
+  const [items, setitems] = useState([]);
+
+  useEffect(() => {
+    cart?.items && setitems(cart.items);
+  }, [cart]);
+  const totalItems = cart?.items?.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Resize handler for mobile view
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -37,6 +49,7 @@ function Navbar() {
     document.body.style.overflow = isMenuOpen ? "hidden" : "auto";
   }, [isMenuOpen]);
 
+  // Mobile View
   if (isMobile) {
     return (
       <nav
@@ -49,7 +62,6 @@ function Navbar() {
           {/* Logo */}
           <Link href="/">
             <div className="flex justify-center items-center relative w-20 h-10">
-              {/* First logo with fade animation */}
               <Image
                 src="/images/logo/logo.png"
                 alt="Logo"
@@ -57,7 +69,6 @@ function Navbar() {
                 height={500}
                 className="absolute w-20 animate-fade1"
               />
-              {/* Second logo with delayed fade animation */}
               <Image
                 src="/images/logo/logo2.png"
                 alt="Logo 2"
@@ -99,12 +110,8 @@ function Navbar() {
           <div className="mt-2 py-4 h-full">
             {/* Menu Items */}
             <ul className="space-y-0">
-              {/* Search Bar */}
-              {/* <li>
-                <Search onClose={() => setIsMenuOpen(false)} isMobile={true} />
-              </li> */}
               <li
-                className={`cursor-pointer bg-light-BG hover:text-theme-blue border-b border-gray-400 text-lg  p-5  ${
+                className={`cursor-pointer bg-light-BG hover:text-theme-blue border-b border-gray-400 text-lg p-5 ${
                   router.pathname === "/" ? "text-theme-blue font-semibold" : ""
                 }`}
                 onClick={() =>
@@ -113,32 +120,13 @@ function Navbar() {
                     : navigateTo("/auth/login")
                 }
               >
-                <i className="ri-user-line pr-4 "></i> Sign In / Register
+                <i className="ri-user-line pr-4"></i>{" "}
+                {user ? `Hello, ${user.name}` : "Sign In / Register"}
               </li>
               <div className="md:hidden w-full">
                 <NavCategory />
               </div>
-              <div className=" space-y-6 py-4 px-2">
-                {/* <li
-                  className={`cursor-pointer px-4 hover:text-theme-blue ${
-                    router.pathname === "/"
-                      ? "text-theme-blue font-semibold"
-                      : ""
-                  }`}
-                  onClick={() => navigateTo("/")}
-                >
-                  <i className="ri-home-line"></i> Home
-                </li> */}
-                {/* <li
-                  className={`cursor-pointer px-4 hover:text-theme-blue ${
-                    router.pathname === "/shop"
-                      ? "text-theme-blue font-semibold"
-                      : ""
-                  }`}
-                  onClick={() => navigateTo("/shop")}
-                >
-                  <i className="ri-shopping-bag-line"></i> Shop
-                </li> */}
+              <div className="space-y-6 py-4 px-2">
                 <li
                   className={`cursor-pointer px-4 hover:text-theme-blue ${
                     router.pathname === "/about"
@@ -177,28 +165,27 @@ function Navbar() {
     );
   }
 
+  // Desktop View
   return (
     <nav className="bg-white text-black flex items-center justify-around p-4 py-6 shadow-md">
-       <Link href="/">
-      <div className="flex justify-center items-center relative w-28 h-10">
-        {/* First logo with fade animation */}
-        <Image
-          src="/images/logo/logo.png"
-          alt="Logo"
-          width={500}
-          height={500}
-          className="absolute w-28 animate-fade1"
-        />
-        {/* Second logo with delayed fade animation */}
-        <Image
-          src="/images/logo/logo2.png"
-          alt="Logo 2"
-          width={500}
-          height={500}
-          className="absolute w-6 animate-fade2"
-        />
-      </div>
-    </Link>
+      <Link href="/">
+        <div className="flex justify-center items-center relative w-28 h-10">
+          <Image
+            src="/images/logo/logo.png"
+            alt="Logo"
+            width={500}
+            height={500}
+            className="absolute w-28 animate-fade1"
+          />
+          <Image
+            src="/images/logo/logo2.png"
+            alt="Logo 2"
+            width={500}
+            height={500}
+            className="absolute w-6 animate-fade2"
+          />
+        </div>
+      </Link>
       {/* Navigation Links */}
       <div className="flex items-center space-x-14">
         <div
@@ -221,27 +208,9 @@ function Navbar() {
         >
           Shop
         </div>
-        <div className="">
+        <div>
           <NavCategory />
         </div>
-        {/* <div
-          className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/about" ? "text-theme-blue font-semibold" : ""
-          }`}
-          onClick={() => navigateTo("/about")}
-        >
-          About
-        </div>
-        <div
-          className={`cursor-pointer hover:text-theme-blue ${
-            router.pathname === "/contact-us"
-              ? "text-theme-blue font-semibold"
-              : ""
-          }`}
-          onClick={() => navigateTo("/contact-us")}
-        >
-          Contact Us
-        </div> */}
       </div>
 
       {/* Right Icons */}

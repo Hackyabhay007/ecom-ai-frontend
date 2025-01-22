@@ -24,9 +24,9 @@ const ProductCard = ({ product, layout }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [discount, setdiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
-  console.log(product, " this product was come ");
+  // console.log(product, " this product was come ");
   const { size, color, min_price, max_pirce } = router.query;
-  const [notfoundoncurrentvaiant , setNotfoundoncurrentvaiant ] = useState([])
+  const [notfoundoncurrentvaiant, setNotfoundoncurrentvaiant] = useState([]);
 
   const {
     id,
@@ -38,7 +38,7 @@ const ProductCard = ({ product, layout }) => {
     description,
   } = product;
 
-  console.log(product.variants[0], " this is product card data");
+  // console.log(product.variants[0], " this is product card data");
 
   useEffect(() => {
     const fetchVariantDetails = async () => {
@@ -71,11 +71,10 @@ const ProductCard = ({ product, layout }) => {
               )
             : product.variants[0];
 
-            if(!targetVariant){
-
-              targetVariant =  product.variants[0]
-              setNotfoundoncurrentvaiant(product.variants[0])
-            }
+        if (!targetVariant) {
+          targetVariant = product.variants[0];
+          setNotfoundoncurrentvaiant(product.variants[0]);
+        }
 
         if (targetVariant) {
           setVariantPrice(
@@ -120,7 +119,16 @@ const ProductCard = ({ product, layout }) => {
     };
 
     fetchVariantDetails();
-  }, [product.metadata, id, region, discount, size, color , max_pirce , min_price]);
+  }, [
+    product.metadata,
+    id,
+    region,
+    discount,
+    size,
+    color,
+    max_pirce,
+    min_price,
+  ]);
 
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
@@ -156,13 +164,11 @@ const ProductCard = ({ product, layout }) => {
   const createdAt = new Date(product.created_at);
   const currentDate = new Date();
 
-  
-
   // Calculate the difference in days
   const diffInTime = currentDate - createdAt;
   const diffInDays = diffInTime / (1000 * 60 * 60 * 24);
   const getTagColor = () => {
-    console.log(discountes, "createAt");
+    // console.log(discountes, "createAt");
 
     if (discountes > 0 && diffInDays <= 3) {
       // Both discounted and new
@@ -210,7 +216,7 @@ const ProductCard = ({ product, layout }) => {
     );
   }
 
-  console.log(product.images[1].url, "product.images");
+  // console.log(product.images[1].url, "product.images");
 
   return (
     <>
@@ -230,6 +236,7 @@ const ProductCard = ({ product, layout }) => {
             src={image}
             alt={name}
             layout="fill"
+            size={"fit"}
             objectFit="cover"
             className="rounded-2xl hidden max-sm:flex  hover:scale-105 duration-150 shadow-lg  h-72"
           />

@@ -20,7 +20,7 @@ function Gallery() {
     setcatalog(Object.entries(cataloges));
   }, [cataloges]);
 
-  // // console.log(Array.isArray(catalog));
+  // console.log(Array.isArray(catalog));
   return (
     <div
       className="relative bg-cover md:bg-center min-h-96 h-[500px] flex"
@@ -33,7 +33,7 @@ function Gallery() {
           <div className="space-y-4 animate-scroll-up">
             {catalog &&
               catalog.map(([key, value], index) => {
-                // // console.log(value);
+                // console.log(value);
                 return (
                   <div
                     key={`up-${key}`}

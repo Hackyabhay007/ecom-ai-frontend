@@ -5,7 +5,8 @@ import CategoryDropdown from "../category/CategoryDropdown";
 
 function Footer() {
   const { items } = useSelector((state) => state.cart);
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  // console.log(items)
+  const totalItems = 0;
 
   const [isMobile, setIsMobile] = useState(false);
 

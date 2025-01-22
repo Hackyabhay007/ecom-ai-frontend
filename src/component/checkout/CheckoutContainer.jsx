@@ -5,6 +5,7 @@ import YourOrder from "./YourOrder";
 import PaymentCheckout from "./PaymentCheckout";
 import Timeline from "./Timeline"; // Import Timeline component
 import { useRouter } from "next/router";
+import { useCart } from "@/contexts/CartContext";
 
 function CheckoutContainer() {
   const router = useRouter();
@@ -12,12 +13,13 @@ function CheckoutContainer() {
   const [step, setStep] = useState(1); // Current step
   const [formData, setFormData] = useState({}); // Form data state
   const [orderItems, setOrderItems] = useState([]); // Order items array
+  const {cart} = useCart()
 
   useEffect(() => {
     // Safeguard for empty or undefined query
-    if (query.product) {
+    if (cart?.items) {
       try {
-        setOrderItems([JSON.parse(query.product)]);
+        setOrderItems(cart?.items);
       } catch (error) {
         console.error("Failed to parse product data:", error);
       }
@@ -28,7 +30,7 @@ function CheckoutContainer() {
         console.error("Failed to parse cart items data:", error);
       }
     }
-  }, [query]);
+  }, [cart , cart?.items]);
 
   const handleContinue = (data) => {
     setFormData(data); // Save form data
@@ -38,6 +40,7 @@ function CheckoutContainer() {
   const handleEdit = () => {
     setStep(1); // Go back to CheckoutDetails step
   };
+
 
   const handleOrder = () => {
     setStep(3); // Move to YourOrder step
@@ -70,7 +73,7 @@ function CheckoutContainer() {
       )}
       {step === 3 && (
         <YourOrder
-          order={orderItems}
+          order={cart}
           onEdit={() => setStep(2)}
           onPayment={handlePayment}
         />

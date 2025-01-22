@@ -1,8 +1,11 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 
-function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
-  const [order, setOrder] = useState(initialOrder);
+function YourOrder({ order: initialOrder, onEdit, onPayment }) {
+  const [order, setOrder] = useState(initialOrder?.items);
+
+  console.log(initialOrder);
+
   const calculateSubtotal = () => {
     return order
       .reduce((acc, item) => acc + item.quantity * parseFloat(item.price), 0)
@@ -13,7 +16,9 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
       prevOrder.map((item, i) => {
         if (i === index) {
           const newQuantity =
-            type === "increment" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
+            type === "increment"
+              ? item.quantity + 1
+              : Math.max(1, item.quantity - 1);
           return { ...item, quantity: newQuantity };
         }
         return item;
@@ -22,7 +27,6 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
   };
   return (
     <div>
-      
       <div className="border border-black rounded-md ">
         {/* Header Section */}
         <div className="flex justify-between p-4 border-b border-black items-center mb-4">
@@ -57,63 +61,64 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
                 >
                   <td className="py-4 pl-2 md:pl-0 flex flex-col items-start md:flex-row md:items-center">
                     <img
-                      src={item.image}
+                      src={item.thumbnail}
                       alt="Product"
                       className="h-14 md:h-20 w-auto "
                     />
                     <div className="md:ml-4">
-                      <h3 className="font-medium flex flex-wrap">{item.name}</h3>
-                      <p className="text-sm text-gray-500">{item.color}</p>
-                      <p className="text-sm text-gray-500">Size: {item.size}</p>
+                      <h3 className="font-medium flex flex-wrap">
+                        {item.product_title}
+                      </h3>
+                      {/* <p className="text-sm text-gray-500">{item.color}</p> */}
+                      <p className="text-sm text-gray-500">
+                        Properties: {item.variant_title.toLowerCase()}
+                      </p>
                     </div>
                   </td>
-                  <td className="text-center">
-                  <div className="flex items-center justify-center">
-                      <button
-                        className="px-2 bg-blue-500 text-white"
-                        onClick={() => updateQuantity(index, "decrement")}
-                      >
-                        -
-                      </button>
-                      <span className="px-2 md:px-3">{item.quantity}</span>
-                      <button
-                        className="px-2 bg-blue-500 text-white"
-                        onClick={() => updateQuantity(index, "increment")}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </td>
+                 
                   <td className="text-center">
                     <span className="text-red-500 font-semibold">
-                      {item.discount|| 0}%
+                      {item.adjustments[0]?.amount
+                        ? (
+                            (item.adjustments[0]?.amount / item.unit_price) *
+                            100
+                          ).toFixed(2) + "%"
+                        : "0%"}
                     </span>
-                    <div className="line-through text-gray-500">{item.prevPrice || ""}</div>
+
+                    <div className="line-through text-gray-500">
+                      {item.unit_price || ""}
+                    </div>
                   </td>
                   <td className="text-right">
-                    <span className="text-gray-900 font-bold">₹{item.price}</span>
+                    <span className="text-gray-900 font-bold">
+                      ₹
+                      {item.adjustments[0]
+                        ? item.unit_price - item.adjustments[0]?.amount
+                        : item.unit_price}
+                    </span>
                   </td>
                 </tr>
-                
               ))}
-        <div className="px-2 md:px-10">
-          <table className=" w-full text-left text-theme-blue ">
-            
-            <tbody>
-             
-              <tr>
-                <td className="font-semibold text-theme-blue py-2">Discount Coupon?</td>
-                <td></td>
-                <td className="font-semibold text-theme-blue py-2">Total</td>
-                <td className="text-right font-bold text-black">
-                  ₹{calculateSubtotal()}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          </div>
-            
-             
+              <div className="px-2 md:px-10">
+                <table className=" w-full text-left text-theme-blue ">
+                  <tbody>
+                    <tr>
+                    
+                      <td></td>
+                      <td className="font-semibold text-theme-blue py-2">
+                        Total
+                      </td>
+                      <td className="text-right font-bold text-black">
+                        ₹{initialOrder.subtotal}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* make div for apply cupons and gift cart */}
+
             </tbody>
           </table>
         </div>
@@ -127,27 +132,27 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
         <ul className="list-decimal pl-5 space-y-2">
           <li>
             Rewards: Customers can earn points or rewards that can be redeemed
-            for discounts, free products, or other benefits.
-            Rewards: Customers can earn points or rewards that can be redeemed
-            for discounts, free products, or other benefits.
+            for discounts, free products, or other benefits. Rewards: Customers
+            can earn points or rewards that can be redeemed for discounts, free
+            products, or other benefits.
           </li>
           <li>
             Exclusive access: Customers may get early access to new collections,
-            sale events, or exclusive product launches.
-            Exclusive access: Customers may get early access to new collections,
-            sale events, or exclusive product launches.
+            sale events, or exclusive product launches. Exclusive access:
+            Customers may get early access to new collections, sale events, or
+            exclusive product launches.
           </li>
           <li>
             Personalized offers: Customers may receive personalized offers based
-            on their purchase history and preferences.
-            Personalized offers: Customers may receive personalized offers based
-            on their purchase history and preferences.
+            on their purchase history and preferences. Personalized offers:
+            Customers may receive personalized offers based on their purchase
+            history and preferences.
           </li>
           <li>
             Community engagement: Customers may be invited to members-only
-            events, forums, or social media groups.
-            Community engagement: Customers may be invited to members-only
-            events, forums, or social media groups.
+            events, forums, or social media groups. Community engagement:
+            Customers may be invited to members-only events, forums, or social
+            media groups.
           </li>
         </ul>
       </div>
@@ -161,9 +166,7 @@ function YourOrder({ order: initialOrder = [], onEdit, onPayment }) {
           Continue
         </button>
       </div>
-      </div>
-      
-   
+    </div>
   );
 }
 

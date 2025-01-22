@@ -18,7 +18,7 @@ function BestSeller() {
   const fetchpagedeatils = () => {
     axios
       .get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/home/01JG6HHXRSA1X4HJ64532PHCH9`,
+        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/home/01JJ481GVMHWHJ3GHBN9XFW3AD`,
         {
           headers: {
             "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
@@ -26,7 +26,7 @@ function BestSeller() {
         }
       )
       .then((res) => {
-        console.log(res.data.home.result);
+        // console.log(res.data.home.result);
         setPageroutedeatils(res.data.home.result);
         //data come it
         // created_at: "2024-12-28T11:48:47.515Z";
@@ -61,7 +61,10 @@ function BestSeller() {
             always reflects who you really are. Fashion is always Right, and I
             am living proof."
           </p>
-          <a href={"/" + pageroutedeatils.redirect} className="text-center bg-white border border-black w-40 rounded-lg p-2 hover:bg-theme-blue hover:text-white transition duration-200 ease-in-out">
+          <a
+            href={"/" + pageroutedeatils.redirect}
+            className="text-center bg-white border border-black w-40 rounded-lg p-2 hover:bg-theme-blue hover:text-white transition duration-200 ease-in-out"
+          >
             {pageroutedeatils.text}
           </a>
         </div>

@@ -14,7 +14,7 @@ export const fetchproductonhomes = createAsyncThunk(
         },
       }
     ); // Replace with your API endpoint
-    // // console.log(
+    // console.log(
     //   response.data.showonhome,
     //   " this is get rescome from productonhome"
     // );
@@ -37,7 +37,7 @@ const productonhomesectionSlice = createSlice({
       })
       .addCase(fetchproductonhomes.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // console.log(action.payload);
+        // // console.log(action.payload);
         state.productonhomes = action.payload;
       })
       .addCase(fetchproductonhomes.rejected, (state, action) => {

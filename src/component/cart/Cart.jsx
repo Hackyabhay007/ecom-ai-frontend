@@ -1,26 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import CartItem from "./CartItem";
 import CartRelatedProducts from "./CartRelatedProducts";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { useCart } from "@/contexts/CartContext";
+
 const Cart = () => {
-  const { items } = useSelector((state) => state.cart);
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // const { items } = useSelector((state) => state.cart);
+  const { cart } = useCart();
+
+  // console.log(cart);
+
+  // console.log(cart, " this is cart");
+  const [items, setitems] = useState([]);
+
+  useEffect(() => {
+    cart?.items && setitems(cart.items);
+  }, [cart]);
+
   const router = useRouter();
   const handleCheckout = () => {
     const cartItemsString = JSON.stringify(items);
     router.push({
       pathname: "/checkout",
-      query: { cartItems: cartItemsString },
     });
   };
   const handleShopNow = () => {
     router.push("/shop"); // Navigate to shop page
   };
+
+  console.log(cart);
 
   return (
     <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
@@ -73,7 +83,7 @@ const Cart = () => {
               Subtotal:
             </p>
             <p className="md:text-lg text-md font-bold text-cream">
-              ₹{subtotal}
+              ₹{cart.item_subtotal}
             </p>
           </div>
           <div className="flex gap-2 md:gap-4 md:px-2 px-1 w-full">
