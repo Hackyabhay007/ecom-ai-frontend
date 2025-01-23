@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import Image from "next/image";
+import { retrieveCustomer } from "@/redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const OrderHistory = () => {
   const [filter, setFilter] = useState("all");
+
+  const { currentCustomer: user } = useSelector((state) => state.customer);
+  const dispatch = useDispatch();
+
+  console.log(user);
 
   const orders = [
     {
@@ -73,7 +80,7 @@ const OrderHistory = () => {
 
       {/* Orders */}
       <div className="space-y-6">
-        {filteredOrders.map((order) => (
+        {user?.orders.map((order) => (
           <div
             key={order.orderId}
             className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
@@ -111,7 +118,9 @@ const OrderHistory = () => {
                       className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 object-cover rounded"
                     />
                     <div>
-                      <p className="text-xs sm:text-sm md:text-lg capitalize">{product.name}</p>
+                      <p className="text-xs sm:text-sm md:text-lg capitalize">
+                        {product.name}
+                      </p>
                       <p className="text-xs sm:text-sm text-sub-color">
                         {product.size} / {product.color}
                       </p>

@@ -86,8 +86,10 @@ function CheckoutDetails({ onContinue }) {
         same_as_billing: "on",
       };
 
+      
+
       try {
-        await setAddresses(null, formattedData, updateCart);
+        await setAddresses(null, formattedData, updateCart , process.env.NEXT_PUBLIC_REVALIDATE_SECRET);
         onContinue(formData);
       } catch (error) {
         console.error("Error setting addresses:", error);

@@ -2,15 +2,21 @@ import Cookies from "js-cookie";
 import crypto from "crypto";
 
 
+
 // Generate a random IV
 const generateIV = () => crypto.randomBytes(16);
 
+const secretKey =process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+
 // Function to encrypt data
 const encrypt = (data, key) => {
+  if(secretKey){
+    console.error("seceret is not present")
+  }
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(
     "aes-256-cbc",
-    crypto.createHash("sha256").update(key).digest(),
+    crypto.createHash("sha256").update(secretKey).digest(),
     iv
   );
   const encrypted = Buffer.concat([cipher.update(data, "utf8"), cipher.final()]);
@@ -23,7 +29,7 @@ const decrypt = (encryptedData, key) => {
   const iv = Buffer.from(ivHex, "hex");
   const decipher = crypto.createDecipheriv(
     "aes-256-cbc",
-    crypto.createHash("sha256").update(key).digest(),
+    crypto.createHash("sha256").update(secretKey).digest(),
     iv
   );
   const decrypted = Buffer.concat([decipher.update(Buffer.from(encrypted, "hex")), decipher.final()]);
@@ -73,12 +79,12 @@ export const removeAuthToken = async () => {
 
 
 // Function to set the cart ID securely in cookies
-export const setCartId = async (cartId) => {
+export const setCartId = async (cartId , secretKey) => {
   const data = JSON.stringify({ cartId, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 }); // 7 days expiration
-  const encryptedCartId = encrypt(data);
+  const encryptedCartId = encrypt(data , secretKey);
 
   Cookies.set("_medusa_cart_id", encryptedCartId, {
-    maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+    // maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
   });
@@ -87,7 +93,7 @@ export const setCartId = async (cartId) => {
 };
 
 // Function to retrieve the cart ID securely from cookies
-export const getCartId = async () => {
+export const getCartId = async (secretKey) => {
   const encryptedCartId = Cookies.get("_medusa_cart_id");
 
   if (!encryptedCartId) {
@@ -95,7 +101,7 @@ export const getCartId = async () => {
   }
 
   try {
-    const { cartId, expiresAt } = JSON.parse(decrypt(encryptedCartId));
+    const { cartId, expiresAt } = JSON.parse(decrypt(encryptedCartId , secretKey));
 
     if (Date.now() > expiresAt) {
       await removeCartId();
@@ -115,6 +121,7 @@ export const removeCartId = async () => {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
   });
+  
 
   console.log("Cart ID removed from cookies");
 };

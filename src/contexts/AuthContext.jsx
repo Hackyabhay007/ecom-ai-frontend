@@ -1,67 +1,74 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { useRouter } from "next/router";
-import Cookies from "js-cookie";
-import axios from "axios";
-import { useCrypto } from "./CryptoContext";
+import React, { createContext, useContext, useCallback } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import {
+  retrieveCustomer,
+  updateCustomer,
+  signup,
+  login,
+  signout
+} from "../../redux/slices/authSlice"
 
-const AuthContext = createContext();
+const UserContext = createContext(undefined)
 
-export const AuthProvider = ({ children }) => {
-  const {encrypt , decrypt} = useCrypto()
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // For handling loading state
-  const router = useRouter();
+export const UserProvider = ({ children }) => {
+  const dispatch = useDispatch()
+  const { currentCustomer, token, isLoading } = useSelector(
+    state => state.customer
+  )
 
-  // Function to fetch user data
-  const fetchUserData = async (token) => {
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/customers/me`,
-        {}, // Send an empty body if your API doesn't require one
-        {
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setUser(response.data.customer)
-    } catch (error) {
-      console.error("Error fetching user data:", error.response?.data || error.message);
-    } finally {
-      setLoading(false); // Stop loading
-    }
-  };
-  
-  // Check for token on initial render
-  useEffect(() => {
-    const token = Cookies.get("_medusa_jwt");
+  const getUserProfile = useCallback(async () => {
+    await dispatch(retrieveCustomer())
+  }, [dispatch])
 
+  const updateProfile = useCallback(
+    async userData => {
+      await dispatch(updateCustomer(userData))
+    },
+    [dispatch]
+  )
 
-    if (token) {
-      fetchUserData(decrypt(token)); // Fetch user data if token is present
-    } else {
-      setLoading(false); // No token, stop loading
-    }
-  }, []);
+  const registerUser = useCallback(
+    async (formData, secretKey) => {
+      await dispatch(signup({ formData, secretKey }))
+    },
+    [dispatch]
+  )
 
-  // Login function
+  const loginUser = useCallback(
+    async (formData, secretKey) => {
+      await dispatch(login({ formData, secretKey }))
+    },
+    [dispatch]
+  )
 
+  const logoutUser = useCallback(
+    async countryCode => {
+      await dispatch(signout(countryCode))
+    },
+    [dispatch]
+  )
 
-
-
-  // Logout function
-  const logout = () => {
-    Cookies.remove("_medusa_jwt"); // Remove token from cookies
-    setUser(null); // Clear user data
-    router.push("/auth/login");
-  };
+  const contextValue = {
+    user: currentCustomer,
+    token,
+    isAuthenticated: !!token,
+    isLoading,
+    getUserProfile,
+    updateProfile,
+    registerUser,
+    loginUser,
+    logoutUser
+  }
 
   return (
-    <AuthContext.Provider value={{ user,  logout, loading , fetchUserData }}>
-      {!loading && children} {/* Ensure children are rendered only after loading */}
-    </AuthContext.Provider>
-  );
-};
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  )
+}
 
-export const useAuth = () => useContext(AuthContext);
+export const useUser = () => {
+  const context = useContext(UserContext)
+  if (context === undefined) {
+    throw new Error("useUser must be used within a UserProvider")
+  }
+  return context
+}

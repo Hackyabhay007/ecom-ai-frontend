@@ -10,7 +10,7 @@ const Cart = () => {
   // const { items } = useSelector((state) => state.cart);
   const { cart } = useCart();
 
-  // console.log(cart);
+  console.log(cart);
 
   // console.log(cart, " this is cart");
   const [items, setitems] = useState([]);

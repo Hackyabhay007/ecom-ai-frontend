@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { retrieveCart } from "@lib/data/cart";
+import { useCrypto } from "./CryptoContext";
 
 const CartContext = createContext();
 

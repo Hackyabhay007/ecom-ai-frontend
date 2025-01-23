@@ -104,6 +104,8 @@ const ProductView = ({ product, allProducts }) => {
   };
 
   const handleAddToCart = async () => {
+
+    process.env.NEXT_PUBLIC_REVALIDATE_SECRET
     if (!selectedSize) {
       setWarning("Please select  size.");
       setIsProgressVisible(true);
@@ -131,7 +133,8 @@ const ProductView = ({ product, allProducts }) => {
       quantity: 1,
       region: region,
       Updater: updateCart,
-    });
+
+    } , process.env.NEXT_PUBLIC_REVALIDATE_SECRET );
 
     // setIsAdding(false)
   };

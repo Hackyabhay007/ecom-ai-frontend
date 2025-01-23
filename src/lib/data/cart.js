@@ -21,8 +21,10 @@ import { useCart } from "@/contexts/CartContext";
  * @returns The cart object if found, or null if not found.
  */
 
-export async function retrieveCart(cartId) {
-  const id = cartId || (await getCartId());
+export async function retrieveCart(secretKey , updateCart) {
+  const id =  (await getCartId(secretKey));
+
+  
 
   if (!id) {
     return null;
@@ -32,9 +34,6 @@ export async function retrieveCart(cartId) {
     ...(await getAuthHeaders()),
   };
 
-  const next = {
-    ...(await getCacheOptions("carts")),
-  };
 
   return await sdk.client
     .fetch(`/store/carts/${id}`, {
@@ -44,20 +43,22 @@ export async function retrieveCart(cartId) {
           "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name",
       },
       headers,
-      next,
     })
-    .then(({ cart }) => cart)
+    .then(({ cart }) => updateCart(cart))
     .catch(() => null);
 }
 
-export async function getOrSetCart(region) {
+
+
+
+export async function getOrSetCart(region , secretKey) {
   if (!region) {
     throw new Error(
       `Region not found for country code: ${region.currency_code}`
     );
   }
 
-  let cart = await retrieveCart();
+  let cart = await retrieveCart(secretKey);
 
   const headers = {
     ...(await getAuthHeaders()),
@@ -74,7 +75,7 @@ export async function getOrSetCart(region) {
     );
     cart = cartResp.cart;
 
-    await setCartId(cart.id);
+    await setCartId(cart.id , secretKey);
 
     // const cartCacheTag = await getCacheTag("carts");
     // revalidateTag(cartCacheTag);
@@ -91,8 +92,8 @@ export async function getOrSetCart(region) {
   return cart;
 }
 
-export async function updateCart(data , Updater) {
-  const cartId = await getCartId();
+export async function updateCart(data , Updater , secretKey) {
+  const cartId = await getCartId(secretKey);
 
   if (!cartId) {
     throw new Error(
@@ -117,12 +118,12 @@ export async function updateCart(data , Updater) {
     .catch(medusaError);
 }
 
-export async function addToCart({ variantId, quantity, region, Updater }) {
+export async function addToCart({ variantId, quantity, region, Updater } , secretKey) {
   if (!variantId) {
     throw new Error("Missing variant ID when adding to cart");
   }
 
-  const cart = await getOrSetCart(region);
+  const cart = await getOrSetCart(region , secretKey);
 
   if (!cart) {
     throw new Error("Error retrieving or creating cart");
@@ -205,19 +206,54 @@ export async function deleteLineItem(lineId) {
     .catch(medusaError);
 }
 
-export async function setShippingMethod({ cartId, shippingMethodId }) {
+export async function setShippingMethod({ cartId, shippingMethodId } ,updateCart) {
   const headers = {
     ...(await getAuthHeaders()),
   };
 
   return sdk.store.cart
     .addShippingMethod(cartId, { option_id: shippingMethodId }, {}, headers)
-    .then(async () => {
-      // const cartCacheTag = await getCacheTag("carts");
-      // revalidateTag(cartCacheTag);
+    .then(async (res) => {
+      console.log(res.cart)
+      updateCart(res.cart)
     })
     .catch(medusaError);
 }
+
+export async function createPaymentSession(cart, updateCart , pp_id , key , fetchCart) {
+  const headers = {
+    ...(await getAuthHeaders()), // Fetch authentication headers (e.g., JWT token)
+  };
+
+  console.log(cart, pp_id , key , fetchCart)
+
+  try {
+    // Create the payment session using Medusa SDK
+    sdk.store.payment.initiatePaymentSession(
+      cart , // assuming you already have the cart object
+      {
+        provider_id: pp_id,
+      }
+    ).then(({ payment_collection }) => {
+      console.log(payment_collection)
+      // console.log(key)
+      retrieveCart(key , updateCart)
+    })
+
+    // // Log the response (optional)
+    // console.log(response.cart);
+
+    // Update the cart with the new payment session details
+    // updateCart(response.cart);
+
+    // return response.cart; // Return the cart with the payment session information
+  } catch (error) {
+    // Handle any errors that might occur
+    medusaError(error);
+    throw error; // Optionally, re-throw the error to be handled elsewhere
+  }
+}
+
 
 export async function initiatePaymentSession(cart, data) {
   const headers = {
@@ -227,8 +263,7 @@ export async function initiatePaymentSession(cart, data) {
   return sdk.store.payment
     .initiatePaymentSession(cart, data, {}, headers)
     .then(async (resp) => {
-      // const cartCacheTag = await getCacheTag("carts");
-      // revalidateTag(cartCacheTag);
+     
       return resp;
     })
     .catch(medusaError);
@@ -306,13 +341,13 @@ export async function submitPromotionForm(currentState, formData) {
 }
 
 // TODO: Pass a POJO instead of a form entity here
-export async function setAddresses(currentState, formData , Updater) {
+export async function setAddresses(currentState, formData , Updater , secretKey) {
   console.log(4);
   try {
     if (!formData) {
       throw new Error("No form data found when setting addresses");
     }
-    const cartId = getCartId();
+    const cartId = getCartId(secretKey);
     if (!cartId) {
       throw new Error("No existing cart found when setting addresses");
     }
@@ -342,7 +377,7 @@ export async function setAddresses(currentState, formData , Updater) {
   
 
     console.log(7 , data);
-    await updateCart(data ,Updater);
+    await updateCart(data ,Updater , secretKey);
   } catch (e) {
     return e.message;
   }

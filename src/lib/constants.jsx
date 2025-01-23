@@ -26,7 +26,11 @@ export const paymentInfoMap = {
   pp_system_default: {
     title: "Manual Payment",
     icon: <CreditCard />
-  }
+  },
+  pp_razorpay_razorpay: {
+    title: "Razorpay",
+    icon: <CreditCard />,
+  },
   // Add more payment providers here
 }
 

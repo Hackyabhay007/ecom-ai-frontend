@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import WishlistBreadCrumb from "./WishlistBreadCrumb";
 import WishlistGridLayout from "./WishlistGridLayout";
 import Image from "next/image";
+import { useRouter } from "next/router";
 
 const Wishlist = () => {
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -11,6 +12,7 @@ const Wishlist = () => {
     category: "all",
     sort: "best-selling",
   });
+  const router = useRouter()
 
   const handleLayoutChange = (newLayout) => setLayout(newLayout);
 
@@ -53,12 +55,12 @@ const Wishlist = () => {
           <div
             key={product.id}
             className="rounded-lg text-center  relative text-cream cursor-pointer"
-            onClick={() => (window.location.href = `/shop/${product.id}`)}
+            onClick={() => (router(`/shop/product/${product.id}`))}
           >
             {/* Image */}
             <div className="relative w-full h-32 md:h-96">
               <Image
-                src={product.image}
+                src={product.thumbnail}
                 alt={product.name}
                 layout="fill"
                 objectFit="cover"
@@ -70,11 +72,11 @@ const Wishlist = () => {
             {/* Product Information */}
             <div className="mt-4 px-2">
               <h3 className="mb-1 font-medium text-xs md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
-                {product.name}
+                {product.title}
               </h3>
 
               <div className="flex flex-wrap mb-5 gap-3 items-center justify-start">
-                <span className="md:text-lg text-xs">₹{product.price}</span>
+                <span className="md:text-lg text-xs">₹{product.variants[0].calculated_price.calculated_amount}</span>
                 {product.prevPrice && (
                   <span className="text-xs text-sub-color line-through">
                     ₹{product.prevPrice}
