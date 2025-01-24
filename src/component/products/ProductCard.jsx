@@ -318,7 +318,7 @@ const ProductCard = ({ product, layout }) => {
               : ""
           }`}
         >
-          <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left  hover:text-gray-700">
+          <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left  hover:text-gray-700 pt-2">
             {product.title || name}
           </h3>
 
