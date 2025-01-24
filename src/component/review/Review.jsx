@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchreviews } from "../../../redux/slices/reviewSlicer.js";
@@ -7,9 +7,6 @@ import { useSwipeable } from "react-swipeable";
 
 const Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef(null);
   const dispatch = useDispatch();
   const { reviews, status, error } = useSelector((state) => state.reviewsection);
   const [itemsPerView, setItemsPerView] = useState(3);
@@ -78,32 +75,6 @@ const Review = () => {
 
   const reviewsToShow = reviews.slice(currentIndex, currentIndex + itemsPerView);
 
-  const autoPlay = useCallback(() => {
-    if (isPlaying && !isPaused) {
-      nextReview();
-    }
-  }, [isPlaying, isPaused]);
-
-  // Auto-play effect
-  useEffect(() => {
-    timerRef.current = setInterval(autoPlay, 5000); // Change slide every 5 seconds
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [autoPlay]);
-
-  // Pause on hover/touch
-  const handleMouseEnter = () => setIsPaused(true);
-  const handleMouseLeave = () => setIsPaused(false);
-  const handleTouchStart = () => setIsPaused(true);
-  const handleTouchEnd = () => setIsPaused(false);
-
-  // Toggle auto-play
-  const toggleAutoPlay = () => setIsPlaying(!isPlaying);
-
   if (status === 'loading') {
     return (
       <div className="h-[350px] w-full flex items-center justify-center">
@@ -121,26 +92,10 @@ const Review = () => {
   }
 
   return (
-    <div 
-      className="p-3 md:p-5 relative h-auto min-h-[350px] w-full overflow-hidden" 
-      {...swipeHandlers}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="flex justify-between items-center mb-4 md:mb-8">
-        <h2 className="text-center text-xl md:text-3xl font-bold flex-1">
-          What People Are Saying
-        </h2>
-        <button
-          onClick={toggleAutoPlay}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-          aria-label={isPlaying ? "Pause auto-play" : "Start auto-play"}
-        >
-          <i className={`ri-${isPlaying ? 'pause' : 'play'}-fill text-xl`}></i>
-        </button>
-      </div>
+    <div className="p-3 md:p-5 relative h-auto min-h-[350px] w-full overflow-hidden" {...swipeHandlers}>
+      <h2 className="text-center text-xl md:text-3xl font-bold mb-4 md:mb-8">
+        What People Are Saying
+      </h2>
 
       <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2 md:px-5 relative`}>
         <AnimatePresence initial={false} mode="wait">
@@ -161,14 +116,17 @@ const Review = () => {
             >
               <div className="relative py-4">
                 <div className="flex items-start space-x-4">
-                  <Image
-                    src={review.user_pic}
-                    alt={`${review.user_name}'s profile`}
-                    width={64}
-                    height={64}
-                    className="rounded-xl object-cover"
-                    priority={true}
-                  />
+                  <div className="w-16 h-16 flex-shrink-0 relative">
+                    <Image
+                      src={review.user_pic}
+                      alt={`${review.user_name}'s profile`}
+                      width={64}
+                      height={64}
+                      className="rounded-xl object-cover w-full h-full"
+                      style={{ aspectRatio: '1/1' }}
+                      priority={true}
+                    />
+                  </div>
                   <div className="flex-1">
                     <div className="text-yellow-600" aria-label={`Rating: ${review.rating} out of 5 stars`}>
                       {renderStars(review.rating)}
@@ -189,22 +147,14 @@ const Review = () => {
         {reviews.length > itemsPerView && (
           <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full flex justify-between px-2">
             <button
-              onClick={() => {
-                prevReview();
-                setIsPaused(true);
-                setTimeout(() => setIsPaused(false), 3000);
-              }}
+              onClick={prevReview}
               className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full hover:bg-white/25 transition-colors"
               aria-label="Previous reviews"
             >
               <i className="ri-arrow-left-s-fill"></i>
             </button>
             <button
-              onClick={() => {
-                nextReview();
-                setIsPaused(true);
-                setTimeout(() => setIsPaused(false), 3000);
-              }}
+              onClick={nextReview}
               className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full hover:bg-white/25 transition-colors"
               aria-label="Next reviews"
             >
@@ -212,20 +162,6 @@ const Review = () => {
             </button>
           </div>
         )}
-
-        {/* Progress indicator */}
-        <div className="absolute bottom-0 left-0 w-full flex justify-center gap-2 py-2">
-          {Array.from({ length: Math.ceil(reviews.length / itemsPerView) }).map((_, idx) => (
-            <div
-              key={idx}
-              className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                Math.floor(currentIndex / itemsPerView) === idx
-                  ? 'bg-theme-blue w-4'
-                  : 'bg-gray-300'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
