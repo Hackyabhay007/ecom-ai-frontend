@@ -25,26 +25,38 @@ const Filter = ({ onApplyFilters }) => {
   const [categroies, setCategroies] = useState([]);
   const dispatch = useDispatch();
 
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
   const getCountOfProductFromCategory = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/category/get-category-with-product-count`,
         {
+          withCredentials: true,
           headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || '',
           },
         }
       );
-      const categories = response.data.categories;
-      const updatedData = data.map((item) => {
-        const matchingCategory = categories.find((cat) => cat.id === item.id);
-        return matchingCategory
-          ? { ...item, product_count: matchingCategory.product_count }
-          : item;
-      });
-      setCategroies(updatedData);
+      
+      if (response.data && response.data.categories) {
+        const categories = response.data.categories;
+        const updatedData = data?.map((item) => {
+          const matchingCategory = categories.find((cat) => cat.id === item.id);
+          return matchingCategory
+            ? { ...item, product_count: matchingCategory.product_count }
+            : { ...item, product_count: 0 };
+        }) || [];
+        setCategroies(updatedData);
+      }
     } catch (error) {
-      console.error("Error fetching product counts for categories:", error);
+      console.error("Error fetching product counts:", error.response?.data || error.message);
+      setFetchError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,7 +65,7 @@ const Filter = ({ onApplyFilters }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (data) {
+    if (data && data.length > 0) {
       getCountOfProductFromCategory();
     }
   }, [data]);
@@ -116,7 +128,7 @@ const Filter = ({ onApplyFilters }) => {
   return (
     <div>
       <button
-        className={`md:hidden w-full py-2 px-10 bg-white fixed z-40 text-end font-semibold rounded-md ${
+        className={`md:hidden w-full py-2 px-10 bg-white sticky z-40 text-end font-semibold rounded-md ${
           isMobileFilterOpen ? "top-5" : "top-60"
         }`}
         onClick={() => setIsMobileFilterOpen(true)}
@@ -152,22 +164,28 @@ const Filter = ({ onApplyFilters }) => {
             <h3 className="text-md font-semibold text-black mb-2">
               Product Type
             </h3>
-            <ul>
-              {categroies.map((item) => (
-                <li
-                  key={item.name}
-                  className={`flex py-1 justify-between text-sm cursor-pointer ${
-                    cat_name === item.name ? "text-theme-blue" : "text-black"
-                  }`}
-                  onClick={() => {
-                    updateQueryParams({ cat_id: item.id, cat_name: item.name });
-                  }}
-                >
-                  <span className="capitalize">{item.name}</span>
-                  <span>({item.product_count})</span>
-                </li>
-              ))}
-            </ul>
+            {loading ? (
+              <p>Loading categories...</p>
+            ) : fetchError ? (
+              <p>Error: {fetchError}</p>
+            ) : (
+              <ul>
+                {categroies.map((item) => (
+                  <li
+                    key={item.id}
+                    className={`flex py-1 justify-between text-sm cursor-pointer ${
+                      cat_name === item.name ? "text-theme-blue" : "text-black"
+                    }`}
+                    onClick={() => {
+                      updateQueryParams({ cat_id: item.id, cat_name: item.name });
+                    }}
+                  >
+                    <span className="capitalize">{item.name}</span>
+                    <span>({item.product_count || 0})</span>
+                  </li>
+                ))}
+              </ul>
+            )}
             <hr className="my-4" />
           </div>
 

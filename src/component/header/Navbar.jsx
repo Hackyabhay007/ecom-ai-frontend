@@ -83,15 +83,24 @@ function Navbar() {
         {/* Mobile Navigation Implementation */}
         <div className="flex items-center justify-between">
           <Link href="/">
-            <div className="flex justify-center items-center relative w-20 h-10">
-              <Image
-                src="/images/logo/logo.png"
-                alt="Logo"
-                width={500}
-                height={500}
-                className="absolute w-20 animate-fade1"
-              />
-            </div>
+          <div className="flex justify-center items-center relative w-28 h-10">
+        {/* First logo with fade animation */}
+        <Image
+          src="/images/logo/logo.png"
+          alt="Logo"
+          width={500}
+          height={500}
+          className="absolute w-28 animate-fade1"
+        />
+        {/* Second logo with delayed fade animation */}
+        <Image
+          src="/images/logo/logo2.png"
+          alt="Logo 2"
+          width={500}
+          height={500}
+          className="absolute w-6 animate-fade2"
+        />
+      </div>
           </Link>
 
           <div className="flex space-x-4 items-center justify-end">
@@ -143,20 +152,52 @@ function Navbar() {
     <nav className="bg-white text-black flex items-center justify-around p-4 py-6 shadow-md">
       {/* Logo */}
       <Link href="/">
-        <div className="flex justify-center items-center relative w-28 h-10">
-          <Image
-            src="/images/logo/logo.png"
-            alt="Logo"
-            width={500}
-            height={500}
-            className="absolute w-28 animate-fade1"
-          />
-        </div>
+      <div className="flex justify-center items-center relative w-28 h-10">
+        {/* First logo with fade animation */}
+        <Image
+          src="/images/logo/logo.png"
+          alt="Logo"
+          width={500}
+          height={500}
+          className="absolute w-28 animate-fade1"
+        />
+        {/* Second logo with delayed fade animation */}
+        <Image
+          src="/images/logo/logo2.png"
+          alt="Logo 2"
+          width={500}
+          height={500}
+          className="absolute w-6 animate-fade2"
+        />
+      </div>
       </Link>
 
       {/* Desktop Navigation Links */}
       <div className="flex items-center space-x-14">
         {/* Navigation Items */}
+        <div
+          className={`cursor-pointer uppercase text-sm hover:text-theme-blue border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
+            router.pathname === "/"
+              ? "text-theme-blue font-semibold border-b-2 border-theme-blue"
+              : ""
+          }`}
+          onClick={() => navigateTo("/")}
+        >
+          Home
+        </div>
+        <div
+          className={`cursor-pointer uppercase text-sm hover:text-theme-blue border-b-2 border-transparent hover:border-theme-blue transition-all ease-in-out ${
+            router.pathname === "/shop"
+              ? "text-theme-blue font-semibold border-b-2 border-theme-blue"
+              : ""
+          }`}
+          onClick={() => navigateTo("/shop")}
+        >
+          Shop
+        </div>
+        <div className="">
+          <NavCategory />
+        </div>
       </div>
 
       {/* Right Icons */}

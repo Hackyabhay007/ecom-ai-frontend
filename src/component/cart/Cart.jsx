@@ -83,7 +83,7 @@ const Cart = () => {
               Subtotal:
             </p>
             <p className="md:text-lg text-md font-bold text-cream">
-              ₹{cart.item_subtotal}
+              ₹{cart?.item_subtotal || 0}
             </p>
           </div>
           <div className="flex gap-2 md:gap-4 md:px-2 px-1 w-full">
