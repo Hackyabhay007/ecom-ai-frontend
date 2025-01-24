@@ -233,7 +233,7 @@ const ProductCard = ({ product, layout }) => {
         <div
           className={`relative ${
             layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
-          } h-64 md:h-96 group`}
+          }  h-56 md:h-96 group`}
         >
           {/* Sale and New Tags - Positioned absolutely at top left */}
           <div className="absolute top-2 left-2 z-30 flex flex-col gap-2">
@@ -312,14 +312,14 @@ const ProductCard = ({ product, layout }) => {
 
         {/* Product Information */}
         <div
-          className={`mt-4 z-20  ${
+          className={`p-4 flex flex-col ${
             layout === "list"
               ? "md:w-3/4 w-1/2 pl-10 flex flex-col justify-center items-start"
               : ""
           }`}
         >
-          <h3 className="mb-2 text-wrap font-medium text-sm md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
-            {name}
+          <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left min-h-[40px] hover:text-gray-700">
+            {product.title || name}
           </h3>
 
           {discount > 0 ? (
