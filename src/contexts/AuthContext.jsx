@@ -1,37 +1,74 @@
-import React, { createContext, useState, useContext } from "react";
-import { useRouter } from "next/router";
+import React, { createContext, useContext, useCallback } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import {
+  retrieveCustomer,
+  updateCustomer,
+  signup,
+  login,
+  signout
+} from "../../redux/slices/authSlice"
 
-const AuthContext = createContext();
+const UserContext = createContext(undefined)
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const router = useRouter();
+export const UserProvider = ({ children }) => {
+  const dispatch = useDispatch()
+  const { currentCustomer, token, isLoading } = useSelector(
+    state => state.customer
+  )
 
-  const login = (email, password) => {
-    if (email === "abc@gmail.com" && password === "1234") {
-      setUser({ name: "John Doe", email });
-      router.push("/auth/dashboard");
-    } else {
-      alert("Invalid email or password");
-    }
-  };
+  const getUserProfile = useCallback(async () => {
+    await dispatch(retrieveCustomer())
+  }, [dispatch])
 
-  const register = (name, email, password) => {
-    // Dummy registration logic
-    setUser({ name, email });
-    router.push("/auth/dashboard");
-  };
+  const updateProfile = useCallback(
+    async userData => {
+      await dispatch(updateCustomer(userData))
+    },
+    [dispatch]
+  )
 
-  const logout = () => {
-    setUser(null);
-    router.push("/auth/login");
-  };
+  const registerUser = useCallback(
+    async (formData, secretKey) => {
+      await dispatch(signup({ formData, secretKey }))
+    },
+    [dispatch]
+  )
+
+  const loginUser = useCallback(
+    async (formData, secretKey) => {
+      await dispatch(login({ formData, secretKey }))
+    },
+    [dispatch]
+  )
+
+  const logoutUser = useCallback(
+    async countryCode => {
+      await dispatch(signout(countryCode))
+    },
+    [dispatch]
+  )
+
+  const contextValue = {
+    user: currentCustomer,
+    token,
+    isAuthenticated: !!token,
+    isLoading,
+    getUserProfile,
+    updateProfile,
+    registerUser,
+    loginUser,
+    logoutUser
+  }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  )
+}
 
-export const useAuth = () => useContext(AuthContext);
+export const useUser = () => {
+  const context = useContext(UserContext)
+  if (context === undefined) {
+    throw new Error("useUser must be used within a UserProvider")
+  }
+  return context
+}

@@ -5,11 +5,14 @@ const Breadcrumb = ({
   heading,
   subCategory,
   onCategorySelect,
-  categories = [],
+  categories = [], // Ensure default value is an array
 }) => {
-  const Route = useRouter()
+  const Route = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("");
-  const {cat_name} = Route.query;
+  const { cat_name } = Route.query;
+
+  // Ensure categories is an array before mapping
+  const categoryArray = Array.isArray(categories) ? categories : [];
 
   const handleCategorySelect = (category) => {
     Route.push({
@@ -42,13 +45,13 @@ const Breadcrumb = ({
       {/* Product Types */}
       <div className="px-4 md:px-14">
         <div className="flex overflow-x-auto gap-4 text-xs md:text-sm font-semibold text-[#1F1F1F] uppercase no-scrollbar">
-          {categories.map((type) => (
+          {categoryArray.map((type) => (
             <span
-              key={type}
-              className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap ${
+              key={type.id || type} // Add fallback for key
+              className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap transition-all duration-300 ease-in-out transform hover:scale-105 ${
                 cat_name === type.name
-                  ? "bg-[#1F1F1F] text-white"
-                  : "text-[#1F1F1F] group-hover:bg-[#1F1F1F] group-hover:text-white"
+                  ? "bg-[#1F1F1F] text-white shadow-lg"
+                  : "text-[#1F1F1F] hover:bg-[#1F1F1F] hover:text-white"
               }`}
               style={{
                 minWidth: "100px", // Ensures consistent width

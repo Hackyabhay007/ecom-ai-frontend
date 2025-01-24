@@ -1,49 +1,50 @@
-import React, { useState } from "react";
-// import products from "../products/data/product_data";
+import React, { useEffect, useState } from "react";
 import SearchSuggestion from "./SearchSuggestion";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../../../redux/slices/productSlice";
 import { useRegion } from "../../contexts/RegionContext.jsx";
-import useProducts from "../../contexts/ProductContext";
-
-  // const dispatch = useDispatch();
-  // const { region } = useRegion();
-
-  // const { products, count, nextPage, status, error } = useSelector(
-  //   (state) => state.products
-  // );
-
-  // useEffect(()=>{
-  //   dispatch(fetchProducts({ pageParam: 1, queryParams: {}, region }));
-  // },[dispatch])
-
-  // console.log(products)
+import medusaClient from "../../lib/medusa-client";
 
 const Search = ({ onClose, isMobile }) => {
   const [query, setQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
-  const { products, count, status, loading, errorState } = useProducts();
+  const { region } = useRegion();
 
-  const handleSearch = (e) => {
+  const convertToDecimal = (amount) => {
+    return Math.floor(amount) / 100;
+  };
+
+  const formatPrice = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: region.currency_code,
+    }).format(convertToDecimal(amount));
+  };
+
+  const handleSearch = async (e) => {
     const searchQuery = e.target.value.toLowerCase();
     setQuery(searchQuery);
     setIsTyping(true);
 
     if (searchQuery) {
-      const matches = products.filter((product) => {
-        return (
-          product.name.toLowerCase().includes(searchQuery) ||
-          product.categories.some((category) =>
-            category.toLowerCase().includes(searchQuery)
-          ) ||
-          product.colors.some((color) =>
-            color.toLowerCase().includes(searchQuery)
-          ) ||
-          product.sizes.some((size) => size.toLowerCase().includes(searchQuery))
-        );
-      });
-      setFilteredProducts(matches);
+      try {
+        const { products } = await medusaClient.products.list({
+          q: searchQuery,
+          region_id: region.id
+        });
+
+        // Add formatted prices to products
+        const productsWithPrices = products.map(product => ({
+          ...product,
+          formattedPrices: product.variants.map(variant => 
+            formatPrice(variant.calculated_price_incl_tax)
+          )
+        }));
+
+        setFilteredProducts(productsWithPrices || []);
+      } catch (error) {
+        console.error("Search error:", error);
+        setFilteredProducts([]);
+      }
     } else {
       setFilteredProducts([]);
     }
@@ -62,7 +63,6 @@ const Search = ({ onClose, isMobile }) => {
       }`}
     >
       <div className="md:flex hidden justify-between items-center mb-4">
-        
         <i
           className="ri-close-line text-xl cursor-pointer hover:bg-black hover:text-white transition-all rounded-full px-1"
           onClick={onClose}

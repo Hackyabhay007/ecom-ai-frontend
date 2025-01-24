@@ -50,7 +50,19 @@ function BestSellerCard({ id, image, rating, price, prevPrice, discount, title }
   }, [id, region]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col animate-pulse">
+        <div className="w-full h-96 bg-gray-200"></div>
+        <div className="flex flex-col p-4">
+          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+          <div className="flex gap-2">
+            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

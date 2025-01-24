@@ -1,3 +1,5 @@
+"use server";
+
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import ProductDetails from "./ProductDetails";
@@ -5,7 +7,7 @@ import CustomerReview from "./CustomerReview.jsx";
 import CustomerComment from "./CustomerComment";
 import RelatedProducts from "./RelatedProducts";
 import { useDispatch } from "react-redux";
-import { addToCart } from "../../../../redux/slices/cartSlice";
+import { addToCartoncaches } from "../../../../redux/slices/cartSlice";
 import ProductDetailsInfo from "./ProductDetailsInfo";
 import CustomSize from "./CustomSize";
 import HandleInfo from "./HandleInfo";
@@ -13,17 +15,17 @@ import ImageCarousel from "./ImageCrousal";
 import products from "../data/product_data";
 import { useRegion } from "../../../contexts/RegionContext";
 import axios from "axios";
+import { addToCart } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
+import { useCart } from "@/contexts/CartContext";
 
-const ProductView = ({  product, allProducts }) => {
+const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(
-     null
-  );
+  const [selectedColor, setSelectedColor] = useState(null);
   const router = useRouter();
   const { region } = useRegion();
-  console.log(product);
+  // console.log(product);
   const [selectedSize, setSelectedSize] = useState(null);
   const [warning, setWarning] = useState("");
   const [isAdded, setIsAdded] = useState(false);
@@ -34,6 +36,10 @@ const ProductView = ({  product, allProducts }) => {
   const [price, setPrice] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
+  const [selectedVariant, setselectedVariant] = useState([]);
+  const { updateCart } = useCart();
+
+  // // console.log(region, "region");
 
   const [rating, setRating] = useState([]);
   const [avaragerating, setAvaragerating] = useState(0);
@@ -41,30 +47,29 @@ const ProductView = ({  product, allProducts }) => {
   // store/products/get-product-with-review-and-category/prod_01JHSYYSJD80XCWWVMDM1QV6ZA
 
   useMemo(() => {
-    if(product){
+    if (product) {
       axios
-      .get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/get-product-with-review-and-category/${product.id}`,
-        {
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-          },
-        }
-      )
-      .then((res) => {
-        const responses = res.data.productsubdetails;
-        console.log(res.data.productsubdetails);
-        if (responses?.reviews) {
-          setRating(responses.reviews);
-          setAvaragerating(responses.averageRating);
-        }
-        if (responses?.categories) {
-          setCategory(responses.categories);
-        }
-      });
+        .get(
+          `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/get-product-with-review-and-category/${product.id}`,
+          {
+            headers: {
+              "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+            },
+          }
+        )
+        .then((res) => {
+          const responses = res.data.productsubdetails;
+          // console.log(res.data.productsubdetails);
+          if (responses?.reviews) {
+            setRating(responses.reviews);
+            setAvaragerating(responses.averageRating);
+          }
+          if (responses?.categories) {
+            setCategory(responses.categories);
+          }
+        });
     }
   }, [product]);
-
 
   const handleBuyNow = () => {
     if (!selectedSize) {
@@ -98,9 +103,43 @@ const ProductView = ({  product, allProducts }) => {
     );
   };
 
-  
+  const handleAddToCart = async () => {
 
-  const handleAddToCart = () => {
+    process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+    if (!selectedSize) {
+      setWarning("Please select  size.");
+      setIsProgressVisible(true);
+
+      setTimeout(() => {
+        setWarning("");
+        setIsProgressVisible(false);
+      }, 3000);
+      return;
+    }
+    if (!selectedSize) {
+      setWarning("Please select  size.");
+      setIsProgressVisible(true);
+
+      setTimeout(() => {
+        setWarning("");
+        setIsProgressVisible(false);
+      }, 3000);
+      return;
+    }
+
+    setIsAdded(true);
+    await addToCart({
+      variantId: selectedVariant.id,
+      quantity: 1,
+      region: region,
+      Updater: updateCart,
+
+    } , process.env.NEXT_PUBLIC_REVALIDATE_SECRET );
+
+    // setIsAdding(false)
+  };
+
+  const handleAddToCart2 = () => {
     if (!selectedSize) {
       setWarning("Please select both color and size.");
       setIsProgressVisible(true);
@@ -111,19 +150,7 @@ const ProductView = ({  product, allProducts }) => {
       }, 3000);
       return;
     }
-    dispatch(
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity,
-        image: product.image,
-        color: selectedColor,
-        size: selectedSize,
-        categories: product.categories,
-        discount: product.discount,
-      })
-    );
+
     setWarning(""); // Clear warning on successful addition
     setIsAdded(true); // Indicate item was added
 
@@ -131,23 +158,20 @@ const ProductView = ({  product, allProducts }) => {
     setTimeout(() => setIsAdded(false), 3000);
   };
 
-
   const [mainImage, setMainImage] = useState(product?.thumbnail);
   const [additionalImages, setAdditionalImages] = useState();
   // initialAdditionalImages
   const [slideDirection, setSlideDirection] = useState("");
- 
 
   const renderStars = (rating) => {
     return Array.from({ length: rating }, (_, i) => (
       <i key={i} className="ri-star-fill text-yellow-400"></i>
     ));
   };
-  
-  
+
   useMemo(() => {
-      if(region){
-        const targetVariant =
+    if (region) {
+      const targetVariant =
         selectedSize && selectedColor
           ? product?.variants.find((v) =>
               v.options?.some(
@@ -169,7 +193,8 @@ const ProductView = ({  product, allProducts }) => {
           : selectedSize
           ? product?.variants.find((variant) =>
               variant.options?.some(
-                (option) => option.value.toLowerCase() === selectedSize.toLowerCase()
+                (option) =>
+                  option.value.toLowerCase() === selectedSize.toLowerCase()
               )
             )
           : product?.variants.find((variant) =>
@@ -177,55 +202,48 @@ const ProductView = ({  product, allProducts }) => {
                 (option) => option.value.toLowerCase() === "m"
               )
             );
-  
-      console.log(
-        targetVariant,
-        "this is target vaiant",
-        selectedColor,
-        selectedSize,
-        product
-      );
-  
+
+      // // console.log(
+      //   targetVariant,
+      //   "this is target vaiant",
+      //   selectedColor,
+      //   selectedSize,
+      //   product
+      // );
+
       if (targetVariant) {
-        setPrice(
-          new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: region?.currency_code,
-          }).format(targetVariant.calculated_price?.calculated_amount)
-        );
-  
+        setPrice(targetVariant.calculated_price?.calculated_amount);
+
         const calculatedAmount =
           targetVariant.calculated_price?.calculated_amount;
-  
+
         if (product.metadata?.discount) {
           setDiscount(product.metadata.discount);
           // console.log();
         }
         if (calculatedAmount && product.metadata?.discount > 0) {
           setDiscountedamount(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: region?.currency_code,
-            }).format(
-              calculatedAmount -
-                calculatedAmount * (product.metadata?.discount / 100)
-            )
+            calculatedAmount -
+              calculatedAmount * (product.metadata?.discount / 100)
           );
         } else {
           setDiscountedamount(0); // Or handle the case when there's no valid amount/discount
         }
+
+        setselectedVariant(targetVariant);
+        // console.log(targetVariant);
         // setLoading(false);
       } else {
         setPrice("N/A");
       }
-      }
-    }, [product?.metadata,  region, discount, selectedColor, selectedSize]);
+    }
+  }, [product?.metadata, region, discount, selectedColor, selectedSize]);
 
   useEffect(() => {
     if (product?.images) {
       const images = product?.images.map((i) => i.url);
       setAdditionalImages(images);
-      console.log(images);
+      // console.log(images);
     }
   }, [product]);
 
@@ -250,7 +268,7 @@ const ProductView = ({  product, allProducts }) => {
         )
     );
 
-    console.log(variant?.calculated_price?.calculated_amount);
+    // console.log(variant?.calculated_price?.calculated_amount);
 
     // Return the price if a variant is found
     setPrice(variant?.calculated_price?.calculated_amount);
@@ -272,7 +290,9 @@ const ProductView = ({  product, allProducts }) => {
             {product?.title}{" "}
           </h1>
           {/* Star Rating */}
-          <div className="flex items-center mb-4">{renderStars(avaragerating)}</div>
+          <div className="flex items-center mb-4">
+            {renderStars(avaragerating)}
+          </div>
           {/* Category */}
           <div className="mb-4">
             <span className="text-sm text-theme-blue">Category: </span>
@@ -290,12 +310,23 @@ const ProductView = ({  product, allProducts }) => {
           {/* Pricing Details */}
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">
-              {product?.metadata?.discount > 0 ?  discountedamount : price}
+              {product?.metadata?.discount > 0
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: region ? region.currency_code : "inr",
+                  }).format(discountedamount)
+                : new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: region ? region.currency_code : "inr",
+                  }).format(price)}
             </span>
             {product?.metadata?.discount > 0 && (
               <>
                 <span className="text-sub-color text-sm line-through">
-                  {price}
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: region ? region.currency_code : "inr",
+                  }).format(price)}
                 </span>{" "}
                 <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
                   -{discount}%
@@ -306,24 +337,26 @@ const ProductView = ({  product, allProducts }) => {
 
           <div>
             {/* Colors */}
-           {colors &&  <div className="mb-4">
-              <span className="text-sm text-cream">Color: </span>
-              <div className="flex gap-2">
-                {colors.map((color, index) => (
-                  <button
-                    key={index}
-                    className={`w-8 h-8 rounded-lg border-2 cursor-pointer bg-red-300 ${
-                      selectedColor === color ? "border-black" : ""
-                    }`}
-                    style={{ backgroundColor: color.toLowerCase() }} // Ensures proper color formatting
-                    onClick={() => {
-                      setSelectedColor(color);
-                      getPriceForVariant();
-                    }}
-                  />
-                ))}
+            {colors && (
+              <div className="mb-4">
+                <span className="text-sm text-cream">Color: </span>
+                <div className="flex gap-2">
+                  {colors.map((color, index) => (
+                    <button
+                      key={index}
+                      className={`w-8 h-8 rounded-lg border-2 cursor-pointer bg-red-300 ${
+                        selectedColor === color ? "border-black" : ""
+                      }`}
+                      style={{ backgroundColor: color.toLowerCase() }} // Ensures proper color formatting
+                      onClick={() => {
+                        setSelectedColor(color);
+                        getPriceForVariant();
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>}
+            )}
 
             {/* Size Selection */}
             <div className="mb-4 text-xs">
@@ -385,7 +418,10 @@ const ProductView = ({  product, allProducts }) => {
               className={`flex-1 w-full md:w-1/2 px-6 py-2 bg-black text-black  ${
                 isAdded ? "bg-discount-color " : "bg-black text-white"
               }`}
-              onClick={handleAddToCart}
+              onClick={() => {
+                handleAddToCart();
+                // console.log("run");
+              }}
             >
               {isAdded ? (
                 <>
@@ -395,7 +431,10 @@ const ProductView = ({  product, allProducts }) => {
                 "Add to Cart"
               )}
             </button>
-            <button onClick={handleBuyNow}  className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2">
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2"
+            >
               Buy It Now
             </button>
           </div>
@@ -423,7 +462,7 @@ const ProductView = ({  product, allProducts }) => {
       </div>
 
       {/* Additional Sections */}
-       <ProductDetailsInfo categories={category} />
+      <ProductDetailsInfo categories={category} />
       <ProductDetails product={product} />
       <CustomerReview reviews={rating} />
       {/* <RelatedProducts currentProduct={product} allProducts={allProducts} /> */}

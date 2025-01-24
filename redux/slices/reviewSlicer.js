@@ -14,7 +14,7 @@ export const fetchreviews = createAsyncThunk(
         },
       }
     ); // Replace with your API endpoint
-    // // console.log(
+    // console.log(
     //   response.data.reviews,
     //   " this is get rescome from review"
     // );

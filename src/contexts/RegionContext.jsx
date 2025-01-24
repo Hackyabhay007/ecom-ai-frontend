@@ -26,7 +26,14 @@ const RegionProvider = ({ children }) => {
       })
         .then((res) => res.json())
         .then(({ regions }) => {
-          setRegion(regions[0]);
+          if (regions && regions.length > 0) {
+            setRegion(regions[0]);
+          } else {
+            console.error("No regions available");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching regions:", error);
         });
     } else {
       // Retrieve selected region

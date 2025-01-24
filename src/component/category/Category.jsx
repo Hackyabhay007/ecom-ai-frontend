@@ -1,50 +1,53 @@
 import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchcategores } from "../../../redux/slices/categorySlice";
+import { fetchHomeCategories } from "../../../redux/slices/homeCategorySlice";
 import { useRouter } from "next/router";
 import Link from "next/link";
+
+const DUMMY_CATEGORIES = {
+  product_categories: [
+    {
+      id: "dummy_1",
+      name: "Shirts",
+      metadata: { img: "/images/category/woman/cat1.jpeg" }
+    },
+    {
+      id: "dummy_2",
+      name: "Sweatshirts",
+      metadata: { img: "/images/category/woman/cat2.jpg" }
+    },
+    {
+      id: "dummy_3",
+      name: "Pants",
+      metadata: { img: "/images/category/woman/cat3.jpg" }
+    },
+    {
+      id: "dummy_4",
+      name: "Merch",
+      metadata: { img: "/images/category/woman/cat4.jpg" }
+    }
+  ]
+};
 
 const Category = ({ activeCategory = "woman" }) => {
   const dispatch = useDispatch();
   const {
-    categories: data,
+    categories: apiData,
     status,
     error,
-  } = useSelector((state) => state.categorysection);
+  } = useSelector((state) => state.homeCategories);
 
   useEffect(() => {
-    dispatch(fetchcategores());
+    dispatch(fetchHomeCategories());
   }, [dispatch]);
 
-  // console.log(data, status);
-
-  const router = useRouter();
-  const categories = {
-    woman: [
-      { name: "Plazo", image: "/images/category/woman/cat1.jpeg" },
-      { name: "Coat", image: "/images/category/woman/cat2.jpg" },
-      { name: "Blouse", image: "/images/category/woman/cat3.jpg" },
-      { name: "Jacket", image: "/images/category/woman/cat4.jpg" },
-      { name: "Dress", image: "/images/category/woman/cat5.jpg" },
-    ],
-    men: [
-      { name: "Shirt", image: "/images/category/man/cat1.jpg" },
-      { name: "Pants", image: "/images/category/man/cat2.jpg" },
-      { name: "Suit", image: "/images/category/man/cat3.jpg" },
-      { name: "Blazer", image: "/images/category/man/cat4.jpg" },
-      { name: "Jeans", image: "/images/category/man/cat5.jpg" },
-    ],
-    kids: [
-      { name: "T-shirt", image: "/images/category/kids/cat1.jpg" },
-      { name: "Shorts", image: "/images/category/kids/cat2.jpg" },
-      { name: "Dress", image: "/images/category/kids/cat3.jpg" },
-      { name: "Sweater", image: "/images/category/kids/cat4.jpg" },
-      { name: "Jumpsuit", image: "/images/category/kids/cat5.jpg" },
-    ],
-  };
-
   const scrollRef = useRef(null);
+
+  // Use API data if available, otherwise use dummy data
+  const data = apiData?.product_categories?.length > 0 
+    ? apiData.product_categories 
+    : DUMMY_CATEGORIES.product_categories;
 
   const scrollLeft = () => {
     scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
@@ -54,13 +57,10 @@ const Category = ({ activeCategory = "woman" }) => {
     scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
   };
 
-  // Validate the active category
-  const categoryData = categories[activeCategory] || [];
-
   return (
     <div className="p-6 text-white bg-zinc-900">
-      <h2 className="text-2xl font-bold mb-6 capitalize">
-        {activeCategory}&#39;s Categories
+      <h2 className="text-2xl font-bold mb-6">
+        Featured Categories
       </h2>
       <div className="relative">
         {/* Left Arrow */}
@@ -85,29 +85,47 @@ const Category = ({ activeCategory = "woman" }) => {
           className="flex space-x-4 overflow-x-auto scrollbar-custom2 p-2"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {data.map((category, index) => (
-            <Link
-            href={{
-              pathname: "/shop",
-              query: { cat_id: category.id ,cat_name : category.name }, // Add category ID as a query parameter
-            }}
-            key={index}
-            className="flex-shrink-0 cursor-pointer"
-            style={{ scrollSnapAlign: "start" }}
-          >
-            <div className="w-full h-96">
-              <Image
-                src={category.metadata?.img}
-                alt={category.name}
-                width={500}
-                height={500}
-                className="w-full h-full object-contain"
-              />
+          {status === 'loading' ? (
+            <div className="flex items-center justify-center w-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
             </div>
-            <p className="text-left text-sm font-medium mt-2">{category.name}</p>
-          </Link>
-          
-          ))}
+          ) : (
+            data.map((category) => (
+              <Link
+                href={{
+                  pathname: "/shop",
+                  query: { 
+                    cat_id: category.id, 
+                    cat_name: category.name 
+                  },
+                }}
+                key={category.id}
+                className="flex-shrink-0 cursor-pointer min-w-[250px]"
+                style={{ scrollSnapAlign: "start" }}
+              >
+                <div className="w-full h-96 relative group">
+                  <Image
+                    src={category.metadata?.img || '/images/placeholder.jpg'}
+                    alt={category.name}
+                    width={500}
+                    height={500}
+                    className="w-full h-full object-cover  transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      e.target.src = '/images/placeholder.jpg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-white text-xl font-bold">
+                      {category.name}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-left text-sm font-medium mt-2">
+                  {category.name}
+                </p>
+              </Link>
+            ))
+          )}
         </div>
       </div>
     </div>

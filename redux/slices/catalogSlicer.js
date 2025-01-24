@@ -14,11 +14,11 @@ export const fetchcataloges = createAsyncThunk(
         },
       }
     ); // Replace with your API endpoint
-    // // console.log(response.data.catalogs, " this is get rescome from catalog");
+    // console.log(response.data.catalogs, " this is get rescome from catalog");
     return response.data.catalogs; // Assume the API returns an array of cataloges
   }
 );
-// // console.log("")
+// console.log("");
 // fetchcataloges();
 
 const catalogsectionSlice = createSlice({
@@ -36,7 +36,7 @@ const catalogsectionSlice = createSlice({
       })
       .addCase(fetchcataloges.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // // console.log(action.payload);
+        // console.log(action.payload);
         state.cataloges = action.payload;
       })
       .addCase(fetchcataloges.rejected, (state, action) => {

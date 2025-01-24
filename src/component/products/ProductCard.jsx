@@ -6,12 +6,14 @@ import {
   addToWishlist,
   toggleWishlistSidebar,
 } from "../../../redux/slices/wishSlice";
-import { addToCart } from "../../../redux/slices/cartSlice";
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
+import { addToCart, updateCart } from "@/lib/data/cart";
 // import "./Hoverimagechnage.css"
 
 const ProductCard = ({ product, layout }) => {
+  console.log(product, " this product was come ");
+  
   const router = useRouter();
   const dispatch = useDispatch();
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
@@ -24,9 +26,10 @@ const ProductCard = ({ product, layout }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [discount, setdiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
-  console.log(product, " this product was come ");
+  // console.log(product, " this product was come ");
   const { size, color, min_price, max_pirce } = router.query;
-  const [notfoundoncurrentvaiant , setNotfoundoncurrentvaiant ] = useState([])
+  const [notfoundoncurrentvaiant, setNotfoundoncurrentvaiant] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   const {
     id,
@@ -38,7 +41,7 @@ const ProductCard = ({ product, layout }) => {
     description,
   } = product;
 
-  console.log(product.variants[0], " this is product card data");
+  // console.log(product.variants[0], " this is product card data");
 
   useEffect(() => {
     const fetchVariantDetails = async () => {
@@ -71,11 +74,10 @@ const ProductCard = ({ product, layout }) => {
               )
             : product.variants[0];
 
-            if(!targetVariant){
-
-              targetVariant =  product.variants[0]
-              setNotfoundoncurrentvaiant(product.variants[0])
-            }
+        if (!targetVariant) {
+          targetVariant = product.variants[0];
+          setNotfoundoncurrentvaiant(product.variants[0]);
+        }
 
         if (targetVariant) {
           setVariantPrice(
@@ -120,7 +122,16 @@ const ProductCard = ({ product, layout }) => {
     };
 
     fetchVariantDetails();
-  }, [product.metadata, id, region, discount, size, color , max_pirce , min_price]);
+  }, [
+    product.metadata,
+    id,
+    region,
+    discount,
+    size,
+    color,
+    max_pirce,
+    min_price,
+  ]);
 
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
@@ -129,40 +140,38 @@ const ProductCard = ({ product, layout }) => {
     setIsWishlistAdded(true); // Mark as added to wishlist
   };
 
-  const handleAddToCart = (event) => {
-    event.stopPropagation(); // Prevent card click navigation
+  const handleAddToCart = async (event) => {
+    event.stopPropagation();
+    
+    // Get the first variant's options
+    const firstVariant = product.variants[0];
+    const defaultColor = firstVariant?.options?.find(opt => opt.option_id === "opt_color")?.value || null;
+    const defaultSize = firstVariant?.options?.find(opt => opt.option_id === "opt_size")?.value || null;
 
-    const defaultColor = color[0] || null;
-    const defaultSize = size[0] || null;
-
-    dispatch(
-      addToCart({
-        id,
-        name,
-        price,
+    try {
+      await addToCart({
+        variantId: firstVariant.id,
         quantity: 1,
-        image,
-        color: defaultColor,
-        size: defaultSize,
-        discount,
-      })
-    );
+        region,
+        Updater: updateCart,
+      }, process.env.NEXT_PUBLIC_REVALIDATE_SECRET);
 
-    setIsCartAdded(true); // Show added to cart notification
-    setTimeout(() => setIsCartAdded(false), 3000); // Remove notification after 3 seconds
+      setIsCartAdded(true);
+      setTimeout(() => setIsCartAdded(false), 3000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   };
 
   const discountes = product.metadata?.discount || 0; // Ensure discount is a number
   const createdAt = new Date(product.created_at);
   const currentDate = new Date();
 
-  
-
   // Calculate the difference in days
   const diffInTime = currentDate - createdAt;
   const diffInDays = diffInTime / (1000 * 60 * 60 * 24);
   const getTagColor = () => {
-    console.log(discountes, "createAt");
+    // console.log(discountes, "createAt");
 
     if (discountes > 0 && diffInDays <= 3) {
       // Both discounted and new
@@ -210,7 +219,7 @@ const ProductCard = ({ product, layout }) => {
     );
   }
 
-  console.log(product.images[1].url, "product.images");
+  // console.log(product.images[1].url, "product.images");
 
   return (
     <>
@@ -224,12 +233,28 @@ const ProductCard = ({ product, layout }) => {
         <div
           className={`relative ${
             layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
-          } h-72 md:h-96 group`}
+          }  h-56 md:h-96 group`}
         >
+          {/* Sale and New Tags - Positioned absolutely at top left */}
+          <div className="absolute top-2 left-2 z-30 flex flex-col gap-2">
+            {discountes > 0 && (
+              <span className="bg-[#DB4444] text-white text-xs px-3 py-1 rounded-full font-medium">
+                SALE
+              </span>
+            )}
+            {diffInDays <= 3 && (
+              <span className="bg-[#D2EF9A] text-black text-xs px-3 py-1 rounded-full font-medium">
+                NEW
+              </span>
+            )}
+
+          </div>
+
           <Image
             src={image}
             alt={name}
             layout="fill"
+            size={"fit"}
             objectFit="cover"
             className="rounded-2xl hidden max-sm:flex  hover:scale-105 duration-150 shadow-lg  h-72"
           />
@@ -244,24 +269,12 @@ const ProductCard = ({ product, layout }) => {
             />
           </div>
 
-          {(discountes > 0 || diffInDays <= 3) && (
-            <span
-              // key={index}
-              className={`${getTagColor(
-                discount
-              )} text-black text-xs px-3 py-1 absolute md:top-2 lg:top-2 xl:top-2 max-sm:bottom-2 left-2    z-20  rounded-full`}
-            >
-              {discountes > 0 && diffInDays <= 3
-                ? "New & Best Price!"
-                : discountes > 0
-                ? "SALE"
-                : "NEW"}
-            </span>
-          )}
+          {/* Remove the old sale badge code */}
+          {/* Remove or comment out the existing (discountes > 0 || diffInDays <= 3) span */}
 
           {/* Heart Icon */}
           <div
-            className="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+            className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
             onClick={handleAddToWishlist}
           >
             <i
@@ -299,22 +312,22 @@ const ProductCard = ({ product, layout }) => {
 
         {/* Product Information */}
         <div
-          className={`mt-4 z-20  ${
+          className={`p-4 flex flex-col ${
             layout === "list"
               ? "md:w-3/4 w-1/2 pl-10 flex flex-col justify-center items-start"
               : ""
           }`}
         >
-          <h3 className="mb-2 text-wrap font-medium text-sm md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
-            {name}
+          <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left  hover:text-gray-700 pt-2">
+            {product.title || name}
           </h3>
 
           {discount > 0 ? (
             <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
               <span className="text-sm md:text-md">{discountedamount}</span>
-              <span className="md:text-sm text-xs text-sub-color line-through">
+              {/* <span className="md:text-sm text-xs text-sub-color line-through">
                 {variantPrice}
-              </span>
+              </span> */}
               <span className="text-black bg-[#D2EF9A] rounded-full px-[6px] py-[3px] font-thin text-xs">
                 - {discount}% off
               </span>

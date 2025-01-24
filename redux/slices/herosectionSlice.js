@@ -12,7 +12,7 @@ export const fetchHeroes = createAsyncThunk("heroes/fetchHeroes", async () => {
       },
     }
   ); // Replace with your API endpoint
-  // // console.log(response, " this is get res");
+  // console.log(response, " this is get res");
   return response.data.heroes; // Assume the API returns an array of heroes
 });
 

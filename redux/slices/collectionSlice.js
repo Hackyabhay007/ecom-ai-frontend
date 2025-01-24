@@ -9,19 +9,19 @@ export const fetchcollections = createAsyncThunk(
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/collections`,
       {
-        params :{
-            fields : "*metadata"
+        params: {
+          fields: "*metadata",
         },
         headers: {
           "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
         },
       }
     ); // Replace with your API endpoint
-    console.log(response.data, " this is get rescome from collection");
+    // console.log(response.data, " this is get rescome from collection");
     return response.data.collections; // Assume the API returns an array of collections
   }
 );
-// // console.log("")
+// console.log("");
 // fetchcollections();
 
 const collectionsectionSlice = createSlice({
@@ -39,7 +39,7 @@ const collectionsectionSlice = createSlice({
       })
       .addCase(fetchcollections.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // // console.log(action.payload);
+        // console.log(action.payload);
         state.collections = action.payload;
       })
       .addCase(fetchcollections.rejected, (state, action) => {

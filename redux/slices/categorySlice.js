@@ -18,7 +18,7 @@ export const fetchcategores = createAsyncThunk(
     return response.data.product_categories; // Assume the API returns an array of categories
   }
 );
-// // console.log("")
+// console.log("");
 // fetchcategores();
 
 const categorysectionSlice = createSlice({
@@ -36,7 +36,7 @@ const categorysectionSlice = createSlice({
       })
       .addCase(fetchcategores.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // // console.log(action.payload);
+        // console.log(action.payload);
         state.categories = action.payload;
       })
       .addCase(fetchcategores.rejected, (state, action) => {

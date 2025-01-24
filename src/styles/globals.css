@@ -107,3 +107,149 @@ body {
   -ms-overflow-style: none; /* For Internet Explorer and Edge */
   scrollbar-width: none; /* For Firefox */
 }
+
+@keyframes lineLoader {
+  0% {
+    left: -33%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.animate-line-loader {
+  animation: lineLoader 1s infinite linear;
+}
+
+.search-appear {
+  animation: searchAppear 0.3s ease-out;
+}
+
+@keyframes searchAppear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Add these new styles at the end of the file */
+html {
+  scroll-behavior: smooth;
+}
+
+.parallax-section {
+  perspective: 1px;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  perspective-origin-x: 100%;
+}
+
+.parallax-layer {
+  position: relative;
+  height: 100vh;
+  transform-style: preserve-3d;
+}
+
+.parallax-background {
+  transform: translateZ(-1px) scale(2);
+}
+
+.parallax-content {
+  transform: translateZ(0);
+}
+
+/* Smooth scroll animation for elements */
+.scroll-smooth-element {
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Cool scroll animations */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scale-in {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.scale-in.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.slide-in-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.slide-in-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.floating {
+  animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.blur-load {
+  filter: blur(10px);
+  transition: filter 0.4s ease-out;
+}
+
+.blur-load.loaded {
+  filter: blur(0);
+}
+
+.policy-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.last-updated {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.policy-section {
+  margin-bottom: 2.5rem;
+}
+
+.policy-section h3 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.5rem;
+}
+
+.policy-section ul {
+  padding-left: 1.5rem;
+}
+
+.policy-section ul li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}

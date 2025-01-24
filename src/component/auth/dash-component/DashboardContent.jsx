@@ -1,9 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LoyaltyPointsPopup from "./LoyaltyPointsPopup";
 import Image from "next/image";
+import { retrieveCustomer } from "@/redux/slices/authSlice"
+import { useDispatch , useSelector } from "react-redux";
+
+
 const DashboardContent = () => {
   const [isLoyaltyPopupOpen, setIsLoyaltyPopupOpen] = useState(false);
   const [loyaltyPoints, setLoyaltyPoints] = useState(40);
+
+  const { currentCustomer : user } = useSelector(state => state.customer)
+  const dispatch = useDispatch()
+
+  console.log(user)
+
+  
+
+
+  useEffect(()=>{
+    dispatch(retrieveCustomer())
+  },[dispatch])
 
   const cards = [
     { label: "Total Orders", value: 12, icon: "ri-shopping-cart-line" },
@@ -69,7 +85,7 @@ const DashboardContent = () => {
                 {card.label}
               </h3>
               <p className="text-black text-lg md:text-2xl font-bold">
-                {card.value}
+                0
               </p>
             </div>
             <i className={`${card.icon} text-2xl md:text-3xl`}></i>
@@ -93,7 +109,7 @@ const DashboardContent = () => {
           </thead>
           <tbody>
             {/* order */}
-            {recentOrders.map((order, index) => (
+            {user?.orders && user?.orders.map((order, index) => (
               <tr key={index} className="border-b">
                 <td className="px-2 md:px-4 py-2">{order.order}</td>
                 <td className="px-2 md:px-4 py-2">

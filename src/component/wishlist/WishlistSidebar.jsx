@@ -11,6 +11,8 @@ const WishlistSidebar = () => {
   const dispatch = useDispatch();
   const { isOpen, wishlist } = useSelector((state) => state.wishlist);
 
+  console.log(wishlist);
+
   return (
     <>
       {/* Backdrop for smooth transition */}
@@ -47,15 +49,15 @@ const WishlistSidebar = () => {
                 className="flex items-center justify-between border-b pb-2"
               >
                 <Image
-                  src={item.image}
+                  src={item.thumbnail}
                   alt={item.name}
                   className="w-16 h-16 object-cover rounded"
                   width={500}
                   height={500}
                 />
                 <div className="flex-1 ml-4">
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-gray-500">₹{item.price}</p>
+                  <h3 className="font-medium">{item.title}</h3>
+                  <p className="text-sm text-gray-500">₹{item.variants[0].calculated_price.calculated_amount}</p>
                 </div>
                 {/* Remove button for each item */}
                 <button

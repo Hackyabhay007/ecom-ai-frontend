@@ -1,11 +1,18 @@
-import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import Link from "next/link";
+import React, { useEffect } from "react";
+import { useRouter } from "next/router";
 import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { retrieveCustomer, signout } from "@/redux/slices/authSlice";
 
 const DesktopSidebar = ({ activeTab, setActiveTab }) => {
-  const { user, logout } = useAuth();
+  const { currentCustomer: user } = useSelector(state => state.customer);
+  const dispatch = useDispatch();
+  const router = useRouter();
 
+  useEffect(() => {
+    dispatch(retrieveCustomer());
+  }, [dispatch]);
+  
   const menuItems = [
     { name: "Dashboard", tab: "dashboard", icon: "ri-home-2-line" },
     { name: "Order History", tab: "history", icon: "ri-hourglass-2-fill" },
@@ -14,8 +21,19 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
     { name: "Logout", tab: "logout", icon: "ri-logout-box-r-line" },
   ];
 
+  const handleMenuClick = (item) => {
+    if (item.name === "Logout") {
+      dispatch(signout()).then(() => {
+        // Redirect to login page after logout
+        router.push('/auth/login');
+      });
+    } else {
+      setActiveTab(item.tab);
+    }
+  };
+
   return (
-    <div className="bg-light-BG  md:w-80 w-full min-h-fit md:min-h-screen rounded-xl p-4 shadow-md">
+    <div className="bg-light-BG md:w-80 w-full min-h-fit md:min-h-screen rounded-xl p-4 shadow-md">
       {/* User Profile */}
       <div className="flex flex-col items-center mb-10">
         <Image
@@ -25,7 +43,7 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
           height={200}
           className="rounded-full object-cover w-24 h-24 mb-4"
         />
-        <h3 className="text-xl font-bold">{user?.name}</h3>
+        <h3 className="text-xl font-bold">{user?.name || user?.first_name}</h3>
         <p className="text-gray-600">{user?.email}</p>
       </div> 
 
@@ -34,9 +52,7 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
         {menuItems.map((item) => (
           <button
             key={item.tab}
-            onClick={() =>
-              item.tab === "logout" ? logout() : setActiveTab(item.tab)
-            }
+            onClick={() => handleMenuClick(item)}
             className={`flex items-center w-full text-left px-4 py-2 rounded-md ${
               activeTab === item.tab ? "bg-white font-bold" : "bg-light-BG"
             }`}
