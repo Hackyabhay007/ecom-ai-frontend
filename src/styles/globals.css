@@ -107,3 +107,31 @@ body {
   -ms-overflow-style: none; /* For Internet Explorer and Edge */
   scrollbar-width: none; /* For Firefox */
 }
+
+@keyframes lineLoader {
+  0% {
+    left: -33%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.animate-line-loader {
+  animation: lineLoader 1s infinite linear;
+}
+
+.search-appear {
+  animation: searchAppear 0.3s ease-out;
+}
+
+@keyframes searchAppear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
