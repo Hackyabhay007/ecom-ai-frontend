@@ -318,16 +318,16 @@ const ProductCard = ({ product, layout }) => {
               : ""
           }`}
         >
-          <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left min-h-[40px] hover:text-gray-700">
+          <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left  hover:text-gray-700">
             {product.title || name}
           </h3>
 
           {discount > 0 ? (
             <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
               <span className="text-sm md:text-md">{discountedamount}</span>
-              <span className="md:text-sm text-xs text-sub-color line-through">
+              {/* <span className="md:text-sm text-xs text-sub-color line-through">
                 {variantPrice}
-              </span>
+              </span> */}
               <span className="text-black bg-[#D2EF9A] rounded-full px-[6px] py-[3px] font-thin text-xs">
                 - {discount}% off
               </span>
