@@ -14,7 +14,7 @@ export const fetchcategores = createAsyncThunk(
         },
       }
     ); // Replace with your API endpoint
-    // console.log(response.data, " this is get rescome from category");
+    console.log(response.data, " this is get rescome from category");
     return response.data.product_categories; // Assume the API returns an array of categories
   }
 );
