@@ -26,6 +26,9 @@ import collectionsectionSlice from './slices/collectionSlice';
 // Import the new customer reducer
 import authSlicer from './slices/authSlice'; // Assuming you saved the previous artifact as customerSlice.js
 
+// Import the new home category reducer
+import homeCategoryReducer from './slices/homeCategorySlice';
+
 // Persist configuration
 const persistConfig = {
   key: "root",
@@ -48,6 +51,7 @@ const rootReducer = combineReducers({
   reviewsection: reviewsectionSlice,
   featuredection: featuredsectionSlice,
   categorysection: categorysectionSlice,
+  homeCategories: homeCategoryReducer, // Add the new reducer
   products: productSlice,
   collection: collectionsectionSlice,
   customer: authSlicer // Add the customer reducer

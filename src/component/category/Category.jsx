@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchcategores } from "../../../redux/slices/categorySlice";
+import { fetchHomeCategories } from "../../../redux/slices/homeCategorySlice";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
@@ -36,10 +36,10 @@ const Category = ({ activeCategory = "woman" }) => {
     categories: apiData,
     status,
     error,
-  } = useSelector((state) => state.categorysection);
+  } = useSelector((state) => state.homeCategories);
 
   useEffect(() => {
-    dispatch(fetchcategores());
+    dispatch(fetchHomeCategories());
   }, [dispatch]);
 
   const scrollRef = useRef(null);

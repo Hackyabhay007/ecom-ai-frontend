@@ -6,9 +6,9 @@ import {
   addToWishlist,
   toggleWishlistSidebar,
 } from "../../../redux/slices/wishSlice";
-import { addToCart } from "../../../redux/slices/cartSlice";
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
+import { addToCart, updateCart } from "@/lib/data/cart";
 // import "./Hoverimagechnage.css"
 
 const ProductCard = ({ product, layout }) => {
@@ -27,6 +27,7 @@ const ProductCard = ({ product, layout }) => {
   // console.log(product, " this product was come ");
   const { size, color, min_price, max_pirce } = router.query;
   const [notfoundoncurrentvaiant, setNotfoundoncurrentvaiant] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   const {
     id,
@@ -137,27 +138,27 @@ const ProductCard = ({ product, layout }) => {
     setIsWishlistAdded(true); // Mark as added to wishlist
   };
 
-  const handleAddToCart = (event) => {
-    event.stopPropagation(); // Prevent card click navigation
+  const handleAddToCart = async (event) => {
+    event.stopPropagation();
+    
+    // Get the first variant's options
+    const firstVariant = product.variants[0];
+    const defaultColor = firstVariant?.options?.find(opt => opt.option_id === "opt_color")?.value || null;
+    const defaultSize = firstVariant?.options?.find(opt => opt.option_id === "opt_size")?.value || null;
 
-    const defaultColor = color[0] || null;
-    const defaultSize = size[0] || null;
-
-    dispatch(
-      addToCart({
-        id,
-        name,
-        price,
+    try {
+      await addToCart({
+        variantId: firstVariant.id,
         quantity: 1,
-        image,
-        color: defaultColor,
-        size: defaultSize,
-        discount,
-      })
-    );
+        region,
+        Updater: updateCart,
+      }, process.env.NEXT_PUBLIC_REVALIDATE_SECRET);
 
-    setIsCartAdded(true); // Show added to cart notification
-    setTimeout(() => setIsCartAdded(false), 3000); // Remove notification after 3 seconds
+      setIsCartAdded(true);
+      setTimeout(() => setIsCartAdded(false), 3000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   };
 
   const discountes = product.metadata?.discount || 0; // Ensure discount is a number
