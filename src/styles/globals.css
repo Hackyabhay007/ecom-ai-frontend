@@ -220,3 +220,36 @@ html {
 .blur-load.loaded {
   filter: blur(0);
 }
+
+.policy-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.last-updated {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.policy-section {
+  margin-bottom: 2.5rem;
+}
+
+.policy-section h3 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.5rem;
+}
+
+.policy-section ul {
+  padding-left: 1.5rem;
+}
+
+.policy-section ul li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}

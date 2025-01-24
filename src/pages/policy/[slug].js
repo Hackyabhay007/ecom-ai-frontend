@@ -9,31 +9,35 @@ import Footer from "@/component/footer/Footer";
 
 const PolicyPage = () => {
   const { slug } = useRouter().query;
-
-  // Retrieve policy data based on the slug
   const policy = policiesData[slug];
 
-  // If no matching policy is found, return a 404-like message
   if (!policy) {
     return (
-      <>
+      <div className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-6 py-12 text-center">
-          <h1 className="text-3xl font-bold mb-4">Policy Not Found</h1>
-          <p className="text-sm text-sub-color">
-            The policy you are looking for does not exist.
-          </p>
+        <div className="flex-grow flex items-center justify-center bg-gray-50">
+          <div className="text-center px-4 py-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+            <p className="text-xl text-gray-600 mb-8">Policy Not Found</p>
+            <a href="/" className="text-indigo-600 hover:text-indigo-800 font-medium">
+              Return to Homepage
+            </a>
+          </div>
         </div>
         <Footer />
-      </>
+      </div>
     );
   }
 
-  // Render the Policy component
-  return( <><Navbar/>
-  <Policy title={policy.title} content={policy.content} />
-  <Footer/>
-  </>);
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <div className="flex-grow">
+        <Policy title={policy.title} content={policy.content} />
+      </div>
+      <Footer />
+    </div>
+  );
 };
 
 export default PolicyPage;
