@@ -12,6 +12,8 @@ import { addToCart, updateCart } from "@/lib/data/cart";
 // import "./Hoverimagechnage.css"
 
 const ProductCard = ({ product, layout }) => {
+  console.log(product, " this product was come ");
+  
   const router = useRouter();
   const dispatch = useDispatch();
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
@@ -231,7 +233,7 @@ const ProductCard = ({ product, layout }) => {
         <div
           className={`relative ${
             layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
-          } h-72 md:h-96 group`}
+          }  h-64 md:h-96 group`}
         >
           <Image
             src={image}
@@ -269,7 +271,7 @@ const ProductCard = ({ product, layout }) => {
 
           {/* Heart Icon */}
           <div
-            className="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+            className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
             onClick={handleAddToWishlist}
           >
             <i

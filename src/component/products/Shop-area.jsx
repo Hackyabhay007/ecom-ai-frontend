@@ -240,7 +240,7 @@ const ShopArea = () => {
           <Filter onApplyFilters={applyFilters} />
         </div>
 
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto ">
           <GridLayout
             onLayoutChange={setLayout}
             onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}

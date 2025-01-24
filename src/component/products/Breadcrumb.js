@@ -48,10 +48,10 @@ const Breadcrumb = ({
           {categoryArray.map((type) => (
             <span
               key={type.id || type} // Add fallback for key
-              className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap ${
+              className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap transition-all duration-300 ease-in-out transform hover:scale-105 ${
                 cat_name === type.name
-                  ? "bg-[#1F1F1F] text-white"
-                  : "text-[#1F1F1F] group-hover:bg-[#1F1F1F] group-hover:text-white"
+                  ? "bg-[#1F1F1F] text-white shadow-lg"
+                  : "text-[#1F1F1F] hover:bg-[#1F1F1F] hover:text-white"
               }`}
               style={{
                 minWidth: "100px", // Ensures consistent width

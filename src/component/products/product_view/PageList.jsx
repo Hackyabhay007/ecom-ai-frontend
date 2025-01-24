@@ -52,7 +52,7 @@ const ProductList = ({ products, layout }) => {
   }
 
   return (
-    <div className="min-h-screen h-fit">
+    <div className="min-h-screen h-fit ">
       {/* Display Paginated Products */}
       <div
         className={`grid min-h-[120vh] h-fit ${
