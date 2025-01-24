@@ -233,8 +233,23 @@ const ProductCard = ({ product, layout }) => {
         <div
           className={`relative ${
             layout === "list" ? "md:w-1/4 w-1/2" : "w-full"
-          }  h-64 md:h-96 group`}
+          } h-64 md:h-96 group`}
         >
+          {/* Sale and New Tags - Positioned absolutely at top left */}
+          <div className="absolute top-2 left-2 z-30 flex flex-col gap-2">
+            {discountes > 0 && (
+              <span className="bg-[#DB4444] text-white text-xs px-3 py-1 rounded-full font-medium">
+                SALE
+              </span>
+            )}
+            {diffInDays <= 3 && (
+              <span className="bg-[#D2EF9A] text-black text-xs px-3 py-1 rounded-full font-medium">
+                NEW
+              </span>
+            )}
+
+          </div>
+
           <Image
             src={image}
             alt={name}
@@ -254,20 +269,8 @@ const ProductCard = ({ product, layout }) => {
             />
           </div>
 
-          {(discountes > 0 || diffInDays <= 3) && (
-            <span
-              // key={index}
-              className={`${getTagColor(
-                discount
-              )} text-black text-xs px-3 py-1 absolute md:top-2 lg:top-2 xl:top-2 max-sm:bottom-2 left-2    z-20  rounded-full`}
-            >
-              {discountes > 0 && diffInDays <= 3
-                ? "New & Best Price!"
-                : discountes > 0
-                ? "SALE"
-                : "NEW"}
-            </span>
-          )}
+          {/* Remove the old sale badge code */}
+          {/* Remove or comment out the existing (discountes > 0 || diffInDays <= 3) span */}
 
           {/* Heart Icon */}
           <div
