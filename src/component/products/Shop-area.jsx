@@ -236,9 +236,7 @@ const ShopArea = () => {
       />
 
       <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">
-        <div className="w-full md:w-1/4">
-          <Filter onApplyFilters={applyFilters} />
-        </div>
+        
 
         <div className="container mx-auto ">
           <GridLayout
@@ -248,7 +246,9 @@ const ShopArea = () => {
             currentLayout={layout}
             showSaleOnly={showSaleOnly}
           />
-
+<div className="w-full md:w-1/4">
+          <Filter onApplyFilters={applyFilters} />
+        </div>
           <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
             {" "}
             {status === "loading" && <p>Loading...</p>}
