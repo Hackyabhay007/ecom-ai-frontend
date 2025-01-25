@@ -231,7 +231,6 @@ const ShopArea = () => {
         status === "failed" ||
         status == undefined ||
         (status == null && <SkeletonScreen />)}
-      {/* {status === "failed" && <p>Error: {error}</p>} */}
 
       <Breadcrumb
         heading={heading}
@@ -241,9 +240,13 @@ const ShopArea = () => {
       />
 
       <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">
-        
+        {/* Filter Section - Left Side on Desktop */}
+        <div className="md:w-1/4 w-full">
+          <Filter onApplyFilters={applyFilters} />
+        </div>
 
-        <div className="container mx-auto ">
+        {/* Products Section - Right Side on Desktop */}
+        <div className="md:w-3/4 w-full">
           <GridLayout
             onLayoutChange={setLayout}
             onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}
@@ -251,12 +254,9 @@ const ShopArea = () => {
             currentLayout={layout}
             showSaleOnly={showSaleOnly}
           />
-<div className="w-full md:w-1/4">
-          <Filter onApplyFilters={applyFilters} />
-        </div>
+
           <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
-            {" "}
-            {status === "loading" && <p>   <LineLoader/></p>}
+            {status === "loading" && <p><LineLoader/></p>}
             {status === "failed" && <p>Error: {error}</p>}
             {filteredProducts.length} Product
             {filteredProducts.length !== 1 ? "s" : ""} found
@@ -269,12 +269,12 @@ const ShopArea = () => {
           </div>
 
           {status == "loading" && cat_id ? (
-          <LineLoader/>
+            <LineLoader/>
           ) : (
             <ProductList 
               products={filteredProducts} 
               layout={layout} 
-              loading={loading && !filteredProducts.length} // Only show loading when no products
+              loading={loading && !filteredProducts.length}
             />
           )}
         </div>
