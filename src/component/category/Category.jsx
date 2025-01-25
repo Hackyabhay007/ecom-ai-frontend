@@ -108,7 +108,7 @@ const Category = ({ activeCategory = "woman", onNavigate }) => {
                       e.target.src = '/images/placeholder.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute inset-0 bg-black bg-opacity-30  flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <p className="text-white text-xl font-bold">
                       {category.name}
                     </p>
