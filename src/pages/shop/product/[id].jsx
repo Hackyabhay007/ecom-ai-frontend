@@ -9,6 +9,7 @@ import Footer from "@/component/footer/Footer";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../../../redux/slices/productSlice";
 import { useRegion } from "../../../contexts/RegionContext.jsx";
+import Loader from "@/component/loader/Loader";
 
 const ProductPage = () => {
   const router = useRouter();
@@ -41,6 +42,17 @@ const ProductPage = () => {
   // console.log("hi", data, error);
 
   const product = data[0];
+
+  // Add loading check
+  if (status === 'loading' || !data.length) {
+    return (
+      <>
+        <Navbar />
+        <Loader />
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>

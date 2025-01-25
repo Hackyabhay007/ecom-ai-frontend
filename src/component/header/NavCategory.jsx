@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import Category from "../category/Category";
 import Link from "next/link";
+import LineLoader from "../loader/LineLoader";
+import { useRouter } from 'next/router';
 
 const NavCategory = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
   const categoryRefs = {
     woman: useRef(null),
     man: useRef(null),
     kids: useRef(null),
   };
+  const router = useRouter();
 
   const toggleCategoryDropdown = (category) => {
     if (activeCategory === category) {
@@ -44,6 +48,14 @@ const NavCategory = () => {
     }
   };
 
+  const handleNavigation = (path) => {
+    setIsLoading(true);
+    router.push(path).then(() => {
+      setActiveCategory(null);
+      setIsLoading(false);
+    });
+  };
+
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -53,6 +65,7 @@ const NavCategory = () => {
 
   return (
     <div className="relative z-50">
+      {isLoading && <LineLoader />}
       {/* Navigation Menu */}
       <div className="flex px-5 text-xl md:text-base  text-black md:px-0  bg-light-BG md:bg-white flex-col space-y-8  md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around   pt-10 pb-5 md:py-0 s md:pb-0 md:border-none  z-50">
         {["men", "woman", "kids"].map((category) => (
@@ -67,7 +80,7 @@ const NavCategory = () => {
         {category.charAt(0).toUpperCase() + category.slice(1)}<i class="ri-arrow-drop-right-line absolute right-5 md:hidden"></i>
           </div>
         ))}
-      <p className="md:hidden"> <Link href="/">Home<i class="ri-arrow-drop-right-line absolute right-5 md:hidden"></i></Link></p> 
+      <p className="md:hidden"> <Link href="/" onClick={() => handleNavigation('/')} >Home<i class="ri-arrow-drop-right-line absolute right-5 md:hidden"></i></Link></p> 
       </div>
 
       {/* Dropdown */}
@@ -81,7 +94,7 @@ const NavCategory = () => {
             : "hidden"
         }`}
       >
-        {activeCategory && <Category activeCategory={activeCategory} />}
+        {activeCategory && <Category activeCategory={activeCategory} onNavigate={handleNavigation} />}
       </div>
     </div>
   );

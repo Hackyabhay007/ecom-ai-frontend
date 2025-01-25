@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import SearchSuggestion from "./SearchSuggestion";
 import { useRegion } from "../../contexts/RegionContext.jsx";
 import medusaClient from "../../lib/medusa-client";
+import LineLoader from "../loader/LineLoader";
 
 const Search = ({ onClose, isMobile }) => {
   const [query, setQuery] = useState("");
@@ -58,36 +59,37 @@ const Search = ({ onClose, isMobile }) => {
     <div
       className={`${
         isMobile
-          ? " w-full  bg-white"
+          ? "w-full bg-white relative"
           : "fixed top-1/2 left-1/2 w-[90%] md:w-[70%] min-h-[32vh] -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-3xl shadow-2xl shadow-black z-50"
       }`}
     >
-      <div className="md:flex hidden justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex-1"></div>
         <i
           className="ri-close-line text-xl cursor-pointer hover:bg-black hover:text-white transition-all rounded-full px-1"
           onClick={onClose}
         ></i>
       </div>
+      
       <div className="flex flex-col relative">
+        {isTyping && <LineLoader />}
         <input
           type="text"
           value={query}
           onChange={handleSearch}
           placeholder="Search..."
-          className="border border-gray-300 rounded-lg md:rounded-2xl p-2 py-3 mb-2 pl-10 focus:border-black focus:ring-0 focus:ring-black outline-none transition"
+          className="border border-gray-300 rounded-lg md:rounded-2xl p-2 py-3 mb-2 pl-10 focus:border-black focus:ring-0 focus:ring-black outline-none transition-all duration-300"
           style={{ color: query ? "black" : "gray" }}
         />
         {!query && (
           <i className="ri-search-line absolute top-2 md:top-3 left-3 text-xl text-gray-400"></i>
         )}
-        {isTyping && query && (
-          <p className="text-sm text-gray-500">Searching...</p>
-        )}
-        {!isTyping && query && (
-          <p className="text-sm mt-2">
-            {filteredProducts.length > 0
-              ? `${filteredProducts.length} products found`
-              : "No products found"}
+        {query && (
+          <p className="text-sm mt-2 transition-opacity duration-300">
+            {isTyping ? "Searching..." : 
+              filteredProducts.length > 0
+                ? `${filteredProducts.length} products found`
+                : "No products found"}
           </p>
         )}
       </div>
@@ -96,7 +98,7 @@ const Search = ({ onClose, isMobile }) => {
         <SearchSuggestion
           suggestions={filteredProducts}
           onSuggestionClick={(product) => {
-            window.location.href = `/shop/${product.id}`;
+            window.location.href = `/shop/product/${product.id}`;
           }}
         />
       </div>

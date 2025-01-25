@@ -128,7 +128,7 @@ const Filter = ({ onApplyFilters }) => {
   return (
     <div>
       <button
-        className={`md:hidden w-full py-2 px-10 bg-white sticky z-40 text-end font-semibold rounded-md ${
+        className={`md:hidden w-full py-2 px-10  z-40 text-end font-semibold rounded-md ${
           isMobileFilterOpen ? "top-5" : "top-60"
         }`}
         onClick={() => setIsMobileFilterOpen(true)}

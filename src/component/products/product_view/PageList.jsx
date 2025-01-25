@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import ProductCard from "../ProductCard";
 
-const ProductList = ({ products, layout }) => {
+const ShimmerProductCard = () => (
+  <div className="animate-pulse">
+    <div className="relative h-56 md:h-96 bg-gray-200 rounded-lg"></div>
+    <div className="p-4">
+      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  </div>
+);
+
+const ProductList = ({ products, layout, loading }) => {
   const [productsPerPage, setProductsPerPage] = useState(9); // Default to 9 for desktop
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -51,11 +61,24 @@ const ProductList = ({ products, layout }) => {
     pageNumbers.push(i);
   }
 
+  if (loading && !products.length) {
+    return (
+      <div className={`grid ${
+        layout === "grid"
+          ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          : "grid-cols-1 gap-6"
+      }`}>
+        {[...Array(6)].map((_, index) => (
+          <ShimmerProductCard key={index} />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen h-fit ">
-      {/* Display Paginated Products */}
+    <div className="min-h-screen h-fit">
       <div
-        className={`grid  h-fit ${
+        className={`grid h-fit ${
           layout === "grid"
             ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             : "grid-cols-1 gap-6"
@@ -63,7 +86,9 @@ const ProductList = ({ products, layout }) => {
       >
         {currentProducts.length ? (
           currentProducts.map((product) => (
-            <ProductCard key={product.id} product={product} layout={layout} />
+            <div className="transition-opacity duration-300 animate-fadeIn" key={product.id}>
+              <ProductCard product={product} layout={layout} />
+            </div>
           ))
         ) : (
           <p className="text-center col-span-full">No products found.</p>

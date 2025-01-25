@@ -48,7 +48,7 @@ const GridLayout = ({
       <div>
         <select
           onChange={onSortChange}
-          className="p-2 px-4 border rounded-none"
+          className=" pr-8 px-4 border rounded-none"
           defaultValue="best-selling"
         >
           <option value="best-selling">Sort By: Best Selling</option>

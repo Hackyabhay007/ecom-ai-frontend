@@ -46,6 +46,7 @@ module.exports = {
         fade1: 'fade 4s infinite',
         fade2: 'fade 4s infinite 2s', // Delayed by 1 second
         popup: "popup 0.3s ease-out",
+        'line-loader': 'line-loader 1.5s ease-in-out infinite'
       },
       keyframes: {
         fade: {
@@ -126,6 +127,10 @@ module.exports = {
           "0%": { transform: "translateY(0)" },
           "100%": { transform: "translateY(-100%)" },
         },
+        'line-loader': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(200%)' }
+        }
       },
     },
   },
