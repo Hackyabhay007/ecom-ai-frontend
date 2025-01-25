@@ -176,7 +176,7 @@ export async function transferCart(token) {
     return;
   }
 
-  fetch(`http://148.135.138.221:9000/store/carts/${cartId}/customer`, {
+  fetch(`https://api.themajesticpeacock.com/store/carts/${cartId}/customer`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
