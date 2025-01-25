@@ -30,7 +30,7 @@ const DUMMY_CATEGORIES = {
   ]
 };
 
-const Category = ({ activeCategory = "woman" }) => {
+const Category = ({ activeCategory = "woman", onNavigate }) => {
   const dispatch = useDispatch();
   const {
     categories: apiData,
@@ -91,17 +91,11 @@ const Category = ({ activeCategory = "woman" }) => {
             </div>
           ) : (
             data.map((category) => (
-              <Link
-                href={{
-                  pathname: "/shop",
-                  query: { 
-                    cat_id: category.id, 
-                    cat_name: category.name 
-                  },
-                }}
+              <div
                 key={category.id}
                 className="flex-shrink-0 cursor-pointer min-w-[250px]"
                 style={{ scrollSnapAlign: "start" }}
+                onClick={() => onNavigate(`/shop?cat_id=${category.id}&cat_name=${category.name}`)}
               >
                 <div className="w-full h-96 relative group">
                   <Image
@@ -123,7 +117,7 @@ const Category = ({ activeCategory = "woman" }) => {
                 <p className="text-left text-sm font-medium mt-2">
                   {category.name}
                 </p>
-              </Link>
+              </div>
             ))
           )}
         </div>
