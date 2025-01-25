@@ -98,7 +98,7 @@ const Search = ({ onClose, isMobile }) => {
         <SearchSuggestion
           suggestions={filteredProducts}
           onSuggestionClick={(product) => {
-            window.location.href = `/shop/${product.id}`;
+            window.location.href = `/shop/product/${product.id}`;
           }}
         />
       </div>

@@ -18,6 +18,7 @@ import axios from "axios";
 import { addToCart } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useCart } from "@/contexts/CartContext";
+import Loader from "../../loader/Loader";
 
 const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
@@ -38,6 +39,7 @@ const ProductView = ({ product, allProducts }) => {
   const [discountedamount, setDiscountedamount] = useState(0);
   const [selectedVariant, setselectedVariant] = useState([]);
   const { updateCart } = useCart();
+  const [isLoading, setIsLoading] = useState(true);
 
   // // console.log(region, "region");
 
@@ -68,6 +70,12 @@ const ProductView = ({ product, allProducts }) => {
             setCategory(responses.categories);
           }
         });
+    }
+  }, [product]);
+
+  useEffect(() => {
+    if (product) {
+      setIsLoading(false);
     }
   }, [product]);
 
@@ -273,6 +281,10 @@ const ProductView = ({ product, allProducts }) => {
     // Return the price if a variant is found
     setPrice(variant?.calculated_price?.calculated_amount);
     return variant ? variant?.calculated_price?.calculated_amount : null;
+  }
+
+  if (isLoading || !product) {
+    return <Loader />;
   }
 
   return (
