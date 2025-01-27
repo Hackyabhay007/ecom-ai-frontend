@@ -66,6 +66,8 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
       return id;
     });
 
+    console.log(cart.id , id , " this is cart id and id");
+
     await setShippingMethod({ cartId: cart.id, shippingMethodId: id } , updateCart)
       .catch((err) => {
         setShippingMethodId(currentId);

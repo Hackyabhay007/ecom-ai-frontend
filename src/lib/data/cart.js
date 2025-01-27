@@ -25,14 +25,15 @@ export async function retrieveCart(secretKey , updateCart) {
   const id =  (await getCartId(secretKey));
 
   
-
+  console.log(" this was run")
   if (!id) {
     return null;
   }
 
-  const headers = {
-    ...(await getAuthHeaders()),
-  };
+  // const headers = {
+  //   ...(await getAuthHeaders()),
+  // };
+  console.log(" this was run")
 
 
   return await sdk.client
@@ -42,9 +43,11 @@ export async function retrieveCart(secretKey , updateCart) {
         fields:
           "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name",
       },
-      headers,
+      // headers,
     })
-    .then(({ cart }) => updateCart(cart))
+    .then(({ cart }) => {updateCart(cart)
+      console.log(cart , " this update cart")
+    })
     .catch(() => null);
 }
 
@@ -67,6 +70,8 @@ export async function getOrSetCart(region , secretKey) {
   // console.log("cart function is run");
   if (!cart) {
     // console.log("cart function is craaete cart");
+
+    console.log(process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
 
     const cartResp = await sdk.store.cart.create(
       { region_id: region.id },
@@ -211,6 +216,7 @@ export async function setShippingMethod({ cartId, shippingMethodId } ,updateCart
     ...(await getAuthHeaders()),
   };
 
+  console.log(cartId, shippingMethodId  ,"cartId, shippingMethodId ")
   return sdk.store.cart
     .addShippingMethod(cartId, { option_id: shippingMethodId }, {}, headers)
     .then(async (res) => {
@@ -225,7 +231,7 @@ export async function createPaymentSession(cart, updateCart , pp_id , key , fetc
     ...(await getAuthHeaders()), // Fetch authentication headers (e.g., JWT token)
   };
 
-  console.log(cart, pp_id , key , fetchCart)
+  console.log(cart, pp_id , key )
 
   try {
     // Create the payment session using Medusa SDK
@@ -237,6 +243,7 @@ export async function createPaymentSession(cart, updateCart , pp_id , key , fetc
     ).then(({ payment_collection }) => {
       console.log(payment_collection)
       // console.log(key)
+      console.log(payment_collection)
       retrieveCart(key , updateCart)
     })
 

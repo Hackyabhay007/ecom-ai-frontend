@@ -15,6 +15,8 @@ function PaymentCheckout({ onPaymentComplete }) {
   const notReady =
     !cart || !cart.shipping_address || !cart.billing_address || !cart.email;
 
+  console.log(cart , " this is cart")
+
   useEffect(() => {
     region?.id &&
       listCartPaymentMethods(region.id).then((res) => {
@@ -36,10 +38,13 @@ function PaymentCheckout({ onPaymentComplete }) {
   console.log(providers);
 
   const handlePaymentSelection = (paymentType) => {
+
+    console.log("run" , paymentType.id)
     setSelectedPayment(paymentType.id);
     setSelectedUPI(""); // Reset selected UPI when switching payment methods
   };
 
+ 
   // cartId , updateCart , pp_id , ke
   useEffect(()=>{
     if(selectedPayment){
@@ -63,9 +68,11 @@ function PaymentCheckout({ onPaymentComplete }) {
 
   useEffect(()=>{
     if(cart) setpaymentSession(cart?.payment_collection?.payment_sessions?.[0])
+
+      console.log(cart?.payment_collection , " this is cart")
   },[cart])
 
-  console.log(cart , " tjos sos odnfkjvdnvs")
+
 
   return (
     <>
@@ -93,7 +100,9 @@ function PaymentCheckout({ onPaymentComplete }) {
                     className={`p-4 cursor-pointer border-b last:border-none ${
                       selectedPayment === paymentType ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => handlePaymentSelection(paymentType)}
+                    onClick={() => {handlePaymentSelection(paymentType)
+                      console.log(paymentType , " this is paymentType")
+                    }}
                   >
                     <span className="text-black font-medium">
                       {sliceLastWord(paymentType.id).lastWord}

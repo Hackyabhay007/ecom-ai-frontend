@@ -15,7 +15,10 @@ export const RazorpayPaymentButton = ({ session, notReady, cart }) => {
 
   console.log(`session_data: ` + JSON.stringify(session))
   const onPaymentCompleted = async () => {
+
+    console.log("payment completed")
     await placeOrder().catch(() => {
+
       setErrorMessage("An error occurred, please try again.")
       setSubmitting(false)
     })
@@ -48,8 +51,10 @@ export const RazorpayPaymentButton = ({ session, notReady, cart }) => {
         animation: true
       },
 
-      handler: async () => {
+      handler: async (res) => {
         onPaymentCompleted()
+
+        console.log(res)
       },
       prefill: {
         name:
@@ -64,19 +69,26 @@ export const RazorpayPaymentButton = ({ session, notReady, cart }) => {
     //await waitForPaymentCompletion();
 
     const razorpay = new Razorpay(options)
+
+    
+
+
     if (orderData.id) razorpay.open()
     razorpay.on("payment.failed", function(response) {
+      console.log(response , " from failed")
       setErrorMessage(JSON.stringify(response.error))
     })
     razorpay.on("payment.authorized", function(response) {
+      console.log(response , " from authrixed")
+
       const authorizedCart = placeOrder().then(authorizedCart => {
         JSON.stringify(`authorized:` + authorizedCart)
       })
     })
-    // razorpay.on("payment.captured", function (response: any) {
-
-    // }
-    // )
+    razorpay.on("payment.captured", function (response) {
+        console.log(response)
+    }
+    )
   }, [
     Razorpay,
     cart?.billing_address?.first_name,

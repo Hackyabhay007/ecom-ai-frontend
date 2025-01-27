@@ -10,7 +10,7 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
 
   const fetchShippingOptions = async (cart_id) => {
     try {
-      const response = await axios
+      await axios
         .get(
           `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/shipping-options`,
           {
@@ -26,7 +26,7 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
         .then((res) => {
           console.log(res.data);
           setshippingmethods(res.data.shipping_options);
-        });
+        }).catch(err=>console.log(err));
 
       // console.log(response.data); // Handle the response
     } catch (error) {
