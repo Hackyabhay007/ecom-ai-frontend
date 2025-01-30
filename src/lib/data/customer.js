@@ -59,7 +59,7 @@ export async function signup(_currentState, formData, secretKey) {
     phone: formData.phone,
   };
 
-  console.log(customerForm);
+  // console.log(customerForm);
   try {
     // Register the customer and fetch a token
 
@@ -68,8 +68,8 @@ export async function signup(_currentState, formData, secretKey) {
       password: password,
     });
 
-    console.log(token);
-    await setAuthToken(token , secretKey);
+    // console.log(token);
+    await setAuthToken(token, secretKey);
 
     const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
     const publishableApiKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
@@ -108,10 +108,9 @@ export async function signup(_currentState, formData, secretKey) {
       password,
     });
 
-    await setAuthToken(loginToken , secretKey);
+    await setAuthToken(loginToken, secretKey);
 
-
-    await transferCart(loginToken );
+    await transferCart(loginToken);
 
     return loginToken; // Return the created customer data
   } catch (error) {
@@ -120,7 +119,7 @@ export async function signup(_currentState, formData, secretKey) {
   }
 }
 
-export async function login(_currentState, formData , secretKey) {
+export async function login(_currentState, formData, secretKey) {
   const email = formData.email;
   const password = formData.password;
   let newtoken;
@@ -146,11 +145,11 @@ export async function login(_currentState, formData , secretKey) {
       }
     )
     .then((res) => {
-      newtoken = res.data.token
+      newtoken = res.data.token;
     });
 
-    // console.log(newtoken)
-    await setAuthToken(newtoken , secretKey);
+  // console.log(newtoken);
+  await setAuthToken(newtoken, secretKey);
 
   try {
     await transferCart(newtoken);
@@ -189,7 +188,7 @@ export async function transferCart(token) {
       // use cart...
       localStorage.setItem("_medusa_cart_data", JSON.stringify(cart));
 
-      console.log(cart);
+      // console.log(cart);
     });
 }
 

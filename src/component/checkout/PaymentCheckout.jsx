@@ -5,25 +5,70 @@ import { useRegion } from "@/contexts/RegionContext";
 import { RazorpayPaymentButton } from "./RazorpayPaymentButton.jsx";
 import { useCart } from "@/contexts/CartContext";
 import { createPaymentSession } from "@/lib/data/cart";
+import axios from "axios";
+import Shipping from "./Shippingoption";
+import { Spinner } from "@medusajs/icons";
+import { placeOrder } from "@/lib/data/cart";
+import { useRouter } from "next/router";
+import { clearCart } from "@/redux/slices/cartSlice";
 
 function PaymentCheckout({ onPaymentComplete }) {
   const [selectedPayment, setSelectedPayment] = useState("");
   const [selectedUPI, setSelectedUPI] = useState("");
   const [providers, setProviders] = useState([]);
   const { region } = useRegion();
-  const { cart , updateCart  , fetchCart} = useCart();
+  const { cart, updateCart, fetchCart } = useCart();
   const notReady =
     !cart || !cart.shipping_address || !cart.billing_address || !cart.email;
 
-  console.log(cart , " this is cart")
+  const router = useRouter()
+
+  const [ismmauall, setismmauall] = useState(false);
+  // console.log(cart , " this is cart")
 
   useEffect(() => {
     region?.id &&
       listCartPaymentMethods(region.id).then((res) => {
         setProviders(res);
-        console.log(res);
+        // console.log(res);
       });
   }, [region]);
+
+  const [shippingmethods, setShippingmethods] = useState([]);
+
+  console.log(shippingmethods, "shippingmethods");
+
+  const fetchShippingOptions = async (cart_id) => {
+    try {
+      await axios
+        .get(
+          `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/shipping-options`,
+          {
+            headers: {
+              "x-publishable-api-key":
+                process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+            },
+            params: {
+              cart_id: cart_id,
+            },
+          }
+        )
+        .then((res) => {
+          setShippingmethods(res.data.shipping_options);
+
+          console.log(res.data.shipping_options);
+        })
+        .catch((err) => console.error(err));
+
+      // console.log(response.data); // Handle the response
+    } catch (error) {
+      console.error("Error fetching shipping options:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (cart) fetchShippingOptions(cart.id);
+  }, [cart]);
 
   function sliceLastWord(inputString) {
     // Split the string into an array of words using "_" as the separator
@@ -35,26 +80,35 @@ function PaymentCheckout({ onPaymentComplete }) {
     return { slicedString, lastWord };
   }
 
-  console.log(providers);
 
   const handlePaymentSelection = (paymentType) => {
-
     console.log("run" , paymentType.id)
     setSelectedPayment(paymentType.id);
     setSelectedUPI(""); // Reset selected UPI when switching payment methods
+    if (selectedPayment) {
+      if (!cart) {
+        console.log("carts is not present");
+      } else {
+        console.log("carts is present" , cart);
+        createPaymentSession(
+          cart,
+          updateCart,
+          paymentType.id,
+          process.env.NEXT_PUBLIC_REVALIDATE_SECRET,
+          fetchCart
+        );
+      }
+    }
   };
 
- 
-  // cartId , updateCart , pp_id , ke
-  useEffect(()=>{
-    if(selectedPayment){
-      if(!cart) {console.log("carts is not present") }
-      else{
-      createPaymentSession(cart , updateCart , selectedPayment , process.env.NEXT_PUBLIC_REVALIDATE_SECRET , fetchCart  )}
-    }
-  },[selectedPayment])
+  const isrozarpay = (id) => {
+    return id.startsWith("pp_razorpay_");
+  };
 
-  
+  const isManual = (id)=>{
+    return id.startsWith("pp_system_default");
+  }
+
 
   const handleCompletePayment = () => {
     if (!selectedPayment) {
@@ -64,15 +118,38 @@ function PaymentCheckout({ onPaymentComplete }) {
     onPaymentComplete();
   };
 
-  const [paymentSession,setpaymentSession] = useState() 
+  const [paymentSession, setpaymentSession] = useState();
 
-  useEffect(()=>{
-    if(cart) setpaymentSession(cart?.payment_collection?.payment_sessions?.[0])
+  useEffect(() => {
+    if (cart)
+      setpaymentSession(cart?.payment_collection?.payment_sessions?.[0]);
 
-      console.log(cart?.payment_collection , " this is cart")
-  },[cart])
+    console.log(cart?.payment_collection, " this is cart");
+  }, [cart]);
 
+  const handleshipping = async () => {
+   
 
+    // console.log("payment completed");
+    await placeOrder()
+      .then((res) => {
+        console.log("order placed" , res);
+        if(res){
+          router.push({
+            pathname: "/order-confirmation",
+            query: { order_id: res },
+          });
+        }
+        clearCart();
+        localStorage.setItem("_medusa_cart_data" , [])
+        setismmauall(false)
+      })
+      .catch(() => {
+        clearCart();
+        
+        setismmauall(false)
+      });
+  };
 
   return (
     <>
@@ -90,9 +167,23 @@ function PaymentCheckout({ onPaymentComplete }) {
             </h3>
           </div>
 
+          {ismmauall && (
+            <div className="fixed bg-gray-400/10 w-screen h-screen top-0 z-[99999] left-0 backdrop-blur-md ">
+              <div className="flex justify-center items-center h-full">
+                <div className="bg-white p-4 rounded-md font-semibold text-3xl flex items-center justify-center flex-col">
+                  Please Select a Shipping method before place order
+                  <Shipping
+                    availableShippingMethods={shippingmethods}
+                    onPayment={handleshipping}
+                  />
+                  <Spinner className="animate-spin " />
+                </div>
+              </div>
+            </div>
+          )}
           <div className="flex flex-col md:flex-row">
             {/* Left Section - Payment Options */}
-            <div className="w-full md:w-1/4 border-b md:border-r border-black scrollbar-custom overflow-y-auto max-h-96">
+            <div className="w-full md:w-1/4 min-w-[200px] border-b md:border-r border-black scrollbar-custom overflow-y-auto max-h-96">
               {providers &&
                 providers.map((paymentType, index) => (
                   <div
@@ -100,22 +191,39 @@ function PaymentCheckout({ onPaymentComplete }) {
                     className={`p-4 cursor-pointer border-b last:border-none ${
                       selectedPayment === paymentType ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => {handlePaymentSelection(paymentType)
-                      console.log(paymentType , " this is paymentType")
+                    onClick={() => {
+                      handlePaymentSelection(paymentType);
+                      // console.log(paymentType , " this is paymentType")
                     }}
                   >
-                    <span className="text-black font-medium">
-                      {sliceLastWord(paymentType.id).lastWord}
+                    <span className="text-black font-medium ">
+                      {sliceLastWord(paymentType.id).lastWord == "default"
+                        ? "Cash on delivery"
+                        : sliceLastWord(paymentType.id).lastWord}
+                        
                     </span>
                   </div>
                 ))}
             </div>
-            <RazorpayPaymentButton
-              session={paymentSession}
-              notReady={notReady}
-              cart={cart}
-            />
-
+            <div className="w-full md:w-3/4 md:p-4 mt-4 md:mt-0 flex items-center justify-center">
+              {!notReady && isrozarpay(selectedPayment) && (
+                <RazorpayPaymentButton
+                  session={paymentSession}
+                  notReady={notReady}
+                  shippingmethods={shippingmethods}
+                  placeOrder={handleshipping}
+                  cart={cart}
+                />
+              )}
+              {!notReady && isManual(selectedPayment) && (
+                <button
+                  onClick={() => setismmauall(true)}
+                  className=" bg-green-600 font-semibold text-xl px-3 py-1 flex  rounded-lg"
+                >
+                  Cash on delivery
+                </button>
+              )}
+            </div>
             {/* Right Section - Selected Payment Details */}
             <div className="w-full md:w-3/4 md:p-4 mt-4 md:mt-0">
               {!selectedPayment && (

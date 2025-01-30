@@ -19,11 +19,10 @@ export const listCartPaymentMethods = async (regionId) => {
       next,
       cache: "force-cache",
     })
-    .then(({ payment_providers }) =>{
-      console.log(payment_providers)
-      return payment_providers
-    }
-    )
+    .then(({ payment_providers }) => {
+      // console.log(payment_providers)
+      return payment_providers;
+    })
     .catch(() => {
       return null;
     });

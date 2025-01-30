@@ -55,7 +55,7 @@ body {
 
 .scrollbar-custom::-webkit-scrollbar-track {
   background-color: #E1E1E1; /* Light track color */
-  border-radius: 10px;
+  border-radius: 1000px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {

@@ -17,7 +17,10 @@ const encrypt = (data, key) => {
     crypto.createHash("sha256").update(key).digest(),
     iv
   );
-  const encrypted = Buffer.concat([cipher.update(data, "utf8"), cipher.final()]);
+  const encrypted = Buffer.concat([
+    cipher.update(data, "utf8"),
+    cipher.final(),
+  ]);
   return `${iv.toString("hex")}:${encrypted.toString("hex")}`;
 };
 
@@ -33,7 +36,10 @@ const decrypt = (encryptedData, key) => {
     crypto.createHash("sha256").update(key).digest(),
     iv
   );
-  const decrypted = Buffer.concat([decipher.update(Buffer.from(encrypted, "hex")), decipher.final()]);
+  const decrypted = Buffer.concat([
+    decipher.update(Buffer.from(encrypted, "hex")),
+    decipher.final(),
+  ]);
   return decrypted.toString("utf8");
 };
 
@@ -45,7 +51,7 @@ export const setAuthToken = async (token) => {
   }
   const encryptedToken = encrypt(token, secretKey);
 
-  console.log(encryptedToken)
+  // console.log(encryptedToken)
 
   Cookies.set("_medusa_jwt", encryptedToken, {
     // maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
@@ -53,7 +59,7 @@ export const setAuthToken = async (token) => {
     secure: process.env.NODE_ENV === "production",
   });
 
-  console.log("Token stored securely");
+  // console.log("Token stored securely");
 };
 
 // Retrieve and decrypt token from cookies
@@ -85,14 +91,16 @@ export const removeAuthToken = async () => {
   });
 };
 
-
 // Function to set the cart ID securely in cookies
 export const setCartId = async (cartId) => {
   if (!secretKey) {
     console.error("Secret key is not present");
     return;
   }
-  const data = JSON.stringify({ cartId, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 }); // 7 days expiration
+  const data = JSON.stringify({
+    cartId,
+    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+  }); // 7 days expiration
   const encryptedCartId = encrypt(data, secretKey);
 
   Cookies.set("_medusa_cart_id", encryptedCartId, {
@@ -101,7 +109,7 @@ export const setCartId = async (cartId) => {
     secure: process.env.NODE_ENV === "production",
   });
 
-  console.log("Cart ID stored securely in cookies");
+  // console.log("Cart ID stored securely in cookies");
 };
 
 // Function to retrieve the cart ID securely from cookies
@@ -117,12 +125,7 @@ export const getCartId = async () => {
   }
 
   try {
-    const { cartId, expiresAt } = JSON.parse(decrypt(encryptedCartId, secretKey));
-
-    if (Date.now() > expiresAt) {
-      await removeCartId();
-      return null;
-    }
+    const { cartId } = JSON.parse(decrypt(encryptedCartId, secretKey));
 
     return cartId;
   } catch (error) {
@@ -137,11 +140,9 @@ export const removeCartId = async () => {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
   });
-  
 
-  console.log("Cart ID removed from cookies");
+  // console.log("Cart ID removed from cookies");
 };
-
 
 // Get cache tag securely
 export const getCacheTag = async (tag) => {

@@ -9,13 +9,23 @@ import {
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
 import { addToCart, updateCart } from "@/lib/data/cart";
+import { useSelector } from "react-redux";
+import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
+
 // import "./Hoverimagechnage.css"
 
 const ProductCard = ({ product, layout }) => {
-  console.log(product, " this product was come ");
-  
+  // console.log(product, " this product was come ");
   const router = useRouter();
   const dispatch = useDispatch();
+  const { currentCustomer: user } = useSelector((state) => state.customer);
+  const { wishlist } = useSelector((state) => state.wishlist);
+  // console.log(user);
+
+  useEffect(() => {
+    dispatch(retrieveCustomer());
+  }, [dispatch]);
+
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isCartAdded, setIsCartAdded] = useState(false);
@@ -135,26 +145,59 @@ const ProductCard = ({ product, layout }) => {
 
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
-    dispatch(addToWishlist(product));
-    dispatch(toggleWishlistSidebar());
+    // console.log(user, " this is user");
+    // console.log(product, " this is product");
+
+    if (!user) {
+      router.push("/auth/login"); // Redirect to login if no user is logged in
+      return;
+    }
+    
+    let update = {
+      metadata: {
+        wishlist: user?.metadata?.wishlist?.some((item) => item.id === product.id)
+          ? user.metadata.wishlist
+          : [...(user?.metadata?.wishlist || []), product],
+      },
+    };
+
+    const wishlistProducts = user?.metadata?.wishlist || [];
+    const productExists = wishlistProducts.some((item) => item.id === product.id);
+
+    if (!productExists) {
+      dispatch(addToWishlist([product]));
+    } else {
+      dispatch(addToWishlist({product : wishlistProducts}));
+    }
+
+    console.log(update, "state.wishlist");
+    dispatch(updateCustomer(update));
+    dispatch(retrieveCustomer());
     setIsWishlistAdded(true); // Mark as added to wishlist
   };
 
   const handleAddToCart = async (event) => {
     event.stopPropagation();
-    
+
     // Get the first variant's options
     const firstVariant = product.variants[0];
-    const defaultColor = firstVariant?.options?.find(opt => opt.option_id === "opt_color")?.value || null;
-    const defaultSize = firstVariant?.options?.find(opt => opt.option_id === "opt_size")?.value || null;
+    const defaultColor =
+      firstVariant?.options?.find((opt) => opt.option_id === "opt_color")
+        ?.value || null;
+    const defaultSize =
+      firstVariant?.options?.find((opt) => opt.option_id === "opt_size")
+        ?.value || null;
 
     try {
-      await addToCart({
-        variantId: firstVariant.id,
-        quantity: 1,
-        region,
-        Updater: updateCart,
-      }, process.env.NEXT_PUBLIC_REVALIDATE_SECRET);
+      await addToCart(
+        {
+          variantId: firstVariant.id,
+          quantity: 1,
+          region,
+          Updater: updateCart,
+        },
+        process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+      );
 
       setIsCartAdded(true);
       setTimeout(() => setIsCartAdded(false), 3000);
@@ -247,7 +290,6 @@ const ProductCard = ({ product, layout }) => {
                 NEW
               </span>
             )}
-
           </div>
 
           <Image
@@ -275,11 +317,11 @@ const ProductCard = ({ product, layout }) => {
           {/* Heart Icon */}
           <div
             className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-            onClick={handleAddToWishlist}
+            onClick={(event) => handleAddToWishlist(event)}
           >
             <i
               className={`text-xl ${
-                isWishlistAdded
+                isWishlistAdded || wishlist.some((item) => item.id === product.id)
                   ? "text-black ri-heart-fill"
                   : "text-black ri-heart-line"
               }`}

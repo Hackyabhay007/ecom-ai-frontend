@@ -108,11 +108,11 @@ const ShopArea = () => {
                 // // console.log(extractAndFormat(variant.title) , result , "extractAndFormat(variant.title)" )
 
                 const hasValidSize =
-                  size && result.size.toLowerCase() == size.toLowerCase();
+                  size && result?.size && result?.size.toLowerCase() == size.toLowerCase();
 
                 const hasValidColor =
                   result.color && color
-                    ? result.color.toLowerCase() == color.toLowerCase()
+                    ? result?.color.toLowerCase() == color.toLowerCase()
                     : false;
 
                 // // console.log(hasValidSize && hasValidColor ,"hasValidSize && hasValidColor" , product.title, variant)
@@ -256,7 +256,11 @@ const ShopArea = () => {
           />
 
           <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
-            {status === "loading" && <p><LineLoader/></p>}
+            {status === "loading" && (
+              <p>
+                <LineLoader />
+              </p>
+            )}
             {status === "failed" && <p>Error: {error}</p>}
             {filteredProducts.length} Product
             {filteredProducts.length !== 1 ? "s" : ""} found
@@ -269,11 +273,11 @@ const ShopArea = () => {
           </div>
 
           {status == "loading" && cat_id ? (
-            <LineLoader/>
+            <LineLoader />
           ) : (
-            <ProductList 
-              products={filteredProducts} 
-              layout={layout} 
+            <ProductList
+              products={filteredProducts}
+              layout={layout}
               loading={loading && !filteredProducts.length}
             />
           )}

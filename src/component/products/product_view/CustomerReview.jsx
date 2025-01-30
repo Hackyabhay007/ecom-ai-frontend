@@ -1,23 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import CustomerComment from "./CustomerComment";
 
-const CustomerReview = ({ reviews, productImage }) => {
+const CustomerReview = ({ reviews, productImage , productId }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [reviewData, setReviewData] = useState();
 
+
+  useEffect(() => {
+    setReviewData(reviews);
+  }, [reviews]);
   // Calculate overall rating and total ratings
   const totalRatings = reviews.length;
   const overallRating = (
     reviews.reduce((acc, review) => acc + review.rating, 0) / totalRatings
-  ).toFixed(1);
+  ).toFixed(1) ;
 
   const ratingBreakdown = {
-    5: ((reviews.filter((review) => review.rating === 5).length / totalRatings) * 100).toFixed(0),
-    4: ((reviews.filter((review) => review.rating === 4).length / totalRatings) * 100).toFixed(0),
-    3: ((reviews.filter((review) => review.rating === 3).length / totalRatings) * 100).toFixed(0),
-    2: ((reviews.filter((review) => review.rating === 2).length / totalRatings) * 100).toFixed(0),
-    1: ((reviews.filter((review) => review.rating === 1).length / totalRatings) * 100).toFixed(0),
+    5: ((reviews.filter((review) => review.rating === 5).length / totalRatings) * 100).toFixed(0) || 0,
+    4: ((reviews.filter((review) => review.rating === 4).length / totalRatings) * 100).toFixed(0) || 0,
+    3: ((reviews.filter((review) => review.rating === 3).length / totalRatings) * 100).toFixed(0)|| 0,
+    2: ((reviews.filter((review) => review.rating === 2).length / totalRatings) * 100).toFixed(0) || 0,
+    1: ((reviews.filter((review) => review.rating === 1).length / totalRatings) * 100).toFixed(0) || 0,
   };
 
   // Render the full-screen modal using a portal
@@ -32,7 +37,7 @@ const CustomerReview = ({ reviews, productImage }) => {
             ✕
           </button>
           <div className="w-full max-w-4xl p-6">
-            <CustomerComment productImage={productImage} />
+            <CustomerComment productImage={productImage} setReviewData={setReviewData} setIsPopupOpen={setIsPopupOpen} productId={productId} />
           </div>
         </div>
       </div>,
@@ -74,11 +79,11 @@ const CustomerReview = ({ reviews, productImage }) => {
       <div className="flex flex-wrap gap-5 flex-col mt-6">
         <div className="flex w-full md:w-1/3">
           <div className="text-center rounded-lg p-4">
-            <h3 className="text-5xl font-bold">{overallRating}</h3>
+            <h3 className="text-5xl font-bold">{isNaN(overallRating) ? "0" : overallRating}</h3>
             <div className="text-yellow-500 flex justify-center">
               {"★".repeat(Math.round(overallRating))}
             </div>
-            <p className="text-sm mt-1 text-gray-500">({totalRatings} Ratings)</p>
+            <p className="text-sm mt-1 text-gray-500 flex">(<span>{totalRatings}</span>&nbsp;<span>Ratings </span>)</p>
           </div>
 
           <div className="flex-1 w-fit ml-8">
@@ -88,10 +93,10 @@ const CustomerReview = ({ reviews, productImage }) => {
                 <div className="flex-1 w-40 h-2 bg-gray-200 rounded-full mx-2">
                   <div
                     className="h-full bg-yellow-500 rounded-full"
-                    style={{ width: `${ratingBreakdown[star]}%` }}
+                    style={{ width: `${isNaN(ratingBreakdown[star]) ? 0 :ratingBreakdown[star]}%` }}
                   ></div>
                 </div>
-                <span className="text-sm text-gray-500">{ratingBreakdown[star]}%</span>
+                <span className="text-sm text-gray-500">{isNaN(ratingBreakdown[star]) ? 0 :ratingBreakdown[star]}%</span>
               </div>
             ))}
           </div>
@@ -126,8 +131,8 @@ const CustomerReview = ({ reviews, productImage }) => {
       </div>
 
       {/* Customer Reviews */}
-      <div className="mt-8 space-y-2 ">
-        {reviews.map((review) => (
+      <div className="mt-8 space-y-2  flex flex-col-reverse">
+        {reviewData && reviewData.map((review) => (
             <div
             key={review.id}
             className="w-full px-5 border-2 border-theme-blue rounded-lg"
@@ -150,7 +155,8 @@ const CustomerReview = ({ reviews, productImage }) => {
               <p className="text-sub-color mt-2">{review.description}</p>
               <p className="text-sm font-bold mt-2">{review.user_name}</p>
               <p className="text-sm text-sub-color mt-2">
-                {formatLocalDate(review.created_at)}
+
+                {formatLocalDate(review.created_at || Date.now())}
               </p>
             </div>
           </div>

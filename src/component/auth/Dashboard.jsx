@@ -12,8 +12,10 @@ import AddressTab from "./dash-component/AddressTab"
 import SettingsTab from "./dash-component/SettingsTab"
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("dashboard")
+
   const router = useRouter()
+  const tab = router.query?.tab
+  const [activeTab, setActiveTab] = useState(tab || "dashboard")
   const dispatch = useDispatch()
   const { currentCustomer, token } = useSelector(state => state.customer)
 
@@ -26,6 +28,10 @@ const Dashboard = () => {
       dispatch(retrieveCustomer())
     }
   }, [dispatch, router])
+
+  useEffect(() => {
+    window.scrollTo({ top: 300, behavior: "smooth" });
+  }, [tab]);
 
   const renderContent = () => {
     switch (activeTab) {

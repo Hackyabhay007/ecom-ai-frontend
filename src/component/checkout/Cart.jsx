@@ -8,15 +8,14 @@ import {
 import Image from "next/image";
 import { useRegion } from "@/contexts/RegionContext";
 import { updateLineItem, deleteLineItem } from "@/lib/data/cart";
-  
 
-const Cart = ({item}) => {
+const Cart = ({ item }) => {
   const [newQuantity, setNewQuantity] = useState(item?.quantity); // Initialize with item's quantity
   const [isUpdating, setIsUpdating] = useState(false); // Track API update state
   const [isVisible, setIsVisible] = useState(true); // Track visibility of the item
   const dispatch = useDispatch();
 
-  console.log(item)
+  // console.log(item)
   // Debounced API call
   useEffect(() => {
     if (isUpdating) {
@@ -65,35 +64,38 @@ const Cart = ({item}) => {
     }
   };
   return (
-   item &&   <tr  className="border-b-2 border-dashed border-gray-600">
-      <td className="py-4 flex flex-col items-start md:flex-row md:items-center">
-        <img
-          src={item.thumbnail}
-          alt="Product"
-          className="h-14 md:h-20 w-auto"
-        />
-        <div className="md:ml-4">
-          <h3 className="font-medium">{item.product_title}</h3>
-          <p className="text-sm text-gray-500">
-            Properties: {(item?.variant_title)}
-          </p>
-        </div>
-      </td>
-    
-      <td className="text-center text-red-500 font-semibold">
-        {item?.adjustments[0]?.amount
-          ? `${((item.adjustments[0]?.amount / item.unit_price) * 100).toFixed(
-              2
-            )}%`
-          : "0%"}
-      </td>
-      <td className="text-right font-bold text-gray-900">
-        ₹
-        {item.adjustments[0]
-          ? item.unit_price - item.adjustments[0]?.amount
-          : item.unit_price}
-      </td>
-    </tr>
+    item && (
+      <tr className="border-b-2 border-dashed border-gray-600">
+        <td className="py-4 flex flex-col items-start md:flex-row md:items-center">
+          <img
+            src={item.thumbnail}
+            alt="Product"
+            className="h-14 md:h-20 w-auto"
+          />
+          <div className="md:ml-4">
+            <h3 className="font-medium">{item.product_title}</h3>
+            <p className="text-sm text-gray-500">
+              Properties: {item?.variant_title}
+            </p>
+          </div>
+        </td>
+
+        <td className="text-center text-red-500 font-semibold">
+          {item?.adjustments[0]?.amount
+            ? `${(
+                (item.adjustments[0]?.amount / item.unit_price) *
+                100
+              ).toFixed(2)}%`
+            : "0%"}
+        </td>
+        <td className="text-right font-bold text-gray-900">
+          ₹
+          {item.adjustments[0]
+            ? item.unit_price - item.adjustments[0]?.amount
+            : item.unit_price}
+        </td>
+      </tr>
+    )
   );
 };
 

@@ -17,6 +17,7 @@ function CheckoutContainer() {
   const { cart } = useCart();
   const { region } = useRegion();
 
+  // console.log("cart", cart);
   useEffect(() => {
     // Set the initial step from the query param if available
     if (query.step) {
@@ -89,8 +90,9 @@ function CheckoutContainer() {
           onPayment={handlePayment}
         />
       )}
-      {step === 4 && <PaymentCheckout onPaymentComplete={handlePaymentComplete} />}
-      
+      {step === 4 && (
+        <PaymentCheckout onPaymentComplete={handlePaymentComplete} />
+      )}
     </div>
   );
 }
