@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit"; // Import combineReducers from Redux Toolkit
 import cartReducer from "./slices/cartSlice";
 import wishReducer from "./slices/wishSlice";
+import homePageReducer from "./slices/homePageSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Using localStorage
 
@@ -15,6 +16,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   cart: cartReducer,
   wishlist: wishReducer, // Add wishlist to the combined reducers
+  homePage: homePageReducer,
 });
 
 // Persist the combined reducer

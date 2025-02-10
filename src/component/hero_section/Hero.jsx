@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchHeroSection } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
+import Link from "next/link";
 
-const heroData = [
-  {
-    image: "/images/hero/hero1.png",
-    heading: "Fashion",
-    tagline: "Innovation and Excellence Await",
-    button1: "Learn More",
-    button2: "Get Started",
-  },
-  {
-    image: "/images/hero/hero2.jpeg",
-    heading: "Unleash Potential",
-    tagline: "Empowering Your Vision",
-    button1: "Join Us",
-    button2: "Explore",
-  },
-  {
-    image: "/images/hero/hero3.jpg",
-    heading: "Elevate Your Experience",
-    tagline: "Redefining Possibilities",
-    button1: "Sign Up",
-    button2: "Learn More",
-  },
-];
+// const heroData = [
+//   {
+//     image: "/images/hero/hero1.png",
+//     heading: "Fashion",
+//     tagline: "Innovation and Excellence Await",
+//     button1: "Learn More",
+//     button2: "Get Started",
+//   },
+//   {
+//     image: "/images/hero/hero2.jpeg",
+//     heading: "Unleash Potential",
+//     tagline: "Empowering Your Vision",
+//     button1: "Join Us",
+//     button2: "Explore",
+//   },
+//   {
+//     image: "/images/hero/hero3.jpg",
+//     heading: "Elevate Your Experience",
+//     tagline: "Redefining Possibilities",
+//     button1: "Sign Up",
+//     button2: "Learn More",
+//   },
+// ];
 
 function Hero() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,12 +35,51 @@ function Hero() {
   const [animateButtons, setAnimateButtons] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
+  const [heroData, setHeroData] = useState([]);
+
+  const dispatch = useDispatch();
+  const { heroSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    dispatch(fetchHeroSection()).then((result) => {
+      console.log("Hero Section Response:", result.payload);
+    });
+  }, [dispatch]);
+
+
+  // Log the hero section data from state
+  useEffect(() => {
+    if (heroSection?.section_data?.slides) {
+      const heroDataArray = heroSection.section_data.slides.map((slide) => {
+        // Safely handle buttons array of any length
+        const buttons = slide.buttons || [];
+        return {
+          image: slide.background_image,
+          heading: slide.title,
+          tagline: slide.subtitle,
+
+          // For backward compatibility with existing code
+          button1: buttons[0]?.text || '',
+          button2: buttons[1]?.text || '',
+          button1Link: buttons[0]?.link || '',
+          button2Link: buttons[1]?.link || ''
+        };
+      });
+
+      if(heroDataArray?.length>0) {
+        setHeroData(heroDataArray);
+      }
+      console.log("This is the heroDataVal of the useState and this is this value:", heroData);
+    }
+  }, [heroSection]);
+
   useEffect(() => {
     const interval = isPaused
       ? null
       : setInterval(() => {
-          handleNext();
-        }, 4000);
+        handleNext();
+      }, 4000);
 
     return () => clearInterval(interval);
   }, [isPaused, currentIndex]);
@@ -45,7 +87,7 @@ function Hero() {
   const handleNext = () => {
     resetAnimations();
     setTimeout(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroData.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroData?.length);
       triggerAnimations();
     }, 500);
   };
@@ -53,7 +95,7 @@ function Hero() {
   const handlePrev = () => {
     resetAnimations();
     setTimeout(() => {
-      setCurrentIndex((prevIndex) => (prevIndex - 1 + heroData.length) % heroData.length);
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + heroData?.length) % heroData?.length);
       triggerAnimations();
     }, 500);
   };
@@ -89,8 +131,8 @@ function Hero() {
     >
       {/* Background Image */}
       <Image
-        src={currentHero.image}
-        alt={currentHero.heading}
+        src={currentHero?.image}
+        alt={currentHero?.heading}
         fill
         className="absolute inset-0 object-cover"
       />
@@ -101,30 +143,27 @@ function Hero() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center md:m-auto mt-36 md:items-start justify-center h-full md:p-20 text-white">
         <h1
-          className={`text-5xl text-wrap md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${
-            animateHeading ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0"
-          }`}
+          className={`text-5xl text-wrap md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${animateHeading ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0"
+            }`}
         >
-          {currentHero.heading}
+          {currentHero?.heading}
         </h1>
         <p
-          className={`text-sm md:text-xl mb-6 text-center md:text-left transition-all duration-500 transform ${
-            animateTagline ? "translate-x-0 opacity-100" : "-translate-x-20 opacity-0"
-          }`}
+          className={`text-sm md:text-xl mb-6 text-center md:text-left transition-all duration-500 transform ${animateTagline ? "translate-x-0 opacity-100" : "-translate-x-20 opacity-0"
+            }`}
         >
-          {currentHero.tagline}
+          {currentHero?.tagline}
         </p>
         <div
-          className={`flex space-x-4 transition-all duration-500 transform ${
-            animateButtons ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-          }`}
+          className={`flex space-x-4 transition-all duration-500 transform ${animateButtons ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+            }`}
         >
           <button className="flex items-center space-x-2 px-6 py-1 border border-white text-white rounded hover:bg-white hover:text-black transition">
-            <span>{currentHero.button1}</span>
+          <span><Link href={currentHero?.button1Link || '/'}>{currentHero?.button1}</Link></span>
             <span>&#8594;</span>
           </button>
           <button className="flex items-center space-x-2 px-6 py-1 border border-white text-white rounded hover:bg-white hover:text-black transition">
-            <span>{currentHero.button2}</span>
+            <span><Link href={currentHero?.button2Link || '/'}>{currentHero?.button2}</Link></span>
             <span>&#8594;</span>
           </button>
         </div>
@@ -134,7 +173,7 @@ function Hero() {
       <div className="absolute left-2  top-2/3 md:top-1/2 transform -translate-y-1/2 z-20">
         <button
           onClick={handlePrev}
-        className="backdrop-blur-sm  bg-white/40 hover:bg-white/50 text-2xl px-1 font-thin rounded-full focus:outline-none cursor-pointer"
+          className="backdrop-blur-sm  bg-white/40 hover:bg-white/50 text-2xl px-1 font-thin rounded-full focus:outline-none cursor-pointer"
         >
           <i className="ri-arrow-left-s-line"></i>
         </button>
@@ -150,7 +189,7 @@ function Hero() {
 
       {/* Dots Indicator */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
-        {heroData.map((_, index) => (
+        {heroData?.map((_, index) => (
           <div
             key={index}
             className="w-4 h-4 flex items-center justify-center border border-white rounded-full"
@@ -163,9 +202,8 @@ function Hero() {
             }}
           >
             <div
-              className={`w-2 h-2 rounded-full ${
-                currentIndex === index ? "bg-white" : "bg-gray-500"
-              }`}
+              className={`w-2 h-2 rounded-full ${currentIndex === index ? "bg-white" : "bg-gray-500"
+                }`}
             ></div>
           </div>
         ))}
