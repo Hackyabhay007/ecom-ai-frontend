@@ -34,7 +34,7 @@ const index = ({ activeCategory, setActiveCategory }) => {
   };
 
   return (
-    <div className="p-6 text-white bg-zinc-900">
+    <div className="p-6 text-white bg-zinc-900 z-[9999]">
       <h2 className="text-2xl font-bold mb-6 capitalize">
         {activeCategory}'s collections
       </h2>

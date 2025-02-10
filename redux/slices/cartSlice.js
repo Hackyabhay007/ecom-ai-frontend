@@ -37,7 +37,7 @@ const cartSlice = createSlice({
     },
     // Action to remove item from cart
     removeFromCart(state, action) {
-      state.items = state.items.filter((item) => item.id !== action.payload.id);
+      state.items = Array.isArray(state.items) ? state.items.filter((item) => item.id !== action.payload.id) : [];
       // Save to localStorage
       if (typeof window !== "undefined") {
         localStorage.setItem("_medusa_cart_data", JSON.stringify(state.items));
@@ -46,13 +46,22 @@ const cartSlice = createSlice({
     // Action to update the quantity of an item
     updateQuantity(state, action) {
       const { id, quantity } = action.payload;
-      const item = state.items.find((item) => item.id === id);
+      const item = Array.isArray(state.items) ? state.items.find((item) => item.id === id) : null;
       if (item) {
         item.quantity = quantity;
       }
       // Save to localStorage
+      // if (typeof window !== "undefined") {
+      //   localStorage.setItem("_medusa_cart_data", JSON.stringify(state.items));
+      // }
+    },
+    
+    // Action to update the entire cart
+    updateCart(state, action) {
+      state.items = action.payload;
+      // Save to localStorage
       if (typeof window !== "undefined") {
-        localStorage.setItem("_medusa_cart_data", JSON.stringify(state.items));
+      localStorage.setItem("_medusa_cart_data", JSON.stringify(state.items));
       }
     },
     // Action to clear the cart

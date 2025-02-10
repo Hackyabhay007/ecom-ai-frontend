@@ -8,6 +8,7 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
   const { currentCustomer: user } = useSelector(state => state.customer);
   const dispatch = useDispatch();
   const router = useRouter();
+  const {tab} = router.query;
 
   useEffect(() => {
     dispatch(retrieveCustomer());
@@ -32,12 +33,14 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
     }
   };
 
+
+
   return (
     <div className="bg-light-BG md:w-80 w-full min-h-fit md:min-h-screen rounded-xl p-4 shadow-md">
       {/* User Profile */}
       <div className="flex flex-col items-center mb-10">
         <Image
-          src="/images/review/review1.png"
+          src={user?.metadata?.avatar || "https://i.pinimg.com/736x/d3/f3/b4/d3f3b4a5bac5a1e52a801dba8d952851.jpg"}
           alt="User Avatar"
           width={200}
           height={200}
@@ -52,7 +55,12 @@ const DesktopSidebar = ({ activeTab, setActiveTab }) => {
         {menuItems.map((item) => (
           <button
             key={item.tab}
-            onClick={() => handleMenuClick(item)}
+            onClick={() => {handleMenuClick(item)
+              router.push({
+                path : router.pathname,
+                query : {tab : item.tab}
+              })
+            }}
             className={`flex items-center w-full text-left px-4 py-2 rounded-md ${
               activeTab === item.tab ? "bg-white font-bold" : "bg-light-BG"
             }`}

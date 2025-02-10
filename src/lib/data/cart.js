@@ -14,6 +14,7 @@ import {
 } from "./cookies";
 import { getRegion } from "./regions";
 import { useCart } from "@/contexts/CartContext";
+import { clearCart } from "@/redux/slices/cartSlice";
 
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
@@ -21,19 +22,18 @@ import { useCart } from "@/contexts/CartContext";
  * @returns The cart object if found, or null if not found.
  */
 
-export async function retrieveCart(secretKey , updateCart) {
-  const id =  (await getCartId(secretKey));
+export async function retrieveCart(secretKey, updateCart) {
+  const id = await getCartId(secretKey);
 
-  
-
+  console.log(" this was run and found", id);
   if (!id) {
     return null;
   }
 
-  const headers = {
-    ...(await getAuthHeaders()),
-  };
-
+  // const headers = {
+  //   ...(await getAuthHeaders()),
+  // };
+  // console.log(" this was run");
 
   return await sdk.client
     .fetch(`/store/carts/${id}`, {
@@ -42,23 +42,28 @@ export async function retrieveCart(secretKey , updateCart) {
         fields:
           "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name",
       },
-      headers,
+      // headers,
     })
-    .then(({ cart }) => updateCart(cart))
-    .catch(() => null);
+    .then(({ cart }) => {
+      updateCart(cart);
+      console.log(cart, " this update cart");
+      return cart;
+    })
+    .catch((err) =>  console.log(err));
 }
 
-
-
-
-export async function getOrSetCart(region , secretKey) {
+export async function getOrSetCart(region, secretKey, Updater) {
   if (!region) {
     throw new Error(
       `Region not found for country code: ${region.currency_code}`
     );
   }
 
-  let cart = await retrieveCart(secretKey);
+  let cart = await retrieveCart(secretKey, Updater);
+
+  if (!cart) {
+    // console.log("cart is not found");
+  }
 
   const headers = {
     ...(await getAuthHeaders()),
@@ -68,6 +73,8 @@ export async function getOrSetCart(region , secretKey) {
   if (!cart) {
     // console.log("cart function is craaete cart");
 
+    // console.log(process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL);
+
     const cartResp = await sdk.store.cart.create(
       { region_id: region.id },
       {},
@@ -75,7 +82,7 @@ export async function getOrSetCart(region , secretKey) {
     );
     cart = cartResp.cart;
 
-    await setCartId(cart.id , secretKey);
+    await setCartId(cart.id, secretKey);
 
     // const cartCacheTag = await getCacheTag("carts");
     // revalidateTag(cartCacheTag);
@@ -92,7 +99,7 @@ export async function getOrSetCart(region , secretKey) {
   return cart;
 }
 
-export async function updateCart(data , Updater , secretKey) {
+export async function updateCart(data, Updater, secretKey) {
   const cartId = await getCartId(secretKey);
 
   if (!cartId) {
@@ -108,22 +115,25 @@ export async function updateCart(data , Updater , secretKey) {
   return sdk.store.cart
     .update(cartId, data, {}, headers)
     .then(async ({ cart }) => {
-      console.log(cart)
-      localStorage.setItem("_medusa_cart_data" , JSON.stringify(cart))
-      Updater(cart)
+      // console.log(cart);
+      localStorage.setItem("_medusa_cart_data", JSON.stringify(cart));
+      Updater(cart);
       // const cartCacheTag = await getCacheTag("carts");
       // revalidateTag(cartCacheTag);
       return cart;
     })
-    .catch(medusaError);
+    .catch((err) =>  console.log(err));
 }
 
-export async function addToCart({ variantId, quantity, region, Updater } , secretKey) {
+export async function addToCart(
+  { variantId, quantity, region, Updater },
+  secretKey
+) {
   if (!variantId) {
     throw new Error("Missing variant ID when adding to cart");
   }
 
-  const cart = await getOrSetCart(region , secretKey);
+  const cart = await getOrSetCart(region, secretKey, Updater);
 
   if (!cart) {
     throw new Error("Error retrieving or creating cart");
@@ -145,15 +155,12 @@ export async function addToCart({ variantId, quantity, region, Updater } , secre
     )
     .then(async (res) => {
       localStorage.setItem("_medusa_cart_data", JSON.stringify(res.cart));
-      // console.log(res);
       Updater(res.cart);
-      // const cartCacheTag = await getCacheTag("carts");
-      // revalidateTag(cartCacheTag)
     })
-    .catch(medusaError);
+    .catch(err => console.error(err));
 }
 
-export async function updateLineItem({ lineId, quantity }) {
+export async function updateLineItem({ lineId, quantity, Updater }, serectkey) {
   if (!lineId) {
     throw new Error("Missing lineItem ID when updating line item");
   }
@@ -171,12 +178,96 @@ export async function updateLineItem({ lineId, quantity }) {
   await sdk.store.cart
     .updateLineItem(cartId, lineId, { quantity }, {}, headers)
     .then(async (data) => {
-      // const cartCacheTag = await getCacheTag("carts");
-      // console.log(data.cart.items);
-      localStorage.setItem("_medusa_cart_data", JSON.stringify(data.cart));
-      // revalidateTag(cartCacheTag);
+      Updater(data.cart);
+      retrieveCart(serectkey, Updater);
     })
-    .catch(medusaError);
+    .catch(err => console.error(err));
+}
+export async function appendToCart(
+  { variantId, quantity, region, Updater },
+  secretKey
+) {
+  if (!variantId) {
+    throw new Error("Missing variant ID when appending to cart");
+  }
+
+  const cart = await getOrSetCart(region, secretKey);
+
+  if (!cart) {
+    throw new Error("Error retrieving or creating cart");
+  }
+
+  const headers = {
+    ...(await getAuthHeaders()),
+  };
+
+  const existingItem = cart.items.find((item) => item.variant_id === variantId);
+
+  if (!existingItem && cart) {
+    // Merge existing cart items with the new line item
+    const itemsToUpdate = [
+      ...cart.items.map((item) => ({
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+      })),
+      {
+        variant_id: variantId,
+        quantity: quantity || 1, // New item with default quantity of 1 if not provided
+      },
+    ];
+
+    // Send updated list to Medusa
+    await Promise.all(
+      itemsToUpdate.map(async (item) => {
+        await sdk.store.cart
+          .createLineItem(
+            cart.id, // Cart ID
+            { variant_id: item.variant_id, quantity: item.quantity }, // Current item
+            {}, // Additional options
+            headers // Authorization headers
+          )
+          .then(async (res) => {
+            // Save updated cart data to local storage
+            localStorage.setItem("_medusa_cart_data", JSON.stringify(res.cart));
+            // Update the UI or state with the new cart data
+            Updater(res.cart);
+          })
+          .catch((err) =>  console.log(err)); // Handle any errors
+      })
+    );
+  }
+
+  if (existingItem) {
+    await sdk.store.cart
+      .updateLineItem(
+        cart.id,
+        existingItem.id,
+        { quantity: existingItem.quantity + 1 },
+        {},
+        headers
+      )
+      .then(async (res) => {
+        localStorage.setItem("_medusa_cart_data", JSON.stringify(res.cart));
+        Updater(res.cart);
+      })
+      .catch((err) =>  console.log(err));
+  } else {
+    await sdk.store.cart
+      .createLineItem(
+        cart.id,
+        {
+          variant_id: variantId,
+          quantity,
+        },
+        {},
+        headers
+      )
+      .then(async (res) => {
+        localStorage.setItem("_medusa_cart_data", JSON.stringify(res.cart));
+        Updater(res.cart);
+      })
+      .catch((err) =>  console.log(err));
+  }
 }
 
 export async function deleteLineItem(lineId) {
@@ -203,42 +294,57 @@ export async function deleteLineItem(lineId) {
       localStorage.setItem("_medusa_cart_data", JSON.stringify(res.parent));
       // console.log(res);
     })
-    .catch(medusaError);
+    .catch((err) =>  console.log(err));
 }
 
-export async function setShippingMethod({ cartId, shippingMethodId } ,updateCart) {
+export async function setShippingMethod(
+  { cartId, shippingMethodId },
+  updateCart
+) {
   const headers = {
     ...(await getAuthHeaders()),
   };
 
+  // console.log(cartId, shippingMethodId, "cartId, shippingMethodId ");
   return sdk.store.cart
     .addShippingMethod(cartId, { option_id: shippingMethodId }, {}, headers)
     .then(async (res) => {
-      console.log(res.cart)
-      updateCart(res.cart)
+      // console.log(res.cart);
+      updateCart(res.cart);
     })
-    .catch(medusaError);
+    .catch((err) =>  console.log(err));
 }
 
-export async function createPaymentSession(cart, updateCart , pp_id , key , fetchCart) {
+export async function createPaymentSession(
+  cart,
+  updateCart,
+  pp_id,
+  key,
+  fetchCart
+) {
   const headers = {
     ...(await getAuthHeaders()), // Fetch authentication headers (e.g., JWT token)
   };
 
-  console.log(cart, pp_id , key , fetchCart)
+  console.log(cart, pp_id, key , " thihs from create payment session");
 
   try {
     // Create the payment session using Medusa SDK
-    sdk.store.payment.initiatePaymentSession(
-      cart , // assuming you already have the cart object
-      {
-        provider_id: pp_id,
-      }
-    ).then(({ payment_collection }) => {
-      console.log(payment_collection)
-      // console.log(key)
-      retrieveCart(key , updateCart)
-    })
+    sdk.store.payment
+      .initiatePaymentSession(
+        cart, // assuming you already have the cart object
+        {
+          provider_id: pp_id,
+        }
+      )
+      .then(({ payment_collection }) => {
+        // console.log(payment_collection);
+        // console.log(key);
+        console.log(payment_collection , " thsi is repsonse of a payemnt session");
+
+        retrieveCart(key, updateCart);
+        return payment_collection;
+      });
 
     // // Log the response (optional)
     // console.log(response.cart);
@@ -249,11 +355,11 @@ export async function createPaymentSession(cart, updateCart , pp_id , key , fetc
     // return response.cart; // Return the cart with the payment session information
   } catch (error) {
     // Handle any errors that might occur
+    console.log(error); 
     medusaError(error);
     throw error; // Optionally, re-throw the error to be handled elsewhere
   }
 }
-
 
 export async function initiatePaymentSession(cart, data) {
   const headers = {
@@ -263,10 +369,9 @@ export async function initiatePaymentSession(cart, data) {
   return sdk.store.payment
     .initiatePaymentSession(cart, data, {}, headers)
     .then(async (resp) => {
-     
       return resp;
     })
-    .catch(medusaError);
+    .catch((err) =>  console.log(err));
 }
 
 export async function applyPromotions(codes) {
@@ -286,53 +391,49 @@ export async function applyPromotions(codes) {
       // const cartCacheTag = await getCacheTag("carts");
       // revalidateTag(cartCacheTag);
     })
-    .catch(medusaError);
+    .catch((err) =>  console.log(err));
 }
 
 export async function applyGiftCard(code) {
-    const cartId = getCartId()
-    if (!cartId) return "No cartId cookie found"
-    try {
-      await updateCart(cartId, { gift_cards: [{ code }] }).then(() => {
-        revalidateTag("cart")
-      })
-    } catch (error) {
-      throw error
-    }
-}
-
-export async function removeDiscount(code) {
-  const cartId = getCartId()
-  if (!cartId) return "No cartId cookie found"
+  const cartId = getCartId();
+  if (!cartId) return "No cartId cookie found";
   try {
-    await deleteDiscount(cartId, code)
-    
+    await updateCart(cartId, { gift_cards: [{ code }] }).then(() => {
+      revalidateTag("cart");
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
-export async function removeGiftCard(
-  codeToRemove,
-  giftCards,
-) {
-    const cartId = getCartId()
-    if (!cartId) return "No cartId cookie found"
-    try {
-      await updateCart(cartId, {
-        gift_cards: [...giftCards]
-          .filter((gc) => gc.code !== codeToRemove)
-          .map((gc) => ({ code: gc.code })),
-      }).then(() => {
-        revalidateTag("cart")
-      })
-    } catch (error) {
-      throw error
-    }
+export async function removeDiscount(code) {
+  const cartId = getCartId();
+  if (!cartId) return "No cartId cookie found";
+  try {
+    await deleteDiscount(cartId, code);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function removeGiftCard(codeToRemove, giftCards) {
+  const cartId = getCartId();
+  if (!cartId) return "No cartId cookie found";
+  try {
+    await updateCart(cartId, {
+      gift_cards: [...giftCards]
+        .filter((gc) => gc.code !== codeToRemove)
+        .map((gc) => ({ code: gc.code })),
+    }).then(() => {
+      revalidateTag("cart");
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function submitPromotionForm(currentState, formData) {
-  const code = ("formData.code");
+  const code = "formData.code";
   try {
     await applyPromotions([code]);
   } catch (e) {
@@ -341,8 +442,8 @@ export async function submitPromotionForm(currentState, formData) {
 }
 
 // TODO: Pass a POJO instead of a form entity here
-export async function setAddresses(currentState, formData , Updater , secretKey) {
-  console.log(4);
+export async function setAddresses(currentState, formData, Updater, secretKey) {
+  // console.log(4);
   try {
     if (!formData) {
       throw new Error("No form data found when setting addresses");
@@ -351,7 +452,7 @@ export async function setAddresses(currentState, formData , Updater , secretKey)
     if (!cartId) {
       throw new Error("No existing cart found when setting addresses");
     }
-    console.log(5);
+    // console.log(5);
 
     const data = {
       shipping_address: {
@@ -370,14 +471,12 @@ export async function setAddresses(currentState, formData , Updater , secretKey)
       email: "kansihk21soni@gmail.com",
     };
 
-    console.log(6, data);
+    // console.log(6, data);
     const sameAsBilling = formData.same_as_billing;
     if (sameAsBilling === "on") data.billing_address = data.shipping_address;
 
-  
-
-    console.log(7 , data);
-    await updateCart(data ,Updater , secretKey);
+    // console.log(7, data);
+    await updateCart(data, Updater, secretKey);
   } catch (e) {
     return e.message;
   }
@@ -408,18 +507,22 @@ export async function placeOrder(cartId) {
     .then(async (cartRes) => {
       // const cartCacheTag = await getCacheTag("carts");
       // revalidateTag(cartCacheTag);
+
       return cartRes;
     })
-    .catch(medusaError);
+    .catch((err) =>  console.log(err));
 
-  if (cartRes?.type === "order") {
+  if (cartRes) {
     const countryCode =
       cartRes.order.shipping_address?.country_code?.toLowerCase();
     removeCartId();
-    redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`);
+    clearCart()
+    localStorage.setItem("_medusa_cart_data" ,[])
+
+    window.location.href = `/order-confirmation?order_id=${cartRes.order.id}`;
   }
 
-  return cartRes.cart;
+  return cartRes?.order?.id;
 }
 
 /**

@@ -8,8 +8,6 @@ const RazorpayPaymentButton = () => {
   const { cart } = useCart();
   const [orderData, setOrderData] = useState({ id: "" });
 
-
-
   const create_paymentcollection = async () => {
     try {
       const response = await axios.post(
@@ -17,11 +15,12 @@ const RazorpayPaymentButton = () => {
         { cart_id: cart.id },
         {
           headers: {
-            "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+            "x-publishable-api-key":
+              process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
           },
         }
       );
-      console.log(response.data.payment_collection, " this is get res");
+      // console.log(response.data.payment_collection, " this is get res");
       return response.data.payment_collection;
     } catch (error) {
       console.error("Error creating payment collection:", error);
@@ -39,17 +38,17 @@ const RazorpayPaymentButton = () => {
   }, [cart]);
 
   const handlePayment = useCallback(async () => {
-    create_paymentcollection()
+    create_paymentcollection();
     if (!orderData?.id) {
       setErrorMessage("Order data is not available.");
       setSubmitting(false);
       return;
     }
 
-    console.log(orderData)
-    if ( typeof window !== "undefined" && window.Razorpay) {
+    // console.log(orderData)
+    if (typeof window !== "undefined" && window.Razorpay) {
       const options = {
-        key:  "rzp_test_v9OipkUZNTnkXj",
+        key: "rzp_test_v9OipkUZNTnkXj",
         amount: cart.total_amount, // Ensure you have the correct amount in the cart
         order_id: orderData.id,
         currency: cart.currency_code.toUpperCase(),
@@ -69,7 +68,7 @@ const RazorpayPaymentButton = () => {
             if (!verifyResponse.ok) {
               throw new Error("Payment verification failed");
             }
-            console.log("Payment verified successfully");
+            // console.log("Payment verified successfully");
           } catch (error) {
             console.error(error);
             setErrorMessage("An error occurred during payment verification.");
@@ -78,7 +77,9 @@ const RazorpayPaymentButton = () => {
           }
         },
         prefill: {
-          name: `${cart.billing_address?.first_name || ""} ${cart.billing_address?.last_name || ""}`,
+          name: `${cart.billing_address?.first_name || ""} ${
+            cart.billing_address?.last_name || ""
+          }`,
           email: cart?.email || "",
           contact: cart?.shipping_address?.phone || "",
         },

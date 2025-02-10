@@ -15,10 +15,15 @@ import ImageCarousel from "./ImageCrousal";
 import products from "../data/product_data";
 import { useRegion } from "../../../contexts/RegionContext";
 import axios from "axios";
-import { addToCart } from "../../../lib/data/cart";
+import {
+  addToCart,
+  updateLineItem,
+  appendToCart,
+} from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useCart } from "@/contexts/CartContext";
 import Loader from "../../loader/Loader";
+import {addProduct} from "@/redux/slices/intrestedSlice"
 
 const ProductView = ({ product, allProducts }) => {
   const dispatch = useDispatch();
@@ -38,7 +43,7 @@ const ProductView = ({ product, allProducts }) => {
   const [discount, setDiscount] = useState(0);
   const [discountedamount, setDiscountedamount] = useState(0);
   const [selectedVariant, setselectedVariant] = useState([]);
-  const { updateCart } = useCart();
+  const { updateCart, cart } = useCart();
   const [isLoading, setIsLoading] = useState(true);
 
   // // console.log(region, "region");
@@ -78,28 +83,9 @@ const ProductView = ({ product, allProducts }) => {
       setIsLoading(false);
     }
   }, [product]);
+  
 
-  const handleBuyNow = () => {
-    if (!selectedSize) {
-      setWarning("Please select a size.");
-      setTimeout(() => setWarning(""), 3000);
-      return;
-    }
-    const checkoutProduct = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-      image: product.image,
-      color: selectedColor,
-      size: selectedSize,
-      discount: product.discount,
-    };
-    router.push({
-      pathname: "/checkout",
-      query: { product: JSON.stringify(checkoutProduct) },
-    });
-  };
+  
 
   const handleApplyCustomSize = (size) => {
     setCustomSize(size);
@@ -112,8 +98,7 @@ const ProductView = ({ product, allProducts }) => {
   };
 
   const handleAddToCart = async () => {
-
-    process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+    process.env.NEXT_PUBLIC_REVALIDATE_SECRET;
     if (!selectedSize) {
       setWarning("Please select  size.");
       setIsProgressVisible(true);
@@ -134,22 +119,42 @@ const ProductView = ({ product, allProducts }) => {
       }, 3000);
       return;
     }
+
+
+    setInterval(() => {
+    }, 3000);
+
+    if(!region){
+      router.push('/auth/login')
+    }
+
+
+    await addToCart(
+      {
+        variantId: selectedVariant.id,
+        quantity: 1,
+        region: region,
+        Updater: updateCart,
+      },
+      process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+    );
 
     setIsAdded(true);
-    await addToCart({
-      variantId: selectedVariant.id,
-      quantity: 1,
-      region: region,
-      Updater: updateCart,
+    // await addToCart({
+    //   variantId: selectedVariant.id,
+    //   quantity: 1,
+    //   region: region,
+    //   Updater: updateCart,
 
-    } , process.env.NEXT_PUBLIC_REVALIDATE_SECRET );
+    // } , process.env.NEXT_PUBLIC_REVALIDATE_SECRET );
 
     // setIsAdding(false)
   };
 
-  const handleAddToCart2 = () => {
+
+  const handleBuyNow = async () => {
     if (!selectedSize) {
-      setWarning("Please select both color and size.");
+      setWarning("Please select a size.");
       setIsProgressVisible(true);
 
       setTimeout(() => {
@@ -159,12 +164,25 @@ const ProductView = ({ product, allProducts }) => {
       return;
     }
 
-    setWarning(""); // Clear warning on successful addition
-    setIsAdded(true); // Indicate item was added
 
-    // Reset isAdded after 3 seconds
-    setTimeout(() => setIsAdded(false), 3000);
+
+    if(region){
+      router.push('/auth/login')
+    }
+
+    await addToCart(
+      {
+        variantId: selectedVariant.id,
+        quantity: 1,
+        region: region,
+        Updater: updateCart,
+      },
+      process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+    );
+
+    router.push("/checkout");
   };
+
 
   const [mainImage, setMainImage] = useState(product?.thumbnail);
   const [additionalImages, setAdditionalImages] = useState();
@@ -207,7 +225,7 @@ const ProductView = ({ product, allProducts }) => {
             )
           : product?.variants.find((variant) =>
               variant.options?.some(
-                (option) => option.value.toLowerCase() === "m"
+                (option) => option.value
               )
             );
 
@@ -246,6 +264,28 @@ const ProductView = ({ product, allProducts }) => {
       }
     }
   }, [product?.metadata, region, discount, selectedColor, selectedSize]);
+
+
+  useMemo(() => {
+    
+    
+    if (product ) {
+      const calculatedAmount = product?.variants[0].calculated_price?.calculated_amount;
+      dispatch(addProduct({
+        id: product.id,
+        thumbnail: product.thumbnail,
+        title: product?.title,
+        price: product.variants[0].calculated_price?.calculated_amount,
+        discount: product?.metadata?.discount,
+        discountedamount: calculatedAmount -
+        calculatedAmount * (product.metadata?.discount / 100),
+        selectedVariant: product.variants[0].id,
+      }));
+    }
+  }, [product, dispatch ]);
+
+
+
 
   useEffect(() => {
     if (product?.images) {
@@ -323,14 +363,14 @@ const ProductView = ({ product, allProducts }) => {
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">
               {product?.metadata?.discount > 0
-                ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: region ? region.currency_code : "inr",
-                  }).format(discountedamount)
-                : new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: region ? region.currency_code : "inr",
-                  }).format(price)}
+                ? isNaN(discountedamount) ? "please select colour " : new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: region ? region.currency_code : "inr",
+                }).format(discountedamount)
+                : isNaN(price) ? "please select a colour" :new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: region ? region.currency_code : "inr",
+                }).format(price)}
             </span>
             {product?.metadata?.discount > 0 && (
               <>

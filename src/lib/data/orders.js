@@ -1,4 +1,3 @@
-"use server";
 import { sdk } from "@/lib/config";
 import medusaError from "@/lib/util/medusa-error";
 import { getAuthHeaders, getCacheOptions } from "./cookies";
@@ -6,10 +5,6 @@ import { getAuthHeaders, getCacheOptions } from "./cookies";
 export const retrieveOrder = async (id) => {
   const headers = {
     ...(await getAuthHeaders()),
-  };
-
-  const next = {
-    ...(await getCacheOptions("orders")),
   };
 
   return sdk.client
@@ -21,9 +16,11 @@ export const retrieveOrder = async (id) => {
       },
       headers,
       next,
-      cache: "force-cache",
     })
-    .then(({ order }) => order)
+    .then(({ order }) => {
+      // console.log(order, "order");
+      return order;
+    })
     .catch((err) => medusaError(err));
 };
 
@@ -47,8 +44,6 @@ export const listOrders = async (limit = 10, offset = 0, filters) => {
         ...filters,
       },
       headers,
-      next,
-      cache: "force-cache",
     })
     .then(({ orders }) => orders)
     .catch((err) => medusaError(err));

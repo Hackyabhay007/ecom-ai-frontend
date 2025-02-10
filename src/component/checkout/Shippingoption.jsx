@@ -9,8 +9,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 
-const Shipping = ({ availableShippingMethods ,onPayment }) => {
-  const { cart , updateCart } = useCart();
+const Shipping = ({ availableShippingMethods, onPayment }) => {
+  const { cart, updateCart } = useCart();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPrices, setIsLoadingPrices] = useState(true);
   const [calculatedPricesMap, setCalculatedPricesMap] = useState({});
@@ -19,13 +19,13 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
     cart.shipping_methods?.at(-1)?.shipping_option_id || null
   );
 
-  console.log(availableShippingMethods);
+  // console.log(availableShippingMethods);
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const isOpen = searchParams.get("step") === "3";
+  const isOpen = searchParams.get("step") === "4";
 
   useEffect(() => {
     setIsLoadingPrices(true);
@@ -66,7 +66,12 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
       return id;
     });
 
-    await setShippingMethod({ cartId: cart.id, shippingMethodId: id } , updateCart)
+    // console.log(cart.id , id , " this is cart id and id");
+
+    await setShippingMethod(
+      { cartId: cart.id, shippingMethodId: id },
+      updateCart
+    )
       .catch((err) => {
         setShippingMethodId(currentId);
         setError(err.message);
@@ -80,10 +85,11 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
     setError(null);
   }, [isOpen]);
 
+  console.log(cart ,availableShippingMethods, "cart");
+
   return (
-    <div className="bg-white">
+    <div className="bg-white mt-10 w-full">
       <div className="flex flex-row items-center justify-between mb-6">
-        sdvdsv
         <h2
           className={clx(
             "flex flex-row text-3xl-regular gap-x-2 items-baseline",
@@ -93,7 +99,9 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
             }
           )}
         >
-          Delivery
+          <span className="text-xl font-semibold ml-6 text-blue-900">
+            Delivery
+          </span>
           {!isOpen && (cart.shipping_methods?.length ?? 0) > 0 && (
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
               <circle
@@ -136,7 +144,7 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
                   !isLoadingPrices &&
                   typeof calculatedPricesMap[option.id] !== "number";
 
-                console.log(availableShippingMethods);
+                // console.log(availableShippingMethods);
 
                 return (
                   <div
@@ -151,7 +159,7 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
                       name="shipping-method"
                       value={option.id}
                       disabled={isDisabled}
-                      onChange={() => handleSetShippingMethod(option.id)}
+                      onClick={() => handleSetShippingMethod(option.id)}
                       className="form-radio h-4 w-4 text-blue-500 focus:ring-blue-500"
                     />
                     <div className="flex flex-col ml-4">
@@ -188,7 +196,7 @@ const Shipping = ({ availableShippingMethods ,onPayment }) => {
 
           <button
             className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
-            onClick={onPayment}
+            onClick={()=>onPayment()}
             disabled={!cart.shipping_methods?.[0]}
           >
             Continue to payment

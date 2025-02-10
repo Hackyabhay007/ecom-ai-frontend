@@ -1,0 +1,11 @@
+
+Command: shopt -s histappend
+Output:
+
+Exit Code: 0
+----
+Command: pwd
+Output:
+/media/kanishk/My_things/fyt/ecom-ai-frontend
+Exit Code: 0
+----

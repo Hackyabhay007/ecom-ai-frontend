@@ -173,7 +173,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
         </button>
 
         <div className="p-2 pb-10 max-h-full overflow-y-auto custom-scrollbar">
-          <CustomerReview reviews={reviews} productImage={product?.thumbnail} />
+          <CustomerReview reviews={reviews} productImage={product?.thumbnail} productId={product?.id} />
         </div>
       </div>
     </div>

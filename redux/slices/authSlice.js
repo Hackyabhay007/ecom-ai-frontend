@@ -10,10 +10,13 @@ export const retrieveCustomer = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const headers = await getAuthHeaders();
-      console.log(headers);
+
+      // console.log("headers" , headers);
+      // console.log(headers);
       const response = await sdk.client.fetch("/store/customers/me", {
         method: "GET",
         query: { fields: "*orders" },
+
         headers,
       });
       return response.customer;
@@ -29,34 +32,36 @@ export const createOrUpdateAddress = createAsyncThunk(
     try {
       const { customer } = getState();
       const headers = await getAuthHeaders();
-      console.log("hi");
+      // console.log("hi");
 
       if (!customer.currentCustomer) {
         throw new Error("No customer data available");
       }
 
-      const currentAddresses = customer.currentCustomer.addresses || [];
+      const currentAddresses = customer.currentCustomer.addresses;
 
       console.log(currentAddresses, addressData);
 
-      if (currentAddresses.length === 0) {
+      console.log("currentAddresses", currentAddresses);
+
+      if (!currentAddresses || currentAddresses.length === 0) {
         const response = await sdk.store.customer
           .createAddress(addressData, {}, headers)
           .then(({ customer }) => {
-            console.log(customer);
-            retrieveCustomer()
+            // console.log(customer);
+            retrieveCustomer();
           });
-        console.log(response.address);
+        // console.log(response.address);
         return { type: "create", address: response.address };
       } else {
         const addressId = currentAddresses[0].id;
-        const response = await sdk.store.address.update(
-          addressId,
-          addressData,
-          {},
-          headers
-        );
-        return { type: "update", address: response.address };
+        console.log("update address" , addressId , addressData);
+        await sdk.store.customer.updateAddress(addressId, addressData, {}, headers)
+        .then(({ customer }) => {
+          // console.log(customer);
+          retrieveCustomer();
+        });
+        return { type: "update", address: addressData };
       }
     } catch (error) {
       return rejectWithValue(
@@ -71,28 +76,32 @@ export const updateCustomer = createAsyncThunk(
   async (body, { rejectWithValue }) => {
     try {
       const headers = await getAuthHeaders();
+      // console.log("body: ", body);
+      // console.log("headers: ", headers);
       const response = await sdk.store.customer.update(body, {}, headers);
+      console.log("response from update : ", response);
       return response.customer;
     } catch (error) {
+      console.log("response from update : ", error);
       return rejectWithValue(error);
     }
   }
 );
 
 export const updateCustomerPassword = createAsyncThunk(
-    'customer/updatePassword',
-    async ({ currentPassword, newPassword }, { rejectWithValue }) => {
-      try {
-        const response = await sdk.auth.resetPassword({
-          currentPassword,
-          newPassword
-        });
-        return response;
-      } catch (error) {
-        return rejectWithValue(error.response?.data || 'Password update failed');
-      }
+  "customer/updatePassword",
+  async ({ currentPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await sdk.auth.resetPassword({
+        currentPassword,
+        newPassword,
+      });
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Password update failed");
     }
-  );
+  }
+);
 
 export const signup = createAsyncThunk(
   "customer/signup",
@@ -170,7 +179,7 @@ export const login = createAsyncThunk(
 export const signout = createAsyncThunk(
   "customer/signout",
   async (countryCode, { dispatch }) => {
-    console.log("logout hit")
+    // console.log("logout hit")
     await sdk.auth.logout();
     removeAuthToken();
     dispatch(authSlicer.actions.resetCustomer());

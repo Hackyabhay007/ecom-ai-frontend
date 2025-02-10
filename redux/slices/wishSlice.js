@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { useRouter } from "next/router"; // Import useRouter for navigation
 
 const initialState = {
   wishlist: [],
@@ -10,13 +11,26 @@ const wishSlice = createSlice({
   initialState,
   reducers: {
     addToWishlist: (state, action) => {
-      const productExists = state.wishlist.find(
-        (item) => item.id === action.payload.id
-      );
-      if (!productExists) state.wishlist.push(action.payload);
+      const { product, currentCustomer } = action.payload;
+      
+
+     
+      if (product) {
+        product.forEach((product) => {
+          const productExists = state.wishlist.find(
+            (item) => item.id === product.id
+          );
+          if (!productExists) state.wishlist.push(product);
+        });
+      }
     },
     removeFromWishlist: (state, action) => {
-      state.wishlist = state.wishlist.filter((item) => item.id !== action.payload);
+      const { productId, currentCustomer } = action.payload;
+      
+
+
+      console.log(action.payload, "action.payload");
+      state.wishlist = state.wishlist.filter((item) => item.id !== productId);
     },
     toggleWishlistSidebar: (state) => {
       state.isOpen = !state.isOpen;
@@ -24,5 +38,6 @@ const wishSlice = createSlice({
   },
 });
 
-export const { addToWishlist, removeFromWishlist, toggleWishlistSidebar } = wishSlice.actions;
+export const { addToWishlist, removeFromWishlist, toggleWishlistSidebar } =
+  wishSlice.actions;
 export default wishSlice.reducer;

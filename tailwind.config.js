@@ -44,9 +44,18 @@ module.exports = {
         "fade-in-out": "fade-in-out 2s infinite",
         popup: 'popup 0.3s ease-out',
         fade1: 'fade 4s infinite',
-        fade2: 'fade 4s infinite 2s', // Delayed by 1 second
-        popup: "popup 0.3s ease-out",
-        'line-loader': 'line-loader 1.5s ease-in-out infinite'
+        fade2: 'fade 4s infinite 2s',
+        'line-loader': 'line-loader 1.5s ease-in-out infinite',
+        // New animations
+        'menu-item-hover': 'menu-item-hover 0.2s ease-out',
+        'menu-item-out': 'menu-item-out 0.2s ease-in',
+        'nav-dropdown-in': 'nav-dropdown-in 0.3s ease-out',
+        'nav-dropdown-out': 'nav-dropdown-out 0.3s ease-in',
+        'underline-expand': 'underline-expand 0.3s ease-out',
+        'underline-collapse': 'underline-collapse 0.3s ease-in',
+        'arrow-rotate': 'arrow-rotate 0.2s ease-in-out',
+        'scale-fade-in': 'scale-fade-in 0.3s ease-out',
+        'scale-fade-out': 'scale-fade-out 0.3s ease-in',
       },
       keyframes: {
         fade: {
@@ -130,7 +139,72 @@ module.exports = {
         'line-loader': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(200%)' }
-        }
+        },
+        // New keyframes
+        'menu-item-hover': {
+          '0%': { transform: 'translateY(0) scale(1)' },
+          '100%': { transform: 'translateY(-2px) scale(1.05)' }
+        },
+        'menu-item-out': {
+          '0%': { transform: 'translateY(-2px) scale(1.05)' },
+          '100%': { transform: 'translateY(0) scale(1)' }
+        },
+        'nav-dropdown-in': {
+          '0%': { 
+            opacity: '0',
+            transform: 'translateY(-20px)',
+            pointerEvents: 'none'
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'translateY(0)',
+            pointerEvents: 'auto'
+          }
+        },
+        'nav-dropdown-out': {
+          '0%': { 
+            opacity: '1',
+            transform: 'translateY(0)',
+            pointerEvents: 'auto'
+          },
+          '100%': { 
+            opacity: '0',
+            transform: 'translateY(-20px)',
+            pointerEvents: 'none'
+          }
+        },
+        'underline-expand': {
+          '0%': { transform: 'scaleX(0)' },
+          '100%': { transform: 'scaleX(1)' }
+        },
+        'underline-collapse': {
+          '0%': { transform: 'scaleX(1)' },
+          '100%': { transform: 'scaleX(0)' }
+        },
+        'arrow-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(90deg)' }
+        },
+        'scale-fade-in': {
+          '0%': { 
+            opacity: '0',
+            transform: 'scale(0.95)'
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'scale(1)'
+          }
+        },
+        'scale-fade-out': {
+          '0%': { 
+            opacity: '1',
+            transform: 'scale(1)'
+          },
+          '100%': { 
+            opacity: '0',
+            transform: 'scale(0.95)'
+          }
+        },
       },
     },
   },

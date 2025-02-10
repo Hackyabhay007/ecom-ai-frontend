@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import reviewReducer from "./slices/reviewSlice";
 import {
   FLUSH,
   REHYDRATE,
@@ -22,6 +23,9 @@ import featuredsectionSlice from './slices/featuredSlicer.js';
 import categorysectionSlice from './slices/categorySlice';
 import productSlice from './slices/productSlice';
 import collectionsectionSlice from './slices/collectionSlice';
+import ordersSlice from './slices/orderSlice';
+import interestedProductsSlice from './slices/intrestedSlice';
+import pointSlice from './slices/pointSlice';
 
 // Import the new customer reducer
 import authSlicer from './slices/authSlice'; // Assuming you saved the previous artifact as customerSlice.js
@@ -34,9 +38,9 @@ const persistConfig = {
   key: "root",
   storage,
   whitelist: [
-    "cart", 
     "wishlist", 
-    "customer" // Add customer to persisted reducers if needed
+    "customer" ,
+    "orders",
   ],
 };
 
@@ -54,7 +58,11 @@ const rootReducer = combineReducers({
   homeCategories: homeCategoryReducer, // Add the new reducer
   products: productSlice,
   collection: collectionsectionSlice,
-  customer: authSlicer // Add the customer reducer
+  customer: authSlicer , // Add the customer reducer
+  orders: ordersSlice,
+  points: pointSlice,
+  reviews: reviewReducer,
+  interestedProducts: interestedProductsSlice,
 });
 
 // Persist the combined reducer

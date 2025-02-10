@@ -116,7 +116,7 @@ function Footer() {
             {/* Copyright Section - Adjusted spacing */}
             <div className="border-t border-gray-300 pt-4 mt-4 text-center">
               <p className="text-sub-color text-sm">
-                © {new Date().getFullYear()} Your Company Name. All rights reserved.
+                © {new Date().getFullYear()} The Majestic Peacock. All rights reserved.
               </p>
             </div>
           </div>

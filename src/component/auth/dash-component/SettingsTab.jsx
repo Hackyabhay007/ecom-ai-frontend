@@ -6,6 +6,8 @@ import {
   updateCustomer,
   updateCustomerPassword,
 } from "@/redux/slices/authSlice";
+import axios from "axios";
+import { Spinner } from "@medusajs/icons";
 
 const SettingsTab = () => {
   const { currentCustomer: user } = useSelector((state) => state.customer);
@@ -24,6 +26,8 @@ const SettingsTab = () => {
     dob: user?.dob || "1990-01-01",
   });
 
+  const [loading , setLoading] = useState(false);
+
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
@@ -34,6 +38,51 @@ const SettingsTab = () => {
     profileMessage: "",
     passwordMessage: "",
   });
+  const [image, setImage] = useState(null);
+  const [editImage, setEditImage] = useState(user?.metadata?.avatar || "");
+  const [newimage , setNewImage] = useState(false);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImage(event.target.files[0]);
+      setEditImage(imageUrl);
+      setNewImage(true);
+    }
+  };
+
+  const uploadImage = async (file) => {
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        console.log("formData", file);  
+
+        const response = await axios.post(
+          `https://storage.themajesticpeacock.com/upload/100`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization:
+                "Bearer 5d92b8f69c9dda89f38c10fa6750376a25b53a9afd47e74951104769630d4ccc",
+            },
+          }
+        ).catch((error) => {
+          console.log(error);
+        });
+
+        setImage(response?.data);
+
+        console.log("response", response?.data);
+        return response?.data;
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+  };
 
   const handleUserChange = (e) => {
     const { name, value } = e.target;
@@ -46,7 +95,9 @@ const SettingsTab = () => {
   };
 
   const handleSaveChanges = async () => {
+    setLoading(true);
     try {
+     const resiamgelink = newimage ?  await uploadImage(image) : editImage;
       const result = await dispatch(
         updateCustomer({
           first_name: userInfo.firstName,
@@ -55,6 +106,7 @@ const SettingsTab = () => {
           metadata: {
             gender: userInfo.gender,
             dob: userInfo.dob,
+            avatar : resiamgelink,
           },
         })
       );
@@ -65,11 +117,14 @@ const SettingsTab = () => {
           profileMessage: "Profile updated successfully!",
         }));
       }
+      setLoading(false);
+      setNewImage(false);
     } catch (error) {
       setUpdateStatus((prev) => ({
         ...prev,
         profileMessage: "Failed to update profile.",
       }));
+      
     }
   };
 
@@ -111,6 +166,8 @@ const SettingsTab = () => {
     }
   };
 
+ 
+
   return (
     <div className="p-4 border rounded-xl my-2">
       <div className="p-4 border rounded-xl my-2">
@@ -119,22 +176,31 @@ const SettingsTab = () => {
         <div className="border rounded-lg p-6 bg-white">
           {/* Avatar Upload */}
           <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6 mb-6">
-            <div>
-              <div className="w-24 h-24 border rounded-full overflow-hidden">
-                <Image
-                  src="/images/review/review1.png"
+            <label htmlFor="avatar">
+              <div className="w-24 h-24 border rounded-full overflow-hidden relative">
+                <img
+                  src={editImage}
                   alt="Avatar"
-                  width={200}
-                  height={200}
                   className="w-full h-full object-cover"
                 />
+                <div className="w-full h-full hover:bg-zinc-800/40 duration-200 top-0 left-0 absolute ">
+                  <div className="flex justify-center items-center w-full h-full bg-black/50 text-white text-sm font-bold">
+                    Upload Avatar
+                    </div>
+                </div>
               </div>
-            </div>
-            <div>
+            </label>
+            <div className="hidden">
               <h3 className="text-lg font-bold">Upload Avatar</h3>
               <p className="text-sm text-gray-500">JPG 120x120px</p>
-              <div className="border rounded-lg  w-fit p-2 mt-2">
-                <input type="file" className="text-gray-500  text-sm" />
+              <div className="border rounded-lg w-fit p-2 mt-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="avatar"
+                  onChange={handleImageChange}
+                  className="text-gray-500 text-sm"
+                />
               </div>
             </div>
           </div>
@@ -187,8 +253,8 @@ const SettingsTab = () => {
               <input
                 type="email"
                 name="email"
+                disabled
                 value={userInfo.email}
-                onChange={handleUserChange}
                 className="w-full py-4 px-4 border rounded-lg"
               />
             </div>
@@ -226,10 +292,11 @@ const SettingsTab = () => {
           </div>
 
           <button
+            disabled={loading}
             onClick={handleSaveChanges}
-            className="mt-6 px-6 md:py-4 py-3 rounded-md md:rounded-xl text-xs md:text-sm uppercase md:font-bold bg-black text-white  hover:bg-discount-color transition-all duration-200 ease-in-out"
+            className="mt-6 px-6 md:py-4 py-3 rounded-md md:rounded-xl text-xs md:text-sm uppercase md:font-bold bg-black text-white  hover:bg-discount-color transition-all duration-200 ease-in-out min-w-44 hover:text-black"
           >
-            Save Changes
+            {loading ? <> <div className="animate-spin"><Spinner/></div> </> : "Save Changes"}
           </button>
         </div>
 

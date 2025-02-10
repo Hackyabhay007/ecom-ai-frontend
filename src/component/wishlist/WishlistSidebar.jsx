@@ -1,4 +1,4 @@
-import React from "react";
+import React, { use, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import {
@@ -6,12 +6,22 @@ import {
   removeFromWishlist,
 } from "../../../redux/slices/wishSlice";
 import Link from "next/link";
+import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
 
 const WishlistSidebar = () => {
   const dispatch = useDispatch();
   const { isOpen, wishlist } = useSelector((state) => state.wishlist);
+  const { currentCustomer: user } = useSelector((state) => state.customer);
 
-  console.log(wishlist);
+  // console.log(wishlist);
+
+  const [itemId, setitemId] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setitemId(user.id);
+    }
+  }, [user]);
 
   return (
     <>
@@ -57,11 +67,46 @@ const WishlistSidebar = () => {
                 />
                 <div className="flex-1 ml-4">
                   <h3 className="font-medium">{item.title}</h3>
-                  <p className="text-sm text-gray-500">₹{item.variants[0].calculated_price.calculated_amount}</p>
+                  <p className="text-sm text-gray-500">
+                    ₹{item.variants[0].calculated_price.calculated_amount}
+                  </p>
                 </div>
                 {/* Remove button for each item */}
                 <button
-                  onClick={() => dispatch(removeFromWishlist(item.id))}
+                 onClick={() => {
+
+                  if (!user) {
+                    router.push("/auth/login"); // Redirect to login if no user is logged in
+                    return;
+                  }
+
+                  const update = {
+                    metadata: {
+                      wishlist: user?.metadata?.wishlist.filter((wishlistItem) => wishlistItem.id !== item.id),
+                    },
+                  };
+                
+                  console.log(update, "update");
+                
+                  if (JSON.stringify(update.metadata.wishlist) === JSON.stringify(user?.metadata?.wishlist)) {
+                    console.log("No change");
+                    return;
+                  }
+                
+                  dispatch(updateCustomer(update));
+                
+                  dispatch(
+                    removeFromWishlist({
+                      productId: item.id,
+                      currentCustomer: user,
+                    })
+                  );
+                
+                  dispatch(retrieveCustomer());
+                  console.log(user, "user");
+                  console.log(item.id);
+                }}
+                
                   className="text-red-500 hover:text-red-700"
                 >
                   ✕

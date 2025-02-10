@@ -40,6 +40,9 @@ const AddressForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    console.log(name, value, type, checked);
+
     setNewAddress((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -50,12 +53,17 @@ const AddressForm = () => {
     try {
       setButtonText("Updating...");
 
+      console.log(newAddress);  
+
       await dispatch(createOrUpdateAddress({ addressData: newAddress }));
+
+
 
       setButtonText("Update Successful ✔");
       setTimeout(() => setButtonText("Update Address"), 4000);
     } catch (error) {
       setButtonText("Update Failed ❌");
+      console.error("Error updating address:", error);
       setTimeout(() => setButtonText("Update Address"), 4000);
     }
   };
@@ -141,7 +149,7 @@ const AddressForm = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Street Address 2
+              landmark
             </label>
             <input
               type="text"

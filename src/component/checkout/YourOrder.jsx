@@ -4,13 +4,13 @@ import Shipping from "./Shippingoption";
 import axios from "axios";
 function YourOrder({ order: initialOrder, onEdit, onPayment }) {
   const [order, setOrder] = useState(initialOrder?.items);
-  const [shippingmethods , setshippingmethods ] = useState([])
- 
-  console.log(order);
+  const [shippingmethods, setshippingmethods] = useState([]);
+
+  // console.log(order);
 
   const fetchShippingOptions = async (cart_id) => {
     try {
-      const response = await axios
+      await axios
         .get(
           `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/shipping-options`,
           {
@@ -24,9 +24,10 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
           }
         )
         .then((res) => {
-          console.log(res.data);
+          
           setshippingmethods(res.data.shipping_options);
-        });
+        })
+        .catch((err) =>  console.error(err));
 
       // console.log(response.data); // Handle the response
     } catch (error) {
@@ -67,11 +68,11 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
               </tr>
             </thead>
             <tbody>
-              {order &
-                order.map((item, index) => (
+              {order && Array.isArray(order) && order.length > 0 ? (
+                order.map((item) => (
                   <tr
-                    key={index}
-                    className="border-b-2 border-dashed border-gray-600"
+                    key={item.id}
+                    className="border-b-2 border-dashed border-gray-600 min-h-8"
                   >
                     <td className="py-4 pl-2 md:pl-0 flex flex-col items-start md:flex-row md:items-center">
                       <img
@@ -88,6 +89,12 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
                           Properties: {item.variant_title.toLowerCase()}
                         </p>
                       </div>
+                    </td>
+
+                    <td className="text-center">
+                      <span className="text-theme-blue font-semibold">
+                        {item.quantity}
+                      </span>
                     </td>
 
                     <td className="text-center">
@@ -113,7 +120,10 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
                       </span>
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <p>No items to display.</p>
+              )}
               <div className="px-2 md:px-10">
                 <table className=" w-full text-left text-theme-blue ">
                   <tbody>
@@ -130,12 +140,23 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
                 </table>
               </div>
 
+              <tr>
+                <td colSpan="3"></td>
+                <td className="text-right">
+                  <button
+                    onClick={onPayment}
+                    className="bg-theme-blue text-white font-bold py-2 px-4 rounded"
+                  >
+                    Make Payment
+                  </button>
+                </td>
+              </tr>
+
               {/* make div for apply cupons and gift cart */}
             </tbody>
           </table>
         </div>
       </div>
-      
 
       {/* Loyalty and Points Section */}
       <div className="bg-blue-100 p-6 rounded-md mt-6">
@@ -170,9 +191,8 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
         </ul>
       </div>
 
-      <Shipping  availableShippingMethods={shippingmethods} onPayment={onPayment} />
-      {/* Continue Button */}
       
+      {/* Continue Button */}
     </div>
   );
 }

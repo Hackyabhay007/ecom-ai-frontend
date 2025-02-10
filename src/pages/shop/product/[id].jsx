@@ -28,7 +28,7 @@ const ProductPage = () => {
 
   useEffect(() => {
     const queryParams = {
-      limit: 12,
+      limit: 1,
       fields:
         "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
       id: id,
@@ -41,10 +41,10 @@ const ProductPage = () => {
 
   // console.log("hi", data, error);
 
-  const product = data[0];
+  const product = data[0]?.id == id ? data[0] : null;
 
   // Add loading check
-  if (status === 'loading' || !data.length) {
+  if (status === "loading" || !data.length) {
     return (
       <>
         <Navbar />
@@ -57,7 +57,7 @@ const ProductPage = () => {
   return (
     <>
       <Navbar />
-      <ProductView product={data[0]} allProducts={products} />
+      <ProductView product={product} allProducts={products} />
       <Footer />
     </>
   );
