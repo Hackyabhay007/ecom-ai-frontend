@@ -1,45 +1,111 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchReviewSection } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
+import Link from "next/link";
 
-const reviewsData = [
-  {
-    id: 1,
-    image: '/images/review/review1.png',
-    rating: 5,
-    heading: 'Variety of Styles, Good Cloth and Luxury',
-    review: 'A customer review is a form of feedback or personal evaluation provided by a customer who has used a product or service.',
-    name: 'Rahul Singh',
-    date: 'Dec 10, 2024',
-  },
-  {
-    id: 2,
-    image: '/images/review/review2.png',
-    rating: 4,
-    heading: 'Affordable Yet Premium Quality',
-    review: 'Highly recommended! The material is great, and the designs are even better. Definitely coming back for more.',
-    name: 'Abhay Gupta',
-    date: 'Dec 9, 2024',
-  },
-  {
-    id: 3,
-    image: '/images/review/review3.png',
-    rating: 5,
-    heading: 'Great Shopping Experience',
-    review: 'Amazing service and fast delivery. The clothes fit perfectly, and the style is just what I was looking for.',
-    name: 'Pramod Birla',
-    date: 'Dec 8, 2024',
-  },
-];
+// const reviewsData = [
+//   {
+//     id: 1,
+//     image: '/images/review/review1.png',
+//     rating: 5,
+//     heading: 'Variety of Styles, Good Cloth and Luxury',
+//     review: 'A customer review is a form of feedback or personal evaluation provided by a customer who has used a product or service.',
+//     name: 'Rahul Singh',
+//     date: 'Dec 10, 2024',
+//   },
+//   {
+//     id: 2,
+//     image: '/images/review/review2.png',
+//     rating: 4,
+//     heading: 'Affordable Yet Premium Quality',
+//     review: 'Highly recommended! The material is great, and the designs are even better. Definitely coming back for more.',
+//     name: 'Abhay Gupta',
+//     date: 'Dec 9, 2024',
+//   },
+//   {
+//     id: 3,
+//     image: '/images/review/review3.png',
+//     rating: 5,
+//     heading: 'Great Shopping Experience',
+//     review: 'Amazing service and fast delivery. The clothes fit perfectly, and the style is just what I was looking for.',
+//     name: 'Pramod Birla',
+//     date: 'Dec 8, 2024',
+//   },
+// ];
 
 const Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [title, setTitle] = useState('');
+  const [reviewsData, setReviewsData] = useState([]);
+
+  const dispatch = useDispatch();
+  const { reviewSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+  useEffect(() => {
+    dispatch(fetchReviewSection()).then((result) => {
+      console.log("This is the Review data from the Review.js file", result.payload);
+    });
+  }, [dispatch]);
+
+
+  // Log the hero section data from state
+  useEffect(() => {
+
+    console.log("This is the Review data from the Review.js file", reviewSection?.section_data);
+    if(reviewSection?.section_data?.title){
+      setTitle(reviewSection.section_data.title);
+    }
+
+    if(reviewSection?.section_data?.testimonials.length>0){
+      console.log(reviewSection?.section_data?.testimonials);
+      const reviewsData_Array = reviewSection.section_data.testimonials.map((review) => {
+        return {
+          image: review.profile_picture,
+          rating: review.rating,
+          heading: "",
+          review: review.message,
+          name: review.name,
+          date: review.date,
+        };
+      });
+
+      if(reviewsData_Array?.length>0) {
+        setReviewsData(reviewsData_Array);
+      }
+
+      console.log("This is the reviews Data from the useState array ",reviewsData);
+    }
+    // if (reviewSection?.section_data?.slides) {
+    //   const heroDataArray = heroSection.section_data.slides.map((slide) => {
+    //     // Safely handle buttons array of any length
+    //     const buttons = slide.buttons || [];
+    //     return {
+    //       image: slide.background_image,
+    //       heading: slide.title,
+    //       tagline: slide.subtitle,
+
+    //       // For backward compatibility with existing code
+    //       button1: buttons[0]?.text || '',
+    //       button2: buttons[1]?.text || '',
+    //       button1Link: buttons[0]?.link || '',
+    //       button2Link: buttons[1]?.link || ''
+    //     };
+    //   });
+
+    //   if (heroDataArray?.length > 0) {
+    //     setHeroData(heroDataArray);
+    //   }
+      // console.log("This is the heroDataVal of the useState and this is this value:", heroData);
+    // } 
+  }, [reviewSection]);
 
   const nextReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % reviewsData.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % reviewsData?.length);
   };
 
   const prevReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + reviewsData.length) % reviewsData.length);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + reviewsData?.length) % reviewsData?.length);
   };
 
   const renderStars = (rating) => {
@@ -56,27 +122,27 @@ const Review = () => {
 
       {/* Desktop View */}
       <div className="hidden lg:flex justify-start space-x-4 overflow-x-auto px-5">
-        {reviewsData.map((review) => (
+        {reviewsData?.map((review) => (
           <div
-            key={review.id}
+            key={review?.id}
             className="w-1/3 px-5 border-2 border-theme-blue rounded-lg"
             style={{ height: 'auto' }} // Ensuring consistent height across all cards
           >
             <div className="relative mb-4">
               <Image
-                src={review.image}
-                alt={`Review by ${review.name}`}
+                src={review?.image}
+                alt={`Review by ${review?.name}`}
                 width={200}
                 height={200}
                 className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
               />
               <div className="ml-20 my-5">
-                <div className="text-yellow-600">{renderStars(review.rating)}</div>
-                <h3 className="font-semibold text-lg mt-2">{review.heading}</h3>
+                <div className="text-yellow-600">{renderStars(review?.rating)}</div>
+                <h3 className="font-semibold text-lg mt-2">{review?.heading}</h3>
               </div>
-                <p className="text-sub-color mt-2">{review.review}</p>
-                <p className="text-sm font-bold mt-2">{review.name}</p>
-                <p className="text-sm text-sub-color mt-2">{review.date}</p>
+              <p className="text-sub-color mt-2">{review?.review}</p>
+              <p className="text-sm font-bold mt-2">{review?.name}</p>
+              <p className="text-sm text-sub-color mt-2">{review?.date}</p>
 
             </div>
           </div>
@@ -89,19 +155,19 @@ const Review = () => {
           <div className="w-full px-5 py-2 border border-theme-blue rounded-lg h-fit" >
             <div className="relative">
               <Image
-                src={reviewsData[currentIndex].image}
-                alt={`Review by ${reviewsData[currentIndex].name}`}
+                src={reviewsData[currentIndex]?.image}
+                alt={`Review by ${reviewsData[currentIndex]?.name}`}
                 width={200}
                 height={200}
                 className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
               />
               <div className="ml-20 mt-4">
-                <div className="text-yellow-600">{renderStars(reviewsData[currentIndex].rating)}</div>
-                <h3 className="font-semibold text-lg mt-2">{reviewsData[currentIndex].heading}</h3>
+                <div className="text-yellow-600">{renderStars(reviewsData[currentIndex]?.rating)}</div>
+                <h3 className="font-semibold text-lg mt-2">{reviewsData[currentIndex]?.heading}</h3>
               </div>
-                <p className="text-sub-color mt-2">{reviewsData[currentIndex].review}</p>
-                <p className="text-sm font-bold mt-2">{reviewsData[currentIndex].name}</p>
-                <p className="text-sm text-sub-color mt-2">{reviewsData[currentIndex].date}</p>
+              <p className="text-sub-color mt-2">{reviewsData[currentIndex]?.review}</p>
+              <p className="text-sm font-bold mt-2">{reviewsData[currentIndex]?.name}</p>
+              <p className="text-sm text-sub-color mt-2">{reviewsData[currentIndex]?.date}</p>
 
             </div>
           </div>
@@ -109,17 +175,17 @@ const Review = () => {
           {/* Carousel Navigation */}
           <div className="absolute top-1/2 left-0 w-full flex justify-between ">
             <button onClick={prevReview} className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full">
-            <i className="ri-arrow-left-s-fill"></i>
+              <i className="ri-arrow-left-s-fill"></i>
             </button>
             <button onClick={nextReview} className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full">
-            
-            <i className="ri-arrow-right-s-fill"></i>
+
+              <i className="ri-arrow-right-s-fill"></i>
             </button>
           </div>
 
           {/* Carousel Dots */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {reviewsData.map((_, index) => (
+            {reviewsData?.map((_, index) => (
               <div
                 key={index}
                 className={`h-2 w-2 rounded-full ${index === currentIndex ? 'bg-theme-blue' : 'bg-gray-400'}`}

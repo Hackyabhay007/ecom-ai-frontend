@@ -1,7 +1,9 @@
 import React, { useRef } from "react";
 import Image from "next/image";
 
+
 const Category = ({ activeCategory = "woman" }) => {
+
   const categories = {
     woman: [
       { name: "Plazo", image: "/images/category/woman/cat1.jpeg" },

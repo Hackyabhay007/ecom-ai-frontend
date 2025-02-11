@@ -34,16 +34,16 @@ function Hero() {
   const [animateTagline, setAnimateTagline] = useState(false);
   const [animateButtons, setAnimateButtons] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const [heroData, setHeroData] = useState([]);
 
   const dispatch = useDispatch();
   const { heroSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
-  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     dispatch(fetchHeroSection()).then((result) => {
-      console.log("Hero Section Response:", result.payload);
+      // console.log("Hero Section Response:", result.payload);
     });
   }, [dispatch]);
 
@@ -70,7 +70,7 @@ function Hero() {
       if(heroDataArray?.length>0) {
         setHeroData(heroDataArray);
       }
-      console.log("This is the heroDataVal of the useState and this is this value:", heroData);
+      // console.log("This is the heroDataVal of the useState and this is this value:", heroData);
     }
   }, [heroSection]);
 

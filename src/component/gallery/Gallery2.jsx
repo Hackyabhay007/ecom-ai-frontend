@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import ImageStackSlider from "./ImageStackSlider";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGallery_Two } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
+import Link from "next/link";
+
+
 const galleryData = [
   {
     type: "image",
@@ -20,7 +25,48 @@ const galleryData = [
 
 function Gallery2() {
   // Select the item you want to display based on the condition
+  const [gallerVideoData, setGalleryVideoData] = useState({ url: "", alt : "" });
+  const [centerText, setCenterText] = useState("");
+  const [carouselArray, setCarouselArray] = useState([]);
   const selectedItem = galleryData.find((item) => item.type === "video"); // Change to "image" for the image.
+  const dispatch = useDispatch();
+  const { galleryTwoSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+  useEffect(() => {
+    dispatch(fetchGallery_Two()).then((result) => {
+      // console.log("This is the Gallery Two data from the Gallery2.jsx file", result.payload);
+    });
+  }, [dispatch]);
+
+  // Log the hero section data from state
+  useEffect(() => {
+    // console.log("This is the Gallery Two data from the Gallery2.jsx file", galleryTwoSection?.section_data);
+
+    if(galleryTwoSection?.section_data?.video?.url){
+      setGalleryVideoData({
+        url: galleryTwoSection?.section_data?.video?.url || "",
+        alt: galleryTwoSection?.section_data?.video?.alt || ""
+      });
+    }
+
+    if(galleryTwoSection?.section_data?.center_text){
+      setCenterText(galleryTwoSection?.section_data?.center_text);
+    }
+
+    if(galleryTwoSection?.section_data?.carousel.length > 0){
+      const carouselArray = galleryTwoSection?.section_data?.carousel.map((item) => {
+        return {
+          id : item.id,
+          src : item.image,
+          alt: item.alt,
+          link: item.link,
+          title: item.title,
+          buttonText: item.buttonText,
+        };
+      });
+      setCarouselArray(carouselArray);
+    }
+  }, [galleryTwoSection]);
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-center min-h-[80%] md:h-96">
@@ -64,7 +110,7 @@ function Gallery2() {
               key={`original-${i}`}
               className="md:mb-0 rotate-0 md:rotate-90 whitespace-nowrap"
             >
-              NEW
+              {centerText}
             </p>
           ))}
           {Array.from({ length: 20 }, (_, i) => (
@@ -72,7 +118,7 @@ function Gallery2() {
               key={`duplicate-${i}`}
               className="md:mb-0 rotate-0 md:rotate-90 whitespace-nowrap"
             >
-              NEW
+              {centerText}
             </p>
           ))}
         </div>
@@ -80,7 +126,7 @@ function Gallery2() {
 
       {/* Image 2 */}
       <div className="relative w-full h-[40%] md:h-full md:w-1/2 group">
-      <ImageStackSlider />
+        <ImageStackSlider />
       </div>
     </div>
   );

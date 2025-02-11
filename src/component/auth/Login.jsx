@@ -1,24 +1,46 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDispatch, useSelector } from 'react-redux';
+import { loginAdmin } from "@/../redux/slices/authSlice";
+
+
+
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // For displaying error messages
+  // const [errorValue, setErrorValue] = useState(""); // For displaying error messages
   const { login } = useAuth();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const error = useSelector((state) => state?.auth?.error);
+  const user = useSelector((state) => state.auth?.user);
+  const loading = useSelector((state) => state.auth?.loading);
+
+
+  useEffect(() => {
+    if (user) {
+      console.log("This is the user of the Login Page", user);
+    }
+  }, [user]);
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent default form submission
-    setError(""); // Reset error message
+    // if (error) setErrorValue(""); // Reset error message
+
 
     // Dummy login logic
-    if (email === "abc@gmail.com" && password === "1234") {
-      await login(email, password); // Proceed with login from context
-    } else {
-      setError("Invalid email or password."); // Set error message
-    }
+    if (email && password) {
+      const credentials = { email, password };
+      // console.log("This is the credentials of the Login Page", credentials);
+      dispatch(loginAdmin(credentials)); // Dispatch login action
+      // await login(email, password); // Proceed with login from context
+    } 
+    // else {
+    //   setErrorValue("Invalid email or password."); // Set error message
+    // }
   };
 
   return (

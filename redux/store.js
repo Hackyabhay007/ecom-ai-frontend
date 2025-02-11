@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit"; // Import co
 import cartReducer from "./slices/cartSlice";
 import wishReducer from "./slices/wishSlice";
 import homePageReducer from "./slices/homePageSlice";
+import authReducer from "./slices/authSlice"; // Add this import
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Using localStorage
 
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   wishlist: wishReducer, // Add wishlist to the combined reducers
   homePage: homePageReducer,
+  auth: authReducer, // Add this line
 });
 
 // Persist the combined reducer

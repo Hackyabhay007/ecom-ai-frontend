@@ -1,18 +1,55 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGallery_Two } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
+import Link from "next/link";
 
-const images = [
-  "/images/gallery/gallery1.png",
-  "/images/gallery/gallery2.png",
-  "/images/gallery/gallery3.png",
-  "/images/gallery/gallery4.png",
-  "/images/gallery/gallery5.png",
-];
+// const images = [
+//   "/images/gallery/gallery1.png",
+//   "/images/gallery/gallery2.png",
+//   "/images/gallery/gallery3.png",
+//   "/images/gallery/gallery4.png",
+//   "/images/gallery/gallery5.png",
+// ];
 
 const ImageStackSlider = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [images, setImages] = useState([]);
+
+
+  const dispatch = useDispatch();
+  const { galleryTwoSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+  useEffect(() => {
+    dispatch(fetchGallery_Two()).then((result) => {
+      // console.log("This is the Gallery Two data from the Gallery2.jsx file", result.payload);
+    });
+  }, [dispatch]);
+
+  // Log the hero section data from state
+  useEffect(() => {
+
+    if (galleryTwoSection?.section_data?.carousel.length > 0) {
+      const carouselData = galleryTwoSection?.section_data?.carousel.map((item) => {
+        return item.image;
+        
+        // {
+        //   id: item.id,
+        //   src: item.image,
+        //   alt: item.alt,
+        //   link: item.link,
+        //   title: item.title,
+        //   buttonText: item.buttonText,
+        // };
+      });
+      setImages(carouselData);
+
+      // console.log("This is the Carousel Data of the Image Stack Slider Data", carouselData);
+      // console.log("This is the Carousel Array Data of the  Image Stack Slider Data", images);
+    }
+  }, [galleryTwoSection]);
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -70,9 +107,8 @@ const ImageStackSlider = () => {
           return (
             <div
               key={index}
-              className={`absolute w-[90%] md:w-[70%] h-[90%] transition-all duration-500 ease-in-out ${
-                position === 0 ? "shadow-xl" : "shadow-md"
-              }`}
+              className={`absolute w-[90%] md:w-[70%] h-[90%] transition-all duration-500 ease-in-out ${position === 0 ? "shadow-xl" : "shadow-md"
+                }`}
               style={{
                 zIndex,
                 transform,
