@@ -12,7 +12,7 @@ import Link from "next/link";
 //   "/images/gallery/gallery5.png",
 // ];
 
-const ImageStackSlider = () => {
+const ImageStackSlider = ({catalogdata}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -50,6 +50,8 @@ const ImageStackSlider = () => {
       // console.log("This is the Carousel Array Data of the  Image Stack Slider Data", images);
     }
   }, [galleryTwoSection]);
+
+  
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -95,7 +97,7 @@ const ImageStackSlider = () => {
     >
       {/* Stacked Images */}
       <div className="relative h-full flex items-center justify-center">
-        {images.map((image, index) => {
+        {catalogdata.map((data, index) => {
           // Calculate position for stacking
           const position = (index - currentIndex + images.length) % images.length;
           const zIndex = images.length - position;
@@ -105,7 +107,7 @@ const ImageStackSlider = () => {
               : `translateY(${5 * position}%) translateX(${50 * position}px) scale(0.85)`;
 
           return (
-            <div
+            <a href={data.link}
               key={index}
               className={`absolute w-[90%] md:w-[70%] h-[90%] transition-all duration-500 ease-in-out ${position === 0 ? "shadow-xl" : "shadow-md"
                 }`}
@@ -116,13 +118,14 @@ const ImageStackSlider = () => {
               }}
             >
               <Image
-                src={image}
+                src={data.image}
                 alt={`Gallery Image ${index + 1}`}
                 layout="fill"
                 objectFit="cover"
+                
                 className="object-top"
               />
-            </div>
+            </a>
           );
         })}
       </div>

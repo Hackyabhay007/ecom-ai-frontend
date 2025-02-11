@@ -1,55 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchGalleryOneSection } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
-import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
+
+import { fetchcataloges } from "../../../redux/slices/catalogSlicer.js";
 
 function Gallery() {
-  const [mainImage, setMainImage] = useState({
-    src: "",
-    alt: "",
-  });
-  const [imageCarousel, setImageCarousel] = useState([]);
-  const [link, setLink] = useState(""); 
-
   const dispatch = useDispatch();
-  const { galleryOneSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+  const { cataloges, status, error } = useSelector(
+    (state) => state.catalogSection
+  );
+  const [catalog, setcatalog] = useState([]);
 
   useEffect(() => {
-    dispatch(fetchGalleryOneSection()).then((result) => {
-      // console.log("Gallery Section Response from dispatch:", result.payload);
-    });
+    dispatch(fetchcataloges());
   }, [dispatch]);
 
   useEffect(() => {
-    if (galleryOneSection?.section_data?.main_image?.url) {
-      setMainImage({
-        src: galleryOneSection.section_data.main_image.url || "",
-        alt: galleryOneSection.section_data.main_image.alt || "",
-      });
-    }
+    // Convert cataloges into an array
+    setcatalog(Object.entries(cataloges));
+  }, [cataloges]);
 
-
-    if (galleryOneSection?.section_data?.gallery.length > 0) {
-      const carouselArray = galleryOneSection.section_data.gallery.map((image) => {
-        return {
-          id: image.id,
-          url: image.url,
-          alt: image.alt,
-        };
-      });
-      setImageCarousel(carouselArray);
-    }
-
-    if (galleryOneSection?.section_data?.cta_button?.link) {
-      setLink(galleryOneSection?.section_data?.cta_button?.link);
-    }
-
-    console.log("This is the Gallery Link", link);
-  }, [galleryOneSection, loading, error]);
-
-
-
+  // console.log(Array.isArray(catalog));
   return (
     <div
       className="relative bg-cover md:bg-center min-h-96 h-[500px] flex"

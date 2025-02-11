@@ -1,38 +1,79 @@
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
+
 const SearchSuggestion = ({ suggestions, onSuggestionClick }) => {
-  if (suggestions.length === 0) return null; // Do not render if no suggestions
+  if (!suggestions.length) return null;
 
   return (
-    <ul className="mt-2">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
       {suggestions.map((product) => (
-        <li
+        <div
           key={product.id}
-          className="p-2 hover:bg-gray-200 rounded-md cursor-pointer flex items-center gap-2"
           onClick={() => onSuggestionClick(product)}
+          className="cursor-pointer bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-3 group"
         >
-          <Image
-            src={product.image}
-            alt={product.name}
-            width={240}
-            height={240}
-            className="w-10 rounded"
-          />
-          <div className="pl-5">
-            <p className="text-sm mb-2">{product.name}</p>
-            <p className="text-sm  text-black">
-              ${product.price}{" "}
-            <span className="text-sub-color text-xs pl-2">{product.prevPrice && <del>${product.prevPrice}</del>}</span>
-            </p>
+          <div className="aspect-square w-full relative mb-2 overflow-hidden rounded-lg">
+            <Image
+              src={product.thumbnail}
+              alt={product.title}
+              layout="fill"
+              objectFit="cover"
+              className="transform group-hover:scale-105 transition-transform duration-300"
+            />
+            {product.images?.[1]?.url && (
+              <Image
+                src={product.images[1].url}
+                alt={product.title}
+                layout="fill"
+                objectFit="cover"
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              />
+            )}
+            {(product.discount > 0 || product.isNew) && (
+              <span
+                className={`${
+                  product.discount > 0 && product.isNew
+                    ? "bg-[#FF5733]"
+                    : product.discount > 0
+                    ? "bg-[#DB4444]"
+                    : "bg-[#D2EF9A]"
+                } text-${product.isNew && !product.discount ? "black" : "white"} font-bold text-xs px-3 py-1 absolute top-2 left-2 rounded-full`}
+              >
+                {product.discount > 0 && product.isNew
+                  ? "New & Best Price!"
+                  : product.discount > 0
+                  ? "SALE"
+                  : "NEW"}
+              </span>
+            )}
           </div>
-        </li>
+          <h3 className="font-medium text-gray-900 truncate text-sm md:text-base">
+            {product.title}
+          </h3>
+          <div className="flex flex-wrap gap-2 items-center mt-1">
+            {product.discountedPrice ? (
+              <>
+                <span className="text-sm md:text-base font-medium">
+                  {product.discountedPrice}
+                </span>
+                <span className="text-xs md:text-sm text-gray-500 line-through">
+                  {product.originalPrice}
+                </span>
+                {product.discount > 0 && (
+                  <span className="text-xs bg-[#D2EF9A] px-2 py-1 rounded-full">
+                    -{product.discount}%
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="text-sm md:text-base font-medium">
+                {product.originalPrice}
+              </span>
+            )}
+          </div>
+        </div>
       ))}
-<Link href="/shop">
-  <p className="text-sub-color cursor-pointer border-b  hover:border-sub-color w-fit">see all..</p>
-</Link>
-
-    </ul>
+    </div>
   );
 };
 

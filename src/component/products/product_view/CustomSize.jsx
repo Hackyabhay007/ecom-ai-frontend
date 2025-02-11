@@ -16,8 +16,11 @@ const CustomSize = ({ onClose, onApply }) => {
     waist: "",
   });
 
+  const [error, setError] = React.useState("");
+
   const handleSelectSize = (field, size) => {
     setSelectedSizes((prev) => ({ ...prev, [field]: size }));
+    setError(""); // Clear error when user selects a size
   };
 
   const handleApply = () => {
@@ -27,7 +30,7 @@ const CustomSize = ({ onClose, onApply }) => {
       !selectedSizes.sleeve ||
       !selectedSizes.waist
     ) {
-      alert("Please select a size for all categories.");
+      setError("Please select a size for all categories.");
       return;
     }
     onApply(selectedSizes);
@@ -115,6 +118,13 @@ const CustomSize = ({ onClose, onApply }) => {
                   ))}
                 </div>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <p className="text-sm text-red-800 mt-2 text-center">
+                 <i class="ri-information-fill"></i> {error}
+                </p>
+              )}
 
               <div className="flex justify-end mt-4">
                 <button

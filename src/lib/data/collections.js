@@ -1,0 +1,47 @@
+"use server";
+import { sdk } from "@/lib/config";
+import { getCacheOptions } from "./cookies";
+
+export const retrieveCollection = async (id) => {
+  const next = {
+    ...(await getCacheOptions("collections")),
+  };
+
+  return sdk.client
+    .fetch(`/store/collections/${id}`, {
+      next,
+      cache: "force-cache",
+    })
+    .then(({ collection }) => collection);
+};
+
+export const listCollections = async (queryParams = {}) => {
+  const next = {
+    ...(await getCacheOptions("collections")),
+  };
+
+  queryParams.limit = queryParams.limit || "100";
+  queryParams.offset = queryParams.offset || "0";
+
+  return sdk.client
+    .fetch("/store/collections", {
+      query: queryParams,
+      next,
+      cache: "force-cache",
+    })
+    .then(({ collections }) => ({ collections, count: collections.length }));
+};
+
+export const getCollectionByHandle = async (handle) => {
+  const next = {
+    ...(await getCacheOptions("collections")),
+  };
+
+  return sdk.client
+    .fetch(`/store/collections`, {
+      query: { handle, fields: "*products" },
+      next,
+      cache: "force-cache",
+    })
+    .then(({ collections }) => collections[0]);
+};

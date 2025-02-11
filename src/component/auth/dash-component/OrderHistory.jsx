@@ -1,41 +1,34 @@
-import React, { useState } from "react";
-import Image from "next/image";
+import React, { useEffect, useState } from "react";
+import { retrieveCustomer } from "@/redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrdersByCustomerId } from "@/redux/slices/orderSlice";
+import { useRouter } from "next/router";
 
 const OrderHistory = () => {
   const [filter, setFilter] = useState("all");
+  const router = useRouter();
 
-  const orders = [
-    {
-      orderId: "#001",
-      products: [
-        {
-          name: "Alex white trending shirt",
-          image: "/images/collection/collection1.png",
-          size: "XL",
-          color: "Yellow",
-          quantity: 2,
-          price: "$50",
-        },
-      ],
-      status: "Delivered",
-    },
-    {
-      orderId: "#002",
-      products: [
-        {
-          name: "New wool puma jacket",
-          image: "/images/collection/collection2.png",
-          size: "M",
-          color: "Blue",
-          quantity: 1,
-          price: "$30",
-        },
-      ],
-      status: "Pending",
-    },
-  ];
+  const {
+    orders: current_orders,
+    status,
+    error,
+  } = useSelector((state) => state.orders);
 
-  const filteredOrders = orders.filter((order) =>
+  const { currentCustomer: user } = useSelector((state) => state.customer);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(retrieveCustomer());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchOrdersByCustomerId(user.id));
+    }
+  }, [user]);
+
+  // Filter orders based on the selected status
+  const filteredOrders = current_orders && current_orders.filter((order) =>
     filter === "all" ? true : order.status.toLowerCase() === filter
   );
 
@@ -54,7 +47,7 @@ const OrderHistory = () => {
         </h2>
       </div>
 
-      {/* filters data */}
+      {/* Filters */}
       <div className="mb-4 border-b flex justify-around sm:justify-start sm:gap-6">
         {["all", "pending", "delivered"].map((status) => (
           <button
@@ -73,68 +66,59 @@ const OrderHistory = () => {
 
       {/* Orders */}
       <div className="space-y-6">
-        {filteredOrders.map((order) => (
-          <div
-            key={order.orderId}
-            className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
-          >
-            {/* Order Header */}
-            <div className="pb-4 mb-4 border-b">
-              <div className="flex justify-between">
-                <h3 className="text-sm sm:text-md md:text-lg">
-                  Order Number:{" "}
-                  <span className="font-bold">{order.orderId}</span>
-                </h3>
-                <p
-                  className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                    statusColors[order.status]
-                  }`}
-                >
-                  {order.status}
+        {filteredOrders && filteredOrders.map((order) => (
+          <div key={order.id} className="border rounded-lg p-4 shadow-md mb-4">
+            {/* Order ID and Status */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm md:text-base font-semibold">
+                Order #{order.id}
+              </p>
+              <span
+                className={`text-xs md:text-sm px-2 py-1 rounded ${statusColors[order.status]}`}
+              >
+                {order.status}
+              </span>
+            </div>
+
+            {/* Order Items */}
+            {order.items?.slice(0, 1).map((product) => (
+              <div
+                key={product.id}
+                className="flex items-center justify-between border-b pb-2 mt-3"
+              >
+                {/* Product Name and Quantity */}
+                <div>
+                  <p className="text-sm md:text-base capitalize font-medium">
+                    {product.product_title} (Qty: {product.quantity})
+                  </p>
+                </div>
+              </div>
+            ))}
+            {order.items.length > 1 && (
+              <div className="mt-2">
+                <p className="text-xs md:text-sm text-blue-500 cursor-pointer">
+                  See more...
                 </p>
               </div>
+            )}
+
+            {/* Order Date and Total Amount */}
+            <div className="mt-3">
+              <p className="text-xs sm:text-sm text-gray-500">
+                {new Date(order.created_at).toLocaleString()}
+              </p>
+              <p className="text-sm md:text-base font-semibold">
+                Total Amount: ₹{order.item_subtotal}
+              </p>
             </div>
 
-            {/* Product Details */}
-            <div className="space-y-4">
-              {order.products.map((product, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between border-b pb-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={150}
-                      height={150}
-                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 object-cover rounded"
-                    />
-                    <div>
-                      <p className="text-xs sm:text-sm md:text-lg capitalize">{product.name}</p>
-                      <p className="text-xs sm:text-sm text-sub-color">
-                        {product.size} / {product.color}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs sm:text-sm md:text-base">
-                      {product.quantity} x {product.price}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex text-xs sm:text-sm md:text-base justify-around md:justify-start gap-4 mt-4">
-              <button className="px-6 sm:px-8 py-2 sm:py-3 uppercase md:font-bold rounded-md md:rounded-xl bg-black text-white hover:bg-discount-color hover:text-black transition-all duration-200 ease-in-out">
-                Order Details
-              </button>
-              <button className="px-4 sm:px-6 py-2 sm:py-3 uppercase md:font-bold rounded-md  md:rounded-xl bg-light-BG border border-gray-300 hover:bg-discount-color hover:text-black transition-all duration-200 ease-in-out">
-                Cancel Order
-              </button>
-            </div>
+            {/* View Order Button */}
+            <button
+              onClick={() => router.push(`/order-confirmation?order_id=${order.id}`)}
+              className="mt-3 text-xs md:text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            >
+              View Order
+            </button>
           </div>
         ))}
       </div>

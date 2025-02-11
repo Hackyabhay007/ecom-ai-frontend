@@ -24,13 +24,13 @@ function DisplayDetails({ details, onEdit, onContinue }) {
           <div className="flex-grow ">
             <div className="px-6">
               <h3 className="font-semibold text-theme-blue">Address:</h3>
-              <p>{details.address}</p>
-              <p>{details.landmark}</p>
-              <p>{details.country}</p>
-              <p>{details.state}</p>
+              <p>Address : {details.address}</p>
+              <p> Landmark : {details.landmark}</p>
+              <p> Country : {details.country}</p>
+              <p>State : {details.state}</p>
             </div>
             <hr className="border-black mt-4 mb-4" />
-            <div className="px-6 pb-4">
+            <div className="px-6 pb-4 flex gap-3">
               <h3 className="font-semibold text-theme-blue">Pin Code:</h3>
               <p>{details.pincode}</p>
             </div>

@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchHeroSection } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
-import Link from "next/link";
+"use client"
 
-// const heroData = [
-//   {
-//     image: "/images/hero/hero1.png",
-//     heading: "Fashion",
-//     tagline: "Innovation and Excellence Await",
-//     button1: "Learn More",
-//     button2: "Get Started",
-//   },
-//   {
-//     image: "/images/hero/hero2.jpeg",
-//     heading: "Unleash Potential",
-//     tagline: "Empowering Your Vision",
-//     button1: "Join Us",
-//     button2: "Explore",
-//   },
-//   {
-//     image: "/images/hero/hero3.jpg",
-//     heading: "Elevate Your Experience",
-//     tagline: "Redefining Possibilities",
-//     button1: "Sign Up",
-//     button2: "Learn More",
-//   },
-// ];
+import React, { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchHeroes } from "../../../redux/slices/herosectionSlice.js";
 
 function Hero() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animateHeading, setAnimateHeading] = useState(false);
   const [animateTagline, setAnimateTagline] = useState(false);
   const [animateButtons, setAnimateButtons] = useState(false);
+  const dispatch = useDispatch();
+  const {
+    heroes: heroesObject,
+    status,
+    error,
+  } = useSelector((state) => state.heroSection);
+  const [heroes, setHeroes] = useState([]);
+
+  useMemo(() => {
+    dispatch(fetchHeroes());
+  }, [currentIndex]);
+
+  // Convert heroes object to array and ensure it is sorted by index
+  useMemo(() => {
+    const sortedHeroes = heroesObject
+      ? Object.entries(heroesObject).map(([key, hero]) => ({
+          ...hero,
+          id: key,
+        }))
+      : [];
+    setHeroes(sortedHeroes.sort((a, b) => a.index - b.index));
+  }, [heroesObject]);
+
   const [isPaused, setIsPaused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -87,7 +87,7 @@ function Hero() {
   const handleNext = () => {
     resetAnimations();
     setTimeout(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroData?.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroes.length);
       triggerAnimations();
     }, 500);
   };
@@ -95,7 +95,9 @@ function Hero() {
   const handlePrev = () => {
     resetAnimations();
     setTimeout(() => {
-      setCurrentIndex((prevIndex) => (prevIndex - 1 + heroData?.length) % heroData?.length);
+      setCurrentIndex(
+        (prevIndex) => (prevIndex - 1 + heroes.length) % heroes.length
+      );
       triggerAnimations();
     }, 500);
   };
@@ -119,26 +121,27 @@ function Hero() {
   const handlePause = () => setIsPaused(true);
   const handleResume = () => setIsPaused(false);
 
-  const currentHero = heroData[currentIndex];
+  const currentHero = heroes[currentIndex] || {};
 
   return (
-    <div
-      className="relative  w-full min-h-[80%] h-[700px] md:h-screen overflow-hidden"
-      onMouseEnter={handlePause}
-      onMouseLeave={handleResume}
-      onTouchStart={handlePause}
-      onTouchEnd={handleResume}
-    >
-      {/* Background Image */}
-      <Image
-        src={currentHero?.image}
-        alt={currentHero?.heading}
-        fill
-        className="absolute inset-0 object-cover"
-      />
+    Array.isArray(heroes) && (
+      <div
+        className="relative w-full min-h-[80%] h-[700px] md:h-screen overflow-hidden"
+        onMouseEnter={handlePause}
+        onMouseLeave={handleResume}
+        onTouchStart={handlePause}
+        onTouchEnd={handleResume}
+      >
+        {/* Background Image */}
+        <Image
+          src={currentHero?.image || "/fallback-image.jpg"}
+          alt={currentHero?.title || "Default Title"}
+          className="absolute inset-0 object-cover"
+          fill
+        />
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center md:m-auto mt-36 md:items-start justify-center h-full md:p-20 text-white">

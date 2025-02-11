@@ -1,20 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import CartItem from "./CartItem";
 import CartRelatedProducts from "./CartRelatedProducts";
 import { useRouter } from "next/router";
 import Link from "next/link";
-const Cart = () => {
-  const { items } = useSelector((state) => state.cart);
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const router = useRouter();
+import { useCart } from "@/contexts/CartContext";
 
+const Cart = () => {
+  // const { items } = useSelector((state) => state.cart);
+  const { cart } = useCart();
+   const interestedProducts = useSelector((state) => state.interestedProducts);
+
+  // console.log(cart);
+
+  // console.log(cart, " this is cart");
+  const [items, setitems] = useState([]);
+
+  useEffect(() => {
+    cart?.items && setitems(cart.items);
+  }, [cart]);
+
+  const router = useRouter();
+  const handleCheckout = () => {
+    const cartItemsString = JSON.stringify(items);
+    router.push({
+      pathname: "/checkout",
+    });
+  };
   const handleShopNow = () => {
     router.push("/shop"); // Navigate to shop page
   };
+
+  // console.log(cart);
 
   return (
     <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
@@ -23,8 +40,8 @@ const Cart = () => {
         <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:px-4 mb-5 md:mb-10">
           Product you may like
         </h2>
-        {items.length > 0 ? (
-          <CartRelatedProducts />
+        {interestedProducts.length > 0 ? (
+          <CartRelatedProducts cart={cart} />
         ) : (
           <p className="text-gray-500">Add items in the cart</p>
         )}
@@ -42,7 +59,7 @@ const Cart = () => {
                 <i class="ri-store-2-line md:text-9xl text-7xl  text-theme-blue opacity-40"></i>
               </h1>
               <button
-                className="bg-theme-blue text-white rounded-md px-6 py-2 text-xs md:text-sm font-bold uppercase hover:bg-discount-color hover:text-theme-blue transition-all duration-100"
+                className="duration-200 bg-theme-blue text-white rounded-md px-6 py-2 text-xs md:text-sm font-bold uppercase hover:bg-discount-color hover:text-theme-blue transition-all duration-100"
                 onClick={handleShopNow}
               >
                 Shop Now
@@ -67,16 +84,20 @@ const Cart = () => {
               Subtotal:
             </p>
             <p className="md:text-lg text-md font-bold text-cream">
-              ₹{subtotal}
+              ₹{cart?.item_subtotal || 0}
             </p>
           </div>
           <div className="flex gap-2 md:gap-4 md:px-2 px-1 w-full">
             <Link href="/shop" passHref>
-              <button className="border border-theme-blue text-sm md:text-base uppercase md:font-bold bg-white text-theme-blue w-full px-10 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100 hover:border-transparent">
+              <button className="duration-200 border border-theme-blue text-sm md:text-base uppercase md:font-bold bg-white text-theme-blue w-full px-10 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all  hover:border-transparent">
                 Shop
               </button>
             </Link>
-            <button className="bg-theme-blue text-sm md:text-base uppercase md:font-bold text-white w-full px-2 md:px-4 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100">
+            <button
+              disabled={items.length === 0}
+              onClick={handleCheckout}
+              className="cursor-pointer duration-200 bg-theme-blue text-sm md:text-base uppercase md:font-bold text-white w-full px-2 md:px-4 md:py-3 py-1 rounded-md hover:bg-discount-color hover:text-theme-blue transition-all duration-100"
+            >
               Checkout
             </button>
           </div>

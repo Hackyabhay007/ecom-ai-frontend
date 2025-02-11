@@ -31,6 +31,7 @@ const ProductDetailsInfo = ({ categories }) => {
                   layout="fill"
                   objectFit="contain"
                   className="rounded"
+                  
                 />
               </div>
             ))}
@@ -116,7 +117,7 @@ const ProductDetailsInfo = ({ categories }) => {
             {categories &&
               categories.map((category, index) => (
                 <span key={index} className="inline-block mr-2">
-                  {category}
+                  {category.name}
                   {index < categories.length - 1 ? "," : ""}
                 </span>
               ))}
