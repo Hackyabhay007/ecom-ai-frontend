@@ -1,7 +1,8 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useDispatch, useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "@/redux/slices/authSlice";
 import { signup } from "@/redux/slices/authSlice"
 import Cookies from "js-cookie"
 
@@ -15,32 +16,37 @@ const Register = () => {
 
   const router = useRouter()
   const dispatch = useDispatch()
-  const { token, isLoading } = useSelector(state => state.customer)
+  // const { token, isLoading } = useSelector(state => state.customer)
+  const isLoading = false;
+  const token = "";
 
-  useEffect(() => {
-    if (Cookies.get("_medusa_jwt")) {
-      router.push("/auth/dashboard")
-    }
-  }, [router])
+  // useEffect(() => {
+  //   if (Cookies.get("_medusa_jwt")) {
+  //     router.push("/auth/dashboard")
+  //   }
+  // }, [router])
 
   const handleRegister = async e => {
     e.preventDefault()
-    const secretKey = process.env.NEXT_PUBLIC_REVALIDATE_SECRET || ""
+    // const secretKey = process.env.NEXT_PUBLIC_REVALIDATE_SECRET || ""
+    console.log("These are the detail of the Register Page", firstName, lastName, email, password);
+
 
     try {
-      await dispatch(
-        signup({
-          formData: {
-            firstName,
-            lastName,
-            email,
-            password,
-            phone
-          },
-          secretKey
-        })
-      ).unwrap()
-      router.push("/auth/dashboard")
+      await dispatch(registerUser({firstName, lastName, email, phone, password}));
+        // await dispatch(
+        //   signup({
+        //     formData: {
+        //       firstName,
+        //       lastName,
+        //       email,
+        //       password,
+        //       phone
+        //     },
+        //     secretKey
+        //   })
+        // ).unwrap()
+        // router.push("/auth/dashboard")
     } catch (error) {
       console.error("Registration failed", error)
     }

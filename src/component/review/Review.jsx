@@ -4,12 +4,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchreviews } from "../../../redux/slices/reviewSlicer.js";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
+import { fetchReviewSection } from "@/redux/slices/homePageSlice.js"
 
 const Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const dispatch = useDispatch();
-  const { reviews, status, error } = useSelector((state) => state.reviewsection);
+  // const { reviews, status, error } = useSelector((state) => state.reviewsection);
   const [itemsPerView, setItemsPerView] = useState(3);
+  const [title, setTitle] = useState("");
+  const [reviewsData, setReviewsData] = useState([]);
+  const reviews = [];
 
   // Update items per view based on screen size
   useEffect(() => {
@@ -28,9 +31,34 @@ const Review = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const dispatch = useDispatch();
+  const { reviewSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+
   useEffect(() => {
-    dispatch(fetchreviews());
+    dispatch(fetchReviewSection());
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log("This is the Review Section data", reviewSection);
+    if(reviewSection?.section_data?.title){
+      setTitle(reviewSection?.section_data?.title);
+    }
+
+
+    if(reviewSection?.section_data?.testimonials?.length>0){
+      const reviewsArray = reviewSection?.section_data?.testimonials.map((item) => {
+        return {
+          date: item.date,
+          message: item.message,
+          name: item.name,
+          profile_picture: item.profile_picture,
+          rating: item.rating
+        }
+      });
+      setReviewsData(reviewsArray);
+    }
+  }, [reviewSection])
 
   const nextReview = () => {
     setCurrentIndex((prevIndex) => (prevIndex + itemsPerView) % reviews.length);
@@ -93,19 +121,19 @@ const Review = () => {
 
   return (
     <div className="p-5 ">
-      <h2 className="text-center text-xl md:text-3xl font-bold mb-8">What People Are Saying</h2>
+      <h2 className="text-center text-xl md:text-3xl font-bold mb-8">{title}</h2>
 
       {/* Desktop View */}
       <div className="hidden lg:flex justify-start space-x-4 overflow-x-auto px-5">
         {reviewsData?.map((review) => (
           <div
-            key={review?.id}
+            key={review?.name}
             className="w-1/3 px-5 border-2 border-theme-blue rounded-lg"
             style={{ height: 'auto' }} // Ensuring consistent height across all cards
           >
             <div className="relative mb-4">
               <Image
-                src={review?.image}
+                src={review?.profile_picture}
                 alt={`Review by ${review?.name}`}
                 width={200}
                 height={200}
@@ -113,9 +141,9 @@ const Review = () => {
               />
               <div className="ml-20 my-5">
                 <div className="text-yellow-600">{renderStars(review?.rating)}</div>
-                <h3 className="font-semibold text-lg mt-2">{review?.heading}</h3>
+                <h3 className="font-semibold text-lg mt-2">{review?.message}</h3>
               </div>
-              <p className="text-sub-color mt-2">{review?.review}</p>
+              {/* <p className="text-sub-color mt-2">{review?.review}</p> */}
               <p className="text-sm font-bold mt-2">{review?.name}</p>
               <p className="text-sm text-sub-color mt-2">{review?.date}</p>
 
@@ -130,7 +158,7 @@ const Review = () => {
           <div className="w-full px-5 py-2 border border-theme-blue rounded-lg h-fit" >
             <div className="relative">
               <Image
-                src={reviewsData[currentIndex]?.image}
+                src={reviewsData[currentIndex]?.profile_picture}
                 alt={`Review by ${reviewsData[currentIndex]?.name}`}
                 width={200}
                 height={200}
@@ -138,9 +166,9 @@ const Review = () => {
               />
               <div className="ml-20 mt-4">
                 <div className="text-yellow-600">{renderStars(reviewsData[currentIndex]?.rating)}</div>
-                <h3 className="font-semibold text-lg mt-2">{reviewsData[currentIndex]?.heading}</h3>
+                {/* <h3 className="font-semibold text-lg mt-2">{reviewsData[currentIndex]?.heading}</h3> */}
               </div>
-              <p className="text-sub-color mt-2">{reviewsData[currentIndex]?.review}</p>
+              <p className="text-sub-color mt-2">{reviewsData[currentIndex]?.message}</p>
               <p className="text-sm font-bold mt-2">{reviewsData[currentIndex]?.name}</p>
               <p className="text-sm text-sub-color mt-2">{reviewsData[currentIndex]?.date}</p>
 

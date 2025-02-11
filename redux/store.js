@@ -16,8 +16,8 @@ import cartReducer from "./slices/cartSlice";
 import wishReducer from "./slices/wishSlice";
 import homePageReducer from "./slices/homePageSlice";
 import authReducer from "./slices/authSlice"; // Add this import
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // Using localStorage
+// import { persistStore, persistReducer } from "redux-persist";
+// import storage from "redux-persist/lib/storage"; // Using localStorage
 
 // Persist configuration
 const persistConfig = {

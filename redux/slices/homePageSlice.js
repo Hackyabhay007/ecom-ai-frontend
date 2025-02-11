@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
+import { createApiUrl } from '../../utils/apiConfig';
 
 
 
@@ -7,85 +7,146 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 export const fetchHeroSection = createAsyncThunk(
     "hero/fetchSection",
-    async () => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch("http://localhost:9000/homepage-sections?section_type=hero");
+            const url = new URL(createApiUrl('/homepage-sections'));
+            url.searchParams.append('section_type', 'hero');
+
+            const response = await fetch(url.toString());
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid JSON response from server");
+            }
 
             const data = await response.json();
-            // console.log("Thisis the whole Hero Section data:", data);
             return data?.data?.sections[0];
         } catch (error) {
             console.error("Error fetching hero section:", error);
-            throw Error("Failed to fetch hero section");
+            return rejectWithValue(error.message || "Failed to fetch hero section");
         }
     }
 );
-
 
 export const fetchGalleryOneSection = createAsyncThunk(
     "hero/fetchGalleryOneSection",
-    async () => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch("http://localhost:9000/homepage-sections?section_type=woman");
+            const url = new URL(createApiUrl('/homepage-sections'));
+            url.searchParams.append('section_type', 'woman');
+
+            const response = await fetch(url.toString());
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid JSON response from server");
+            }
+
             const data = await response.json();
-            // console.log("This is the Woman Section data from the home Page Slice", data.data.sections[1]);
-            return data.data.sections[1];
+            return data?.data?.sections[1];
         } catch (error) {
             console.error("Error fetching woman section:", error);
-            throw Error("Failed to fetch woman section");
+            return rejectWithValue("Failed to fetch woman section");
         }
     }
 );
-
 
 // Add new fetch function for review section
 export const fetchGallery_Two = createAsyncThunk(
     "hero/fetchGallery_Two",
-    async () => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch("http://localhost:9000/homepage-sections?section_type=hero");
+            const url = new URL(createApiUrl('/homepage-sections'));
+            url.searchParams.append('section_type', 'hero');
+
+            const response = await fetch(url.toString());
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid JSON response from server");
+            }
+
             const data = await response.json();
-            return data.data.sections[2];
+            return data?.data?.sections[2];
         } catch (error) {
             console.error("Error fetching review section:", error);
-            throw Error("Failed to fetch review section");
+            return rejectWithValue("Failed to fetch review section");
         }
     }
 );
-
 
 // Add new fetch function for review section
 export const fetchBestSeller_Section = createAsyncThunk(
     "hero/fetchBestSeller_Section",
-    async () => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch("http://localhost:9000/homepage-sections?section_type=hero");
+            const url = new URL(createApiUrl('/homepage-sections'));
+            url.searchParams.append('section_type', 'hero');
+
+            const response = await fetch(url.toString());
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid JSON response from server");
+            }
+
             const data = await response.json();
-            return data.data.sections[3];
+            return data?.data?.sections[3];
         } catch (error) {
             console.error("Error fetching review section:", error);
-            throw Error("Failed to fetch review section");
+            return rejectWithValue("Failed to fetch review section");
         }
     }
 );
 
-
-// Add new fetch function for review section
+// Add new fetch function for review section 
 export const fetchReviewSection = createAsyncThunk(
     "hero/fetchReviewSection",
-    async () => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch("http://localhost:9000/homepage-sections?section_type=hero");
+            const url = new URL(createApiUrl('/homepage-sections'));
+            url.searchParams.append('section_type', 'hero');
+
+            const response = await fetch(url.toString());
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid JSON response from server");
+            }
+
             const data = await response.json();
-            // console.log("Review Section data:", data.data.sections[4]);
-            return data.data.sections[4];
+            return data?.data?.sections[4];
         } catch (error) {
             console.error("Error fetching review section:", error);
-            throw Error("Failed to fetch review section");
+            return rejectWithValue("Failed to fetch review section");
         }
     }
 );
-
 
 const heroSlice = createSlice({
     name: "hero",
@@ -102,7 +163,6 @@ const heroSlice = createSlice({
     extraReducers: (builder) => {
         builder
 
-
             // Existing hero section cases
             .addCase(fetchHeroSection.pending, (state) => {
                 state.loading = true;
@@ -116,7 +176,6 @@ const heroSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || "Failed to fetch hero section";
             })
-
 
             // Add cases for Gallery One section
             .addCase(fetchGalleryOneSection.pending, (state) => {
@@ -132,7 +191,6 @@ const heroSlice = createSlice({
                 state.error = action.error.message || "Failed to fetch woman section";
             })
 
-
             // Add cases for Gallery Two section
             .addCase(fetchGallery_Two.pending, (state) => {
                 state.loading = true;
@@ -146,7 +204,6 @@ const heroSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || "Failed to fetch best Seller section";
             })
-            
 
             // Add new cases for Best Seller section
             .addCase(fetchBestSeller_Section.pending, (state) => {
@@ -162,7 +219,6 @@ const heroSlice = createSlice({
                 state.error = action.error.message || "Failed to fetch best Seller section";
             })
 
-
             // Add cases for Review section
             .addCase(fetchReviewSection.pending, (state) => {
                 state.loading = true;
@@ -176,9 +232,6 @@ const heroSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || "Failed to fetch review section";
             })
-
-
-
     },
 });
 

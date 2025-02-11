@@ -30,24 +30,26 @@ const DUMMY_CATEGORIES = {
   ]
 };
 
+const data=[]
+
 const Category = ({ activeCategory = "woman", onNavigate }) => {
   const dispatch = useDispatch();
-  const {
-    categories: apiData,
-    status,
-    error,
-  } = useSelector((state) => state.homeCategories);
+  // const {
+  //   categories: apiData,
+  //   status,
+  //   error,
+  // } = useSelector((state) => state.homeCategories);
 
-  useEffect(() => {
-    dispatch(fetchHomeCategories());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchHomeCategories());
+  // }, [dispatch]);
 
   const scrollRef = useRef(null);
 
   // Use API data if available, otherwise use dummy data
-  const data = apiData?.product_categories?.length > 0 
-    ? apiData.product_categories 
-    : DUMMY_CATEGORIES.product_categories;
+  // const data = apiData?.product_categories?.length > 0 
+  //   ? apiData.product_categories 
+  //   : DUMMY_CATEGORIES.product_categories;
 
   const scrollLeft = () => {
     scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });

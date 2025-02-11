@@ -1,43 +1,65 @@
 import React, { useEffect, useState } from "react";
-import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import ImageStackSlider from "./ImageStackSlider";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchfeatureds } from "../../../redux/slices/featuredSlicer.js";
+// import { fetchfeatureds } from "../../../redux/slices/featuredSlicer.js";
+import { fetchGallery_Two } from "@/redux/slices/homePageSlice.js";
+
+
+
 
 function Gallery2() {
-  const dispatch = useDispatch();
-  const { featureds, status, error } = useSelector(
-    (state) => state.featuredection
-  );
+  const [centerText, setCenterText] = useState("");
+  const [video, setVideo] = useState({
+    url: "",
+    alt: ""
+  });
+  // const { featureds, status, error } = useSelector(
+  //   (state) => state.featuredection
+  // );
 
-  const [catalogdata, setCatalogdata] = useState([]);
+  // const [catalogdata, setCatalogdata] = useState([]);
   const [galleryData, setGalleryData] = useState([]);
 
+    const dispatch = useDispatch();
+    const { galleryTwoSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
   useEffect(() => {
-    dispatch(fetchfeatureds());
+    dispatch(fetchGallery_Two());
   }, [dispatch]);
 
   useEffect(() => {
-    // Set gallery data to featureds from redux state
-    setGalleryData(featureds);
-  }, [featureds]);
+    // console.log("This is the Gallery Two Section data", galleryTwoSection);
+    if(galleryTwoSection?.section_data?.center_text){
+      setCenterText(galleryTwoSection?.section_data?.center_text);
+    }
+
+    if (galleryTwoSection?.section_data?.video?.url) {
+      setVideo({
+        url: galleryTwoSection.section_data.video.url || "",
+        alt: galleryTwoSection.section_data.video.alt || "Video"
+      });
+    }
+
+  }, [galleryTwoSection]);
 
   // Logic to select the first video or image
-  const selectedItem = galleryData.find((item) => item.type === "video") || galleryData.find((item) => item.type === "image");
+  const selectedItem={}
+  // const selectedItem = galleryData.find((item) => item.type === "video") || galleryData.find((item) => item.type === "image");
 
-  useEffect(() => {
-    if (featureds.length) {
-      const videos = featureds.filter(item => item.type === "catalog");
+  // useEffect(() => {
+  //   if (featureds.length) {
+  //     const videos = featureds.filter(item => item.type === "catalog");
 
-      // Ensure catalogData is an array before setting it
-      const catalogArray = Array.isArray(videos[0]?.catalogData)
-        ? videos[0].catalogData
-        : Object.values(videos[0]?.catalogData || {}); // Convert to array if it's an object
+  //     // Ensure catalogData is an array before setting it
+  //     const catalogArray = Array.isArray(videos[0]?.catalogData)
+  //       ? videos[0].catalogData
+  //       : Object.values(videos[0]?.catalogData || {}); // Convert to array if it's an object
 
-      setCatalogdata(catalogArray);
-    }
-  }, [featureds]);
+  //     setCatalogdata(catalogArray);
+  //   }
+  // }, [featureds]);
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-center min-h-[80%] md:h-96">
@@ -49,14 +71,14 @@ function Gallery2() {
           {selectedItem.type === "image" ? (
             <Image
               src={selectedItem.image} // Assuming image is the property in your data
-              alt={selectedItem.title || "Image"}
+              alt={video?.alt || "Image"}
               width={500}
               height={500}
               className="w-full h-full object-cover"
             />
           ) : (
             <video
-              src={selectedItem.image} // Assuming video URL is stored in 'image' property
+              src={video?.url} // Assuming video URL is stored in 'image' property
               muted
               loop
               autoPlay

@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import {
@@ -11,17 +11,17 @@ import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
 const WishlistSidebar = () => {
   const dispatch = useDispatch();
   const { isOpen, wishlist } = useSelector((state) => state.wishlist);
-  const { currentCustomer: user } = useSelector((state) => state.customer);
+  // const { currentCustomer: user } = useSelector((state) => state.customer);
 
   // console.log(wishlist);
 
   const [itemId, setitemId] = useState("");
 
-  useEffect(() => {
-    if (user) {
-      setitemId(user.id);
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) {
+  //     setitemId(user.id);
+  //   }
+  // }, [user]);
 
   return (
     <>

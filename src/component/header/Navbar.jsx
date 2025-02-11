@@ -19,10 +19,12 @@ function Navbar() {
   const [activeLink, setActiveLink] = useState("")
   const { cart } = useCart();
 
+  const currentCustomer = "";
+
   const router = useRouter()
   const dispatch = useDispatch()
 
-  const { currentCustomer } = useSelector(state => state.customer)
+  // const { currentCustomer } = useSelector(state => state.customer)
 
   const totalItems = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
 
@@ -84,22 +86,22 @@ function Navbar() {
     }
   }
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     setIsMobile(window.innerWidth < 768)
+  //   }
+  //   handleResize()
+  //   window.addEventListener("resize", handleResize)
+  //   return () => window.removeEventListener("resize", handleResize)
+  // }, [])
 
-  useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? "hidden" : "auto"
-  }, [isMenuOpen])
+  // useEffect(() => {
+  //   document.body.style.overflow = isMenuOpen ? "hidden" : "auto"
+  // }, [isMenuOpen])
 
-  useEffect(() => {
-    dispatch(retrieveCustomer());
-  }, [dispatch])
+  // useEffect(() => {
+  //   dispatch(retrieveCustomer());
+  // }, [dispatch])
 
   const navigateTo = path => {
     setIsMenuOpen(false)

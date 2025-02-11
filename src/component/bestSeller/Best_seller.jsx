@@ -1,5 +1,5 @@
 // src/components/BestSeller.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import BestSellerCard from './BestSellerCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBestSeller_Section } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
@@ -39,42 +39,74 @@ const dummyData = [
 ];
 
 function BestSeller() {
-  const dispatch = useDispatch();
-  const {
-    productonhomes: best_product,
-    status,
-    error,
-  } = useSelector((state) => state.productonhomesection);
-
+  // const {
+  //   productonhomes: best_product,
+  //   status,
+  //   error,
+  // } = useSelector((state) => state.productonhomesection);
   const [pageroutedeatils, setPageroutedeatils] = useState([]);
+  const [bestSellerInfo, setBestSellerInfo] = useState({
+    title: "",
+    description: "",
+    buttonText: "",
+    buttonLink: ""
+  });
+
+  const dispatch = useDispatch();
+  const { bestSellerSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+  useEffect(() => {
+    dispatch(fetchBestSeller_Section());
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log("This is the Best Seller data of the Best_Seller.jsx page", bestSellerSection);
+    if(bestSellerSection?.section_data?.title){
+
+      setBestSellerInfo({
+        title: bestSellerSection?.section_data?.title || "",
+        description: bestSellerSection?.section_data?.description || "",
+        buttonText: bestSellerSection?.section_data?.cta_button?.text || "",
+        buttonLink: bestSellerSection?.section_data?.cta_button?.link || ""
+      });
+    }
+
+  }, [bestSellerSection]);
+
+
+
+  // const error = "";
+
 
   const scrollContainerRef = useRef(null);
 
-  const fetchpagedeatils = () => {
-    axios
-      .get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/home/01JJ481GVMHWHJ3GHBN9XFW3AD`,
-        {
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-          },
-        }
-      )
-      .then((res) => {
-        // console.log(res.data.home.result);
-        setPageroutedeatils(res.data.home.result);
-        //data come it
-        // created_at: "2024-12-28T11:48:47.515Z";
-        // deleted_at: null;
-        // id: "01JG6HHXRSA1X4HJ64532PHCH9";
-        // index: 4;
-        // redirect: "default_value";
-        // route: "/items";
-        // text: "default_text";
-        // title: "Product on Homepage";
-        // updated_at: "2025-01-12T12:20:03.799Z";
-      });
-  };
+  const best_product = [];
+
+  // const fetchpagedeatils = () => {
+  //   axios
+  //     .get(
+  //       `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/home/01JJ481GVMHWHJ3GHBN9XFW3AD`,
+  //       {
+  //         headers: {
+  //           "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+  //         },
+  //       }
+  //     )
+  //     .then((res) => {
+  //       // console.log(res.data.home.result);
+  //       setPageroutedeatils(res.data.home.result);
+  //       //data come it
+  //       // created_at: "2024-12-28T11:48:47.515Z";
+  //       // deleted_at: null;
+  //       // id: "01JG6HHXRSA1X4HJ64532PHCH9";
+  //       // index: 4;
+  //       // redirect: "default_value";
+  //       // route: "/items";
+  //       // text: "default_text";
+  //       // title: "Product on Homepage";
+  //       // updated_at: "2025-01-12T12:20:03.799Z";
+  //     });
+  // };
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -94,10 +126,10 @@ function BestSeller() {
     }
   };
 
-  useEffect(() => {
-    dispatch(fetchproductonhomes());
-    fetchpagedeatils();
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchproductonhomes());
+  //   fetchpagedeatils();
+  // }, [dispatch]);
 
   // Ensure the data is converted into an array
   const productArray = Array.isArray(best_product) ? best_product : [];
@@ -141,19 +173,17 @@ function BestSeller() {
       <div className="flex flex-col md:flex-row">
         <div className="md:w-1/3 p-4 flex gap-5 flex-col justify-center">
           <h1 className="text-theme-blue text-center md:text-start font-bold text-3xl md:text-5xl lg:text-7xl mb-4">
-            Best Seller Products
+            {bestSellerInfo?.title}
           </h1>
           <p className="text-sm text-sub-color mb-4">
-            "Fashion Fads May come and go, but my style is eternal. Your Fashion
-            always reflects who you really are. Fashion is always Right, and I
-            am living proof."
+            {bestSellerInfo?.description}
           </p>
           <a
-            href={"/" + pageroutedeatils.redirect}
+            href={bestSellerInfo?.buttonLink}
             className="text-center bg-white border border-black w-40 rounded-lg p-2 hover:bg-theme-blue hover:text-white transition duration-200 ease-in-out"
           >
-            {pageroutedeatils.text && pageroutedeatils.text.trim() !== ""
-              ? pageroutedeatils.text
+            {bestSellerInfo?.buttonText && bestSellerInfo?.buttonText?.trim() !== ""
+              ? bestSellerInfo?.buttonText
               : "Shop Now"}
           </a>
         </div>

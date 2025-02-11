@@ -1,9 +1,10 @@
-<<<<<<< HEAD
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { createApiUrl } from '../../utils/apiConfig';
 
 
-
+const header_key = process.env.NEXT_PUBLIC_HEADER_KEY;
+const header_value = process.env.NEXT_PUBLIC_HEADER_VALUE
 
 
 // Create async thunk for login
@@ -11,31 +12,94 @@ export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:9000/auth/admin/login', credentials, {
+      console.log("This is the credential form the authSlice page", credentials)
+      const response = await axios.post(createApiUrl('/auth/login'), credentials, {
         headers: {
-          'X-Admin-Token': 'nduwdn32ed3dhebqbdnqbndhjbd3dudheb',
+          // 'X-Admin-Token': 'nduwdn32ed3dhebqbdnqbndhjbd3dudheb',
           'Content-Type': 'application/json',
         },
+        validateStatus: (status) => status >= 200 && status < 500,
       });
-      
-      if (response?.data) {
-        localStorage.setItem('token', response?.data?.token);
-        localStorage.setItem('user', JSON.stringify(response?.data?.user));
-        return response?.data;
+
+      if (response.headers['content-type']?.includes('text/html')) {
+        return rejectWithValue('Server returned HTML instead of JSON. Please check if the server is running.');
       }
+
+      if (response?.data?.success) {
+        console.log(response);
+        // localStorage.setItem('token', response.data.token);
+        // localStorage.setItem('user', JSON.stringify(response.data.user));
+        return response.data;
+      }
+      else {
+        console.log(response?.data?.error?.message)
+        return rejectWithValue(response?.data?.error);
+      }
+
+      // return rejectWithValue('Invalid response from server');
     } catch (error) {
-      // console.log("Login error:", error?.response?.data?.message);
-      return rejectWithValue(error?.response?.data || 'An error occurred');
+      console.error('Login error:', error);
+      return rejectWithValue(error?.response?.data?.message || 'Failed to connect to server');
     }
   }
 );
+
+
+export const registerUser = createAsyncThunk(
+  'auth/registerUser',
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(createApiUrl('/auth/register'), userData, {
+        validateStatus: (status) => status >= 200 && status < 500,
+      });
+
+      if (response.headers['content-type']?.includes('text/html')) {
+        return rejectWithValue('Server returned HTML instead of JSON. Please check if the server is running.');
+      }
+
+      console.log(response)
+
+      if(response?.status == 400){
+        return rejectWithValue(response?.data?.message)
+      }
+
+      else if(response?.status == 201){
+        return 
+      }
+
+      // if (response?.data?.success) {
+      //   console.log(response);
+      //   // localStorage.setItem('token', response.data.token);
+      //   // localStorage.setItem('user', JSON.stringify(response.data.user));
+      //   return response.data;
+      // }
+      // else {
+      //   console.log(response?.data?.error?.message)
+      //   return rejectWithValue(response?.data?.error);
+      // }
+
+      // if (!response.ok) {
+      //   throw new Error('Registration failed');
+      // }
+
+      // console.log(response)
+      // const data = await response.json();
+      // console.log("This is the response of the userRegister Data ", data);
+      // return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 
 // Create auth slice
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null,
-    token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+    user: null,
+    registerData: null,
+    token: null,
     loading: false,
     error: null,
   },
@@ -65,287 +129,24 @@ const authSlice = createSlice({
       .addCase(loginAdmin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || 'An error occurred';
-      });
+      })
+
+
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action?.payload?.user;
+        state.token = action?.payload?.token;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'An error occurred';
+      })
   },
 });
 
 export const { logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
-=======
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { sdk } from "@/lib/config";
-import axios from "axios";
-import { removeAuthToken, setAuthToken } from "@/lib/data/cookies";
-import { getAuthHeaders } from "@/lib/data/cookies";
-
-// Async Thunks
-export const retrieveCustomer = createAsyncThunk(
-  "customer/retrieve",
-  async (_, { rejectWithValue }) => {
-    try {
-      const headers = await getAuthHeaders();
-
-      // console.log("headers" , headers);
-      // console.log(headers);
-      const response = await sdk.client.fetch("/store/customers/me", {
-        method: "GET",
-        query: { fields: "*orders" },
-
-        headers,
-      });
-      return response.customer;
-    } catch (error) {
-      return rejectWithValue(null);
-    }
-  }
-);
-
-export const createOrUpdateAddress = createAsyncThunk(
-  "customer/createOrUpdateAddress",
-  async ({ addressData }, { getState, rejectWithValue }) => {
-    try {
-      const { customer } = getState();
-      const headers = await getAuthHeaders();
-      // console.log("hi");
-
-      if (!customer.currentCustomer) {
-        throw new Error("No customer data available");
-      }
-
-      const currentAddresses = customer.currentCustomer.addresses;
-
-      console.log(currentAddresses, addressData);
-
-      console.log("currentAddresses", currentAddresses);
-
-      if (!currentAddresses || currentAddresses.length === 0) {
-        const response = await sdk.store.customer
-          .createAddress(addressData, {}, headers)
-          .then(({ customer }) => {
-            // console.log(customer);
-            retrieveCustomer();
-          });
-        // console.log(response.address);
-        return { type: "create", address: response.address };
-      } else {
-        const addressId = currentAddresses[0].id;
-        console.log("update address" , addressId , addressData);
-        await sdk.store.customer.updateAddress(addressId, addressData, {}, headers)
-        .then(({ customer }) => {
-          // console.log(customer);
-          retrieveCustomer();
-        });
-        return { type: "update", address: addressData };
-      }
-    } catch (error) {
-      return rejectWithValue(
-        error.message || "Failed to create/update address"
-      );
-    }
-  }
-);
-
-export const updateCustomer = createAsyncThunk(
-  "customer/update",
-  async (body, { rejectWithValue }) => {
-    try {
-      const headers = await getAuthHeaders();
-      // console.log("body: ", body);
-      // console.log("headers: ", headers);
-      const response = await sdk.store.customer.update(body, {}, headers);
-      console.log("response from update : ", response);
-      return response.customer;
-    } catch (error) {
-      console.log("response from update : ", error);
-      return rejectWithValue(error);
-    }
-  }
-);
-
-export const updateCustomerPassword = createAsyncThunk(
-  "customer/updatePassword",
-  async ({ currentPassword, newPassword }, { rejectWithValue }) => {
-    try {
-      const response = await sdk.auth.resetPassword({
-        currentPassword,
-        newPassword,
-      });
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Password update failed");
-    }
-  }
-);
-
-export const signup = createAsyncThunk(
-  "customer/signup",
-  async ({ formData, secretKey }, { rejectWithValue }) => {
-    try {
-      const { email, password, firstName, lastName, phone } = formData;
-
-      // Register the customer
-      const token = await sdk.auth.register("customer", "emailpass", {
-        email,
-        password,
-      });
-
-      await setAuthToken(token, secretKey);
-
-      const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
-      const publishableApiKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-
-      // Create customer
-      const response = await axios.post(
-        `${backendUrl}/store/customers`,
-        {
-          email,
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "x-publishable-api-key": publishableApiKey,
-          },
-        }
-      );
-
-      // Login customer
-      const loginToken = await sdk.auth.login("customer", "emailpass", {
-        email,
-        password,
-      });
-
-      await setAuthToken(loginToken, secretKey);
-
-      return { token: loginToken, customer: response.data };
-    } catch (error) {
-      return rejectWithValue(error.toString());
-    }
-  }
-);
-
-export const login = createAsyncThunk(
-  "customer/login",
-  async ({ formData, secretKey }, { rejectWithValue }) => {
-    try {
-      const { email, password } = formData;
-      const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
-
-      const response = await axios.post(
-        `${backendUrl}/auth/customer/emailpass`,
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      const token = response.data.token;
-      await setAuthToken(token, secretKey);
-
-      return { token };
-    } catch (error) {
-      return rejectWithValue(error.toString());
-    }
-  }
-);
-
-export const signout = createAsyncThunk(
-  "customer/signout",
-  async (countryCode, { dispatch }) => {
-    // console.log("logout hit")
-    await sdk.auth.logout();
-    removeAuthToken();
-    dispatch(authSlicer.actions.resetCustomer());
-    return countryCode;
-  }
-);
-
-// Slice
-
-const authSlicer = createSlice({
-  name: "customer",
-  initialState: {
-    currentCustomer: null,
-    isLoading: false,
-    error: null,
-    token: null,
-  },
-  reducers: {
-    resetCustomer: (state) => {
-      state.currentCustomer = null;
-      state.token = null;
-      state.error = null;
-    },
-  },
-  extraReducers: (builder) => {
-    // Retrieve Customer
-    builder.addCase(retrieveCustomer.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(retrieveCustomer.fulfilled, (state, action) => {
-      state.currentCustomer = action.payload;
-      state.isLoading = false;
-    });
-    builder.addCase(retrieveCustomer.rejected, (state) => {
-      state.currentCustomer = null;
-      state.isLoading = false;
-    });
-
-    // Update Customer
-    builder.addCase(updateCustomer.fulfilled, (state, action) => {
-      state.currentCustomer = action.payload;
-    });
-
-    // Signup
-    builder.addCase(signup.fulfilled, (state, action) => {
-      state.currentCustomer = action.payload.customer;
-      state.token = action.payload.token;
-    });
-
-    // Login
-    builder.addCase(login.fulfilled, (state, action) => {
-      state.token = action.payload.token;
-    });
-
-    // Signout
-    builder.addCase(signout.fulfilled, (state) => {
-      state.currentCustomer = null;
-      state.token = null;
-    });
-
-    // Create or Update Address
-    builder.addCase(createOrUpdateAddress.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(createOrUpdateAddress.fulfilled, (state, action) => {
-      const { type, address } = action.payload;
-
-      if (type === "create") {
-        // Add new address
-        state.currentCustomer.addresses = [
-          ...(state.currentCustomer.addresses || []),
-          address,
-        ];
-      } else {
-        // Update existing address
-        const index = state.currentCustomer.addresses.findIndex(
-          (addr) => addr.id === address.id
-        );
-        if (index > -1) {
-          state.currentCustomer.addresses[index] = address;
-        }
-      }
-
-      state.isLoading = false;
-    });
-    builder.addCase(createOrUpdateAddress.rejected, (state, action) => {
-      state.error = action.payload;
-      state.isLoading = false;
-    });
-  },
-});
-
-export const { resetCustomer } = authSlicer.actions;
-export default authSlicer.reducer;
->>>>>>> c24749662674244d84551684afad60c654a0cfc2

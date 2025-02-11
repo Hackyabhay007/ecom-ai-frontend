@@ -3,35 +3,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchHeroes } from "../../../redux/slices/herosectionSlice.js";
+import { fetchHeroSection } from "@/redux/slices/homePageSlice";
+import Link from "next/link";
+// import { fetchHeroes } from "../../../redux/slices/herosectionSlice.js";
+
+
+
+
 
 function Hero() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animateHeading, setAnimateHeading] = useState(false);
   const [animateTagline, setAnimateTagline] = useState(false);
   const [animateButtons, setAnimateButtons] = useState(false);
-  const dispatch = useDispatch();
-  const {
-    heroes: heroesObject,
-    status,
-    error,
-  } = useSelector((state) => state.heroSection);
-  const [heroes, setHeroes] = useState([]);
-
-  useMemo(() => {
-    dispatch(fetchHeroes());
-  }, [currentIndex]);
-
-  // Convert heroes object to array and ensure it is sorted by index
-  useMemo(() => {
-    const sortedHeroes = heroesObject
-      ? Object.entries(heroesObject).map(([key, hero]) => ({
-          ...hero,
-          id: key,
-        }))
-      : [];
-    setHeroes(sortedHeroes.sort((a, b) => a.index - b.index));
-  }, [heroesObject]);
 
   const [isPaused, setIsPaused] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -42,22 +26,21 @@ function Hero() {
   const { heroSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
 
   useEffect(() => {
-    dispatch(fetchHeroSection()).then((result) => {
-      // console.log("Hero Section Response:", result.payload);
-    });
+    dispatch(fetchHeroSection());
   }, [dispatch]);
 
 
   // Log the hero section data from state
   useEffect(() => {
     if (heroSection?.section_data?.slides) {
-      const heroDataArray = heroSection.section_data.slides.map((slide) => {
+      const heroDataArray = heroSection.section_data?.slides?.map((slide) => {
         // Safely handle buttons array of any length
         const buttons = slide.buttons || [];
         return {
-          image: slide.background_image,
-          heading: slide.title,
-          tagline: slide.subtitle,
+          id: slide.id,
+          background_image: slide.background_image,
+          title: slide.title,
+          subtitle: slide.subtitle,
 
           // For backward compatibility with existing code
           button1: buttons[0]?.text || '',
@@ -67,10 +50,11 @@ function Hero() {
         };
       });
 
+
       if(heroDataArray?.length>0) {
         setHeroData(heroDataArray);
       }
-      // console.log("This is the heroDataVal of the useState and this is this value:", heroData);
+      console.log("This is the heroData of the useState from the Hero.jsx file and this is this value:", heroData);
     }
   }, [heroSection]);
 
@@ -87,7 +71,7 @@ function Hero() {
   const handleNext = () => {
     resetAnimations();
     setTimeout(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroes.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroData?.length);
       triggerAnimations();
     }, 500);
   };
@@ -96,7 +80,7 @@ function Hero() {
     resetAnimations();
     setTimeout(() => {
       setCurrentIndex(
-        (prevIndex) => (prevIndex - 1 + heroes.length) % heroes.length
+        (prevIndex) => (prevIndex - 1 + heroData?.length) % heroData?.length
       );
       triggerAnimations();
     }, 500);
@@ -121,11 +105,12 @@ function Hero() {
   const handlePause = () => setIsPaused(true);
   const handleResume = () => setIsPaused(false);
 
-  const currentHero = heroes[currentIndex] || {};
+  const currentHero = heroData[currentIndex] || {};
 
   return (
-    Array.isArray(heroes) && (
-      <div
+    <>
+      {Array.isArray(heroData) && (
+        <div
         className="relative w-full min-h-[80%] h-[700px] md:h-screen overflow-hidden"
         onMouseEnter={handlePause}
         onMouseLeave={handleResume}
@@ -134,7 +119,7 @@ function Hero() {
       >
         {/* Background Image */}
         <Image
-          src={currentHero?.image || "/fallback-image.jpg"}
+          src={currentHero?.background_image || "/fallback-image.jpg"}
           alt={currentHero?.title || "Default Title"}
           className="absolute inset-0 object-cover"
           fill
@@ -149,13 +134,13 @@ function Hero() {
           className={`text-5xl text-wrap md:text-9xl font-bold mb-4 text-center md:text-left transition-all duration-500 transform ${animateHeading ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0"
             }`}
         >
-          {currentHero?.heading}
+          {currentHero?.title}
         </h1>
         <p
           className={`text-sm md:text-xl mb-6 text-center md:text-left transition-all duration-500 transform ${animateTagline ? "translate-x-0 opacity-100" : "-translate-x-20 opacity-0"
             }`}
         >
-          {currentHero?.tagline}
+          {currentHero?.subtitle}
         </p>
         <div
           className={`flex space-x-4 transition-all duration-500 transform ${animateButtons ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
@@ -192,9 +177,9 @@ function Hero() {
 
       {/* Dots Indicator */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
-        {heroData?.map((_, index) => (
+        {heroData?.map((currElem, index) => (
           <div
-            key={index}
+            key={currElem?.id}
             className="w-4 h-4 flex items-center justify-center border border-white rounded-full"
             onClick={() => {
               resetAnimations();
@@ -211,7 +196,9 @@ function Hero() {
           </div>
         ))}
       </div>
-    </div>
+      </div>
+      )}
+    </>
   );
 }
 
