@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import ProductCard from "../ProductCard";
 
 const ShimmerProductCard = () => (
@@ -11,7 +12,8 @@ const ShimmerProductCard = () => (
   </div>
 );
 
-const ProductList = ({ products, layout, loading }) => {
+const ProductList = ({ layout }) => {
+  const { products, loading } = useSelector(state => state.shop);
   const [productsPerPage, setProductsPerPage] = useState(9); // Default to 9 for desktop
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -21,7 +23,7 @@ const ProductList = ({ products, layout, loading }) => {
       if (window.innerWidth < 768) {
         setProductsPerPage(8); // Mobile
       } else {
-        setProductsPerPage(9); // Desktop
+        setProductsPerPage(9); // Desktop 
       }
     };
 
@@ -84,10 +86,21 @@ const ProductList = ({ products, layout, loading }) => {
             : "grid-cols-1 gap-6"
         }`}
       >
-        {currentProducts.length ? (
+        {loading ? (
+          [...Array(6)].map((_, index) => (
+            <ShimmerProductCard key={index} />
+          ))
+        ) : currentProducts.length ? (
           currentProducts.map((product) => (
             <div className="transition-opacity duration-300 animate-fadeIn" key={product.id}>
-              <ProductCard product={product} layout={layout} />
+              <ProductCard 
+                product={{
+                  ...product,
+                  thumbnail: product.variants?.[0]?.images?.[0]?.url || '',
+                  images: product.variants?.flatMap(v => v.images || []) || []
+                }}
+                layout={layout} 
+              />
             </div>
           ))
         ) : (

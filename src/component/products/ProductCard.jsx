@@ -18,18 +18,22 @@ const ProductCard = ({ product, layout }) => {
   // console.log(product, " this product was come ");
   const router = useRouter();
   const dispatch = useDispatch();
-  const { currentCustomer: user } = useSelector((state) => state.customer);
+  const customer = useSelector((state) => state.customer) || {};
+  const user = customer?.currentCustomer || null;
   const { wishlist } = useSelector((state) => state.wishlist);
   // console.log(user);
 
   useEffect(() => {
-    dispatch(retrieveCustomer());
-  }, [dispatch]);
+    if (!user) {
+      dispatch(retrieveCustomer());
+    }
+  }, [dispatch, user]);
 
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isCartAdded, setIsCartAdded] = useState(false);
   const { region } = useRegion();
+  const currency_code = region?.currency_code || 'INR'; // Add default currency code
   const [products, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [variantPrice, setVariantPrice] = useState(null);
@@ -43,105 +47,66 @@ const ProductCard = ({ product, layout }) => {
 
   const {
     id,
-    name,
-    price,
-    prevPrice,
-    thumbnail: image,
-    tags = [],
-    description,
+    name = product.title,
+    description = product.description,
+    variants = [],
+    attributes = {},
+    metadata = {},
+    created_at
   } = product;
 
-  // console.log(product.variants[0], " this is product card data");
+  // Get primary image from first variant or fallback
+  const primaryImage = variants[0]?.images?.find(img => img.isPrimary)?.url 
+    || variants[0]?.images?.[0]?.url 
+    || '/placeholder-image.jpg';
+
+  // Get secondary image for hover effect
+  const secondaryImage = variants[0]?.images?.[1]?.url || primaryImage;
+
+  // Get variant price
+  const defaultVariant = variants[0] || {};
+  const variantPriceValue = defaultVariant.price || 0;
 
   useEffect(() => {
     const fetchVariantDetails = async () => {
       try {
         setLoading(true);
-
-        let targetVariant =
-          size && color
-            ? product?.variants.find((v) =>
-                v.options?.some(
-                  (option) =>
-                    option.value.toLowerCase() === color.toLowerCase() &&
-                    v.options?.some(
-                      (option) =>
-                        option.value.toLowerCase() === size.toLowerCase()
-                    )
-                )
-              )
-            : color
-            ? product?.variants.find((variant) =>
-                variant.options?.some(
-                  (option) => option.value.toLowerCase() === color.toLowerCase()
-                )
-              )
-            : size
-            ? product?.variants.find((variant) =>
-                variant.options?.some(
-                  (option) => option.value.toLowerCase() === size.toLowerCase()
-                )
-              )
-            : product.variants[0];
-
-        if (!targetVariant) {
-          targetVariant = product.variants[0];
-          setNotfoundoncurrentvaiant(product.variants[0]);
-        }
+        
+        const targetVariant = variants.find(v => 
+          (!size && !color) ? v.isActive :
+          (size && color) ? (v.size === size && v.color === color) :
+          size ? v.size === size :
+          color ? v.color === color : false
+        ) || variants[0];
 
         if (targetVariant) {
           setVariantPrice(
             new Intl.NumberFormat("en-US", {
               style: "currency",
-              currency: region.currency_code,
-            }).format(targetVariant.calculated_price?.calculated_amount)
+              currency: currency_code,
+            }).format(targetVariant.price || 0)
           );
 
-          const calculatedAmount =
-            targetVariant.calculated_price?.calculated_amount;
-
-          if (product.metadata?.discount) {
-            setdiscount(product.metadata.discount);
-          }
-
-          if (calculatedAmount && product.metadata?.discount > 0) {
+          if (metadata?.discount > 0) {
+            setdiscount(metadata.discount);
+            const discounted = targetVariant.price * (1 - metadata.discount / 100);
             setDiscountedamount(
               new Intl.NumberFormat("en-US", {
                 style: "currency",
-                currency: region.currency_code,
-              }).format(
-                calculatedAmount -
-                  calculatedAmount * (product.metadata?.discount / 100)
-              )
+                currency: currency_code,
+              }).format(discounted)
             );
-          } else {
-            setDiscountedamount(0); // Handle no valid amount/discount case
           }
-          setLoading(false);
-        } else {
-          setVariantPrice("N/A");
-          setLoading(false); // Stop loading in case no variant is found
         }
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching variant details:", error);
-        // Handle error gracefully, e.g., show a message or fallback value
-        setVariantPrice("Error fetching price");
-        setDiscountedamount("Error calculating discount");
-        setLoading(false); // Stop loading on error
+        console.error("Error processing variant details:", error);
+        setLoading(false);
       }
     };
 
     fetchVariantDetails();
-  }, [
-    product.metadata,
-    id,
-    region,
-    discount,
-    size,
-    color,
-    max_pirce,
-    min_price,
-  ]);
+  }, [variants, size, color, currency_code, metadata]);
 
   const handleAddToWishlist = (event) => {
     event.stopPropagation(); // Prevent card click navigation
@@ -153,24 +118,23 @@ const ProductCard = ({ product, layout }) => {
       return;
     }
     
+    const currentWishlist = user?.metadata?.wishlist || [];
     let update = {
       metadata: {
-        wishlist: user?.metadata?.wishlist?.some((item) => item.id === product.id)
-          ? user.metadata.wishlist
-          : [...(user?.metadata?.wishlist || []), product],
+        wishlist: currentWishlist.some((item) => item.id === product.id)
+          ? currentWishlist
+          : [...currentWishlist, product],
       },
     };
 
-    const wishlistProducts = user?.metadata?.wishlist || [];
-    const productExists = wishlistProducts.some((item) => item.id === product.id);
+    const productExists = currentWishlist.some((item) => item.id === product.id);
 
     if (!productExists) {
       dispatch(addToWishlist([product]));
     } else {
-      dispatch(addToWishlist({product : wishlistProducts}));
+      dispatch(addToWishlist({product: currentWishlist}));
     }
 
-    console.log(update, "state.wishlist");
     dispatch(updateCustomer(update));
     dispatch(retrieveCustomer());
     setIsWishlistAdded(true); // Mark as added to wishlist
@@ -253,6 +217,18 @@ const ProductCard = ({ product, layout }) => {
     }
   }, [id, region, discount]);
 
+  const getSecondaryImage = () => {
+    if (!product.images || product.images.length < 2) {
+      return image; // fallback to primary image if no secondary image exists
+    }
+    return product.images[1].url;
+  };
+
+  const handleQuickView = (e) => {
+    e.stopPropagation(); // Prevent navigation
+    setIsQuickViewOpen(true);
+  };
+
   if (loading) {
     return (
       <div>
@@ -293,7 +269,7 @@ const ProductCard = ({ product, layout }) => {
           </div>
 
           <Image
-            src={image}
+            src={primaryImage}
             alt={name}
             layout="fill"
             size={"fit"}
@@ -301,13 +277,13 @@ const ProductCard = ({ product, layout }) => {
             className="rounded-2xl hidden max-sm:flex  hover:scale-105 duration-150 shadow-lg  h-72"
           />
 
-          <div class="product-image-wrapper h-[150%]  overflow-hidden max-sm:hidden flex">
-            <Image layout="fill" src={image} alt={name} class="product-image" />
-            <Image
-              layout="fill"
-              src={product.images[1].url}
-              alt={name}
-              class="product-image-hover"
+          <div className="product-image-wrapper h-[150%] overflow-hidden max-sm:hidden flex">
+            <Image layout="fill" src={primaryImage} alt={name} className="product-image" />
+            <Image 
+              layout="fill" 
+              src={secondaryImage} 
+              alt={name} 
+              className="product-image-hover"
             />
           </div>
 
@@ -340,10 +316,7 @@ const ProductCard = ({ product, layout }) => {
           {layout !== "list" && (
             <div
               className="z-20  absolute bottom-4 left-[30%] md:left-1/4 transform -translate-x-1/2  translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500"
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent card click navigation
-                setIsQuickViewOpen(true);
-              }}
+              onClick={handleQuickView}
             >
               <button className="md:px-4 px-2 py-2 bg-white text-black rounded-full text-xs md:text-sm hover:bg-black hover:text-white transition-all duration-150 ease-in-out">
                 Quick View
@@ -410,11 +383,8 @@ const ProductCard = ({ product, layout }) => {
       {/* Quick View Modal */}
       {isQuickViewOpen && (
         <QuickView
-          product={{
-            ...product,
-            size,
-            color,
-          }}
+          productId={id}
+          initialData={product}
           onClose={() => setIsQuickViewOpen(false)}
         />
       )}

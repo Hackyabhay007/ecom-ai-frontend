@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -12,15 +12,12 @@ import { useRegion } from "../../../contexts/RegionContext";
 import axios from "axios";
 import { fetchProducts } from "@/redux/slices/productSlice";
 
-const QuickView = ({ product : propdata, onClose }) => {
-  const { id, title: name, price, prevPrice, image, color = [] } = propdata;
+const QuickView = ({ productId, initialData, onClose }) => {
+  const [product, setProduct] = useState(initialData);
+  const { products, loading } = useSelector((state) => state.shop);
   const { region } = useRegion();
-  const Router = useRouter();
-  const { temp_size, temp_color } = Router.query;
-
-  const dispatch = useDispatch();
-  const [selectedColor, setSelectedColor] = useState(temp_color || null);
-  const [selectedSize, setSelectedSize] = useState(temp_size || null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [warning, setWarning] = useState("");
@@ -33,134 +30,49 @@ const QuickView = ({ product : propdata, onClose }) => {
   const [rating, setRating] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [avaragerating, setAvaragerating] = useState(0);
-  const [product, setProduct] = useState();
-  
-
-  useMemo(() => {
-    axios
-      .get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/get-product-with-review-and-category/${id}`,
-        {
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-          },
-        }
-      )
-      .then((res) => {
-        const responses = res.data.productsubdetails;
-        // console.log(res.data.productsubdetails);
-        if (responses?.reviews) {
-          setRating(responses.reviews);
-          setAvaragerating(responses.averageRating);
-        }
-        if (responses?.categories) {
-          setCategory(responses.categories);
-        }
-      });
-  }, [product]);
-
-  const {
-    products: data,
-    count,
-    nextPage,
-    status,
-    error,
-  } = useSelector((state) => state.products);
-
-  console.log(data,status , "this is data");
 
   useEffect(() => {
-    const queryParams = {
-      limit: 12,
-      fields:
-        "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
-      id: id,
-    };
-    dispatch(fetchProducts({ pageParam: 1, queryParams, region }));
-  }, [dispatch, region, id]);
-
-
-  useEffect(() => {
-    if (status === "succeeded") {
-      setProduct(data[0]);
+    // Find the product in the Redux store
+    const productFromStore = products.find(p => p.id === productId);
+    if (productFromStore) {
+      setProduct(productFromStore);
     }
-  }, [status, data]);
+  }, [productId, products]);
 
-
-  useEffect(() => {
-    if (product) {
-      setAdditionalImages(product.images)
+  // Get available options from product data
+  const colors = product?.variants?.reduce((acc, variant) => {
+    const colorOption = variant.options?.find(opt => opt.option_id === "opt_color");
+    if (colorOption && !acc.includes(colorOption.value)) {
+      acc.push(colorOption.value);
     }
-  }, [product]);
+    return acc;
+  }, []) || [];
 
-  useMemo(() => {
-    if (region) {
-      const targetVariant =
-        selectedSize && selectedColor
-          ? product?.variants.find((v) =>
-              v.options?.some(
-                (option) =>
-                  option.value.toLowerCase() === selectedColor.toLowerCase() &&
-                  v.options?.some(
-                    (option) =>
-                      option.value.toLowerCase() === selectedSize.toLowerCase()
-                  )
-              )
-            )
-          : selectedColor
-          ? product?.variants.find((variant) =>
-              variant.options?.some(
-                (option) =>
-                  option.value.toLowerCase() === selectedColor.toLowerCase()
-              )
-            )
-          : selectedSize
-          ? product?.variants.find((variant) =>
-              variant.options?.some(
-                (option) =>
-                  option.value.toLowerCase() === selectedSize.toLowerCase()
-              )
-            )
-          : product?.variants.find((variant) =>
-              variant.options?.some(
-                (option) => option.value.toLowerCase() === "m"
-              )
-            );
-
-      // // console.log(
-      //   targetVariant,
-      //   "this is target vaiant",
-      //   selectedColor,
-      //   selectedSize,
-      //   product
-      // );
-
-      if (targetVariant) {
-        setVariantPrice(targetVariant.calculated_price?.calculated_amount);
-
-        const calculatedAmount =
-          targetVariant.calculated_price?.calculated_amount;
-
-        if (product.metadata?.discount) {
-          setdiscount(product.metadata.discount);
-        }
-        if (calculatedAmount && product.metadata?.discount > 0) {
-          setDiscountedamount(
-            calculatedAmount -
-              calculatedAmount * (product.metadata?.discount / 100)
-          );
-        } else {
-          setDiscountedamount(0); // Or handle the case when there's no valid amount/discount
-        }
-
-        setSelectedVariant(targetVariant);
-        // console.log(targetVariant);
-        // setLoading(false);
-      } else {
-        setVariantPrice("N/A");
-      }
+  const sizes = product?.variants?.reduce((acc, variant) => {
+    const sizeOption = variant.options?.find(opt => opt.option_id === "opt_size");
+    if (sizeOption && !acc.includes(sizeOption.value)) {
+      acc.push(sizeOption.value);
     }
-  }, [product?.metadata, region, discount, selectedColor, selectedSize]);
+    return acc;
+  }, []) || [];
+
+  // Get current variant based on selection
+  const getCurrentVariant = () => {
+    return product?.variants?.find(variant => 
+      (!selectedColor || variant.options?.some(opt => opt.value === selectedColor)) &&
+      (!selectedSize || variant.options?.some(opt => opt.value === selectedSize))
+    );
+  };
+
+  // Get price for current variant
+  const getVariantPrice = () => {
+    const variant = getCurrentVariant();
+    return variant?.price || product?.variants?.[0]?.price || 0;
+  };
+
+  if (!product || loading) {
+    return <div className="...loading styles...">Loading...</div>;
+  }
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -213,34 +125,6 @@ const QuickView = ({ product : propdata, onClose }) => {
      setIsAdded(true);
    };
 
-  const colors =
-    product?.options
-      ?.find((option) => option.title === "Color")
-      ?.values.map((v) => v.value) || [];
-  const sizes =
-    product?.options
-      ?.find((option) => option.title === "Size")
-      ?.values.map((v) => v.value) || [];
-
-  function getPriceForVariant() {
-    // Find the variant matching the selected color and size
-    const variant = product.variants.find(
-      (v) =>
-        v.options.some(
-          (o) => o.option.title === "Color" && o.value === selectedColor
-        ) &&
-        v.options.some(
-          (o) => o.option.title === "Size" && o.value === selectedSize
-        )
-    );
-
-    // console.log(variant?.calculated_price?.calculated_amount);
-
-    // Return the price if a variant is found
-    setVariantPrice(variant?.calculated_price?.calculated_amount);
-    return variant ? variant?.calculated_price?.calculated_amount : null;
-  }
-
   const handleBuyNow = async () => {
       if (!selectedSize) {
         setWarning("Please select a size.");
@@ -281,7 +165,7 @@ const QuickView = ({ product : propdata, onClose }) => {
         <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom">
           <Image
             src={product?.thumbnail}
-            alt={name}
+            alt={product.title}
             width={300}
             height={300}
             className="rounded-lg object-cover"
@@ -300,7 +184,7 @@ const QuickView = ({ product : propdata, onClose }) => {
 
         {/* Product Details Section */}
         <div className="md:w-2/3 w-full p-6 flex flex-col">
-          <h1 className="text-2xl font-bold mb-2">{name}</h1>
+          <h1 className="text-2xl font-bold mb-2">{product.title}</h1>
 
           {/* Star Rating */}
           <div className="flex items-center mb-4">
@@ -314,12 +198,12 @@ const QuickView = ({ product : propdata, onClose }) => {
             <span className="text-md text-theme-blue font-bold">
             ₹ {product?.metadata?.discount > 0
                 ? discountedamount
-                : variantPrice}
+                : getVariantPrice()}
             </span>
             {product?.metadata?.discount > 0 && (
               <>
                 <span className="text-sub-color text-sm line-through">
-                ₹ {variantPrice}
+                ₹ {getVariantPrice()}
                 </span>{" "}
                 <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
                   -{discount}%
@@ -358,7 +242,7 @@ const QuickView = ({ product : propdata, onClose }) => {
                     //     temp_color: color,
                     //   },
                     // });
-                    getPriceForVariant();
+                    getVariantPrice();
                   }}
                 />
               ))}
@@ -384,7 +268,7 @@ const QuickView = ({ product : propdata, onClose }) => {
                     //     temp_size: size,
                     //   },
                     // });
-                    getPriceForVariant();
+                    getVariantPrice();
                   }}
                 >
                   {size}

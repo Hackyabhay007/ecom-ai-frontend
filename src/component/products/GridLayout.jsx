@@ -14,7 +14,7 @@ const GridLayout = ({
         {/* Sale Checkbox */}
        
         {/* Layout Toggle */}
-        <div className="flex gap-2">
+        <div className="flex gap-2"> 
           <button
             onClick={() => onLayoutChange("grid")}
             className={`px-2 rotate-90 border py-1 text-lg rounded-sm ${

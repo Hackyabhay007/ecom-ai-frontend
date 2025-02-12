@@ -13,7 +13,7 @@ const SkeletonScreen = () => {
               <div key={i} className="animate-pulse  h-10 bg-gray-200 rounded-md w-[7vw]"></div>
             ))}
           </div>
-      </div>
+      </div> 
         
 
       {/* Filter and Product Grid */}

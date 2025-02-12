@@ -1,52 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-// import { useAuth } from "@/contexts/AuthContext";
 import { useDispatch, useSelector } from 'react-redux';
-import { loginAdmin } from "@/../redux/slices/authSlice";
-
-
-
-
+import { loginUser } from "@/../redux/slices/authSlice";
+import { getCookie } from "utils/cookieUtils"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const [errorValue, setErrorValue] = useState(""); // For displaying error messages
-  // const { login } = useAuth();
   const router = useRouter();
   const dispatch = useDispatch();
-  const error = useSelector((state) => state?.auth?.error);
-  const user = useSelector((state) => state.auth?.user);
-  const loading = useSelector((state) => state.auth?.loading);
+  const { error, loading, isAuthenticated } = useSelector((state) => state.auth);
 
-  const isLoading = false;
-
-
+  useEffect(() => {
+    // Check if user is already authenticated
+    const cookie = getCookie('auth_token');
+    if (cookie || isAuthenticated) {
+      // router.push('/dashboard'); // or wherever you want to redirect authenticated users
+      console.log("User is already Logged Now");
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent default form submission
-    // if (error) setErrorValue(""); // Reset error message
-
-
-    // Dummy login logic
     if (email && password) {
       const credentials = { email, password };
-      dispatch(loginAdmin(credentials)); // Dispatch login action
+      const result = await dispatch(loginUser(credentials));
+      if (!result.error) {
+        router.push('/dashboard'); // Redirect on successful login
+      }
     }
-    // else {
-    //   setErrorValue("Invalid email or password."); // Set error message
-    // }
   };
 
   useEffect(() => {
-    if (user) {
-      console.log("This is the user of the Login Page", user);
-    }
-
     if (error) {
       console.log("This is the Error of the Login Page", error);
     }
-  }, [user, error]);
+  }, [error]);
 
   return (
     <div className="flex flex-col md:flex-row min-h-fit md:min-h-screen bg-white">
@@ -93,10 +82,10 @@ const Login = () => {
           <div className="flex justify-between items-center">
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="bg-black text-sm md:text-md md:font-bold uppercase text-white py-2 px-7 md:px-10 md:py-4 rounded-md md:rounded-xl hover:bg-discount-color hover:text-cream transition duration-300"
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {loading ? "Logging in..." : "Login"}
             </button>
             <button
               type="button"

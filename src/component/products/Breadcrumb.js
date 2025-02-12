@@ -14,7 +14,7 @@ const Breadcrumb = ({
   // Ensure categories is an array before mapping
   const categoryArray = Array.isArray(categories) ? categories : [];
 
-  const handleCategorySelect = (category) => {
+  const handleCategorySelect = (category) => { 
     Route.push({
       pathname: "/shop",
       query: { cat_id: category.id, cat_name: category.name }, // Add `id` as a query parameter

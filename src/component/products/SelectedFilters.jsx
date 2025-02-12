@@ -1,173 +1,114 @@
-import React from "react";
-import { useRouter } from "next/router";
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearFilters, fetchProducts } from '../../../redux/slices/shopSlice';
+import { useRouter } from 'next/router';
 
-const SelectedFilters = ({
-  filters,
-  onClearFilter,
-  onClearAllFilters,
-  defaultPriceRange,
-}) => {
+const SelectedFilters = ({ onClearFilter, defaultPriceRange }) => {
+  const dispatch = useDispatch();
   const router = useRouter();
-  const { cat_id, cat_name, size, color , min_price , max_price } = router.query; // Extract `id` from the query
-  const hasFiltersApplied = Object.keys(filters).some((key) => {
-    if (key === "price") {
-      return (
-        filters[key][0] !== defaultPriceRange[0] ||
-        filters[key][1] !== defaultPriceRange[1]
-      );
-    }
-    if (Array.isArray(filters[key])) {
-      return filters[key].length > 0;
-    }
-    return filters[key];
-  });
+  const { appliedFilters, filters } = useSelector((state) => state.shop);
+
+  // Get current active filters from Redux store
+  const activeFilters = {
+    priceRange: {
+      min: appliedFilters.minPrice || defaultPriceRange?.[0] || 0,
+      max: appliedFilters.maxPrice || defaultPriceRange?.[1] || 1000
+    },
+    color: router.query.color,
+    size: router.query.size,
+    category: router.query.cat_name
+  };
+
+  const hasActiveFilters = () => {
+    return (
+      activeFilters.color ||
+      activeFilters.size ||
+      activeFilters.category ||
+      (activeFilters.priceRange.min !== defaultPriceRange?.[0] || 
+       activeFilters.priceRange.max !== defaultPriceRange?.[1])
+    );
+  };
+
+  const handleClearAll = () => {
+    // Clear URL query params by replacing with empty query
+    router.replace({
+      pathname: '/shop'
+    }, undefined, { shallow: true });
+
+    // Clear filters in Redux store
+    dispatch(clearFilters());
+
+    // Fetch products without any filters
+    dispatch(fetchProducts({ 
+      page: 1,
+      filters: {} 
+    }));
+  };
+
+  if (!hasActiveFilters()) return null;
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
-      {cat_id && (
-        <span className="border border-sub-color text-gray-700 px-2 py-1 rounded-full">
-          {cat_name}
+      {/* Price Range Filter Tag */}
+      {(activeFilters.priceRange.min !== defaultPriceRange?.[0] || 
+        activeFilters.priceRange.max !== defaultPriceRange?.[1]) && (
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+          <span>₹{activeFilters.priceRange.min} - ₹{activeFilters.priceRange.max}</span>
           <button
-            onClick={() => {
-              const { cat_id, cat_name, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
-              router.push({
-                pathname: router.pathname, // Keep the same page
-                query: remainingQueries, // Apply remaining queries
-              });
-            }}
-            className="ml-2 text-red-500"
+            onClick={() => onClearFilter('priceRange')}
+            className="text-gray-500 hover:text-black"
           >
-            &times;
+            ×
           </button>
-        </span>
-      )}
-      {
-        
-      }
-
-      {filters.price[0] !== defaultPriceRange[0] ||
-      filters.price[1] !== defaultPriceRange[1] ? (
-        <span className="border border-sub-color  px-2 py-1 rounded-full">
-          Price: ${filters.price[0]} - ${filters.price[1]}
-          <button
-            onClick={() => onClearFilter("price", filters.price)}
-            className="ml-2 text-red-500"
-          >
-            &times;
-          </button>
-        </span>
-      ) : null}
-
-      {size && (
-        <span className="border border-sub-color  px-2 py-1 rounded-full">
-          {size}
-          <button
-            onClick={() => {
-              const { size, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
-              router.push({
-                pathname: router.pathname, // Keep the same page
-                query: {
-                  ...remainingQueries,
-                }, // Apply remaining queries
-              });
-            }}
-            className="ml-2 text-red-500"
-          >
-            &times;
-          </button>
-        </span>
-      )}
-      {
-        min_price &&  <span className="border border-sub-color  px-2 py-1 rounded-full">
-        {"greater then : " + min_price}
-        <button
-          onClick={() => {
-            const { min_price, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
-            router.push({
-              pathname: router.pathname, // Keep the same page
-              query: {
-                ...remainingQueries,
-              }, // Apply remaining queries
-            });
-          }}
-          className="ml-2 text-red-500"
-        >
-          &times;
-        </button>
-      </span>
-      }
-      {
-        max_price &&  <span className="border border-sub-color  px-2 py-1 rounded-full">
-        {"less then : " + max_price}
-        <button
-          onClick={() => {
-            const { max_price, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
-            router.push({
-              pathname: router.pathname, // Keep the same page
-              query: {
-                ...remainingQueries,
-              }, // Apply remaining queries
-            });
-          }}
-          className="ml-2 text-red-500"
-        >
-          &times;
-        </button>
-      </span>
-      }
-
-      {filters.brand.length > 0 &&
-        filters.brand.map((brand) => (
-          <span
-            key={brand}
-            className="border border-sub-color  px-2 py-1 rounded-full"
-          >
-            {brand}
-            <button
-              onClick={() => onClearFilter("brand", brand)}
-              className="ml-2 text-red-500"
-            >
-              &times;
-            </button>
-          </span>
-        ))}
-
-      {color && (
-        <span className="border border-sub-color text-gray-700 px-2 py-1 rounded-full flex gap-2">
-          <div
-            className="rounded-full opacity-70"
-            style={{ backgroundColor: color, height: `25px`, width: `25px` }}
-          ></div>
-          {color}
-
-          <button
-            onClick={() => {
-              const { color, ...remainingQueries } = router.query; // Remove `id` while keeping other queries
-              router.push({
-                pathname: router.pathname, // Keep the same page
-                query: remainingQueries, // Apply remaining queries
-              });
-            }}
-            className="ml-2 text-red-500"
-          >
-            &times;
-          </button>
-        </span>
+        </div>
       )}
 
-      {  !cat_name || !color  && (
+      {/* Color Filter Tag */}
+      {activeFilters.color && (
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+          <span className="capitalize">{activeFilters.color}</span>
+          <button
+            onClick={() => onClearFilter('color')}
+            className="text-gray-500 hover:text-black"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Size Filter Tag */}
+      {activeFilters.size && (
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+          <span className="uppercase">{activeFilters.size}</span>
+          <button
+            onClick={() => onClearFilter('size')}
+            className="text-gray-500 hover:text-black"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Category Filter Tag */}
+      {activeFilters.category && (
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+          <span className="capitalize">{activeFilters.category}</span>
+          <button
+            onClick={() => onClearFilter('category')}
+            className="text-gray-500 hover:text-black"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Clear All Button */}
+      {hasActiveFilters() && (
         <button
-          onClick={()=>{
-            
-            router.push({
-            pathname: router.pathname, // Keep the same page
-            query: {
-              size : "M"
-            }, // Apply remaining queries
-          })}}
-          className="border border-sub-color-red-500 bg-white border-red-600  text-red-600 px-4 py-1 rounded-full"
+          onClick={handleClearAll}
+          className="text-sm text-gray-500 hover:text-black underline"
         >
-          &times; Clear All
+          Clear All
         </button>
       )}
     </div>

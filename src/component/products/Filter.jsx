@@ -1,91 +1,78 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchcategores } from "../../../redux/slices/categorySlice";
-import axios from "axios";
 import { useRouter } from "next/router";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useDispatch, useSelector } from "react-redux";
+import { setPriceRange, setFilters } from "../../../redux/slices/shopSlice";
 
-const Filter = ({ onApplyFilters }) => {
-  const {
-    categories: data,
-    status,
-    error,
-  } = useSelector((state) => state.categorysection);
+const Filter = ({ onApplyFilters, currentFilters }) => {
+  const dispatch = useDispatch();
+  // Get all necessary states from Redux store
+  const { 
+    filters,
+    appliedFilters,
+    loading: storeLoading,  // Get loading state from store
+    error: storeError      // Get error state from store
+  } = useSelector((state) => state.shop);
   const Route = useRouter();
+
+  // Get dynamic values from Redux store
+  const availableSizes = filters.sizes || [];
+  const availableColors = filters.colors || [];
+  const availableCategories = filters.categories || [];
+  
+  // Initialize price range from filters
+  const [Range, setRange] = useState({
+    min: filters.priceRange.min || 0,
+    max: filters.priceRange.max || 1000,
+  });
+
+  // Update range when filters change
+  useEffect(() => {
+    if (filters.priceRange) {
+      setRange({
+        min: filters.priceRange.min,
+        max: filters.priceRange.max
+      });
+    }
+  }, [filters.priceRange]);
+
+  const handlePriceChange = (type, value) => {
+    setRange(prev => ({ ...prev, [type]: value }));
+  };
+
+  const handleSliderChange = (value) => {
+    dispatch(setPriceRange({ min: value[0], max: value[1] }));
+  };
+
+  const updateQueryParams = (newParams) => {
+    const currentQuery = { ...Route.query };
+    const updatedQuery = { ...currentQuery, ...newParams };
+    
+    // Remove undefined or null values
+    Object.keys(updatedQuery).forEach(key => 
+      updatedQuery[key] == null && delete updatedQuery[key]
+    );
+
+    Route.push({
+      pathname: "/shop",
+      query: updatedQuery
+    }, undefined, { shallow: true });
+
+    // Update filters in Redux store
+    dispatch(setFilters(newParams));
+  };
+
   const {
     cat_id,
     cat_name,
-    size: seleted_size,
-    color: seleted_color,
+    size: selected_size,
+    color: selected_color,
     min_price,
     max_price,
-  } = Route.query; // Extract `id` from the query
+  } = Route.query;
 
-  const [categroies, setCategroies] = useState([]);
-  const dispatch = useDispatch();
-
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(null);
-
-  const getCountOfProductFromCategory = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/category/get-category-with-product-count`,
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-            'x-publishable-api-key': process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || '',
-          },
-        }
-      );
-      
-      if (response.data && response.data.categories) {
-        const categories = response.data.categories;
-        const updatedData = data?.map((item) => {
-          const matchingCategory = categories.find((cat) => cat.id === item.id);
-          return matchingCategory
-            ? { ...item, product_count: matchingCategory.product_count }
-            : { ...item, product_count: 0 };
-        }) || [];
-        setCategroies(updatedData);
-      }
-    } catch (error) {
-      console.error("Error fetching product counts:", error.response?.data || error.message);
-      setFetchError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    dispatch(fetchcategores());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (data && data.length > 0) {
-      getCountOfProductFromCategory();
-    }
-  }, [data]);
-
-  const [priceRange, setPriceRange] = useState({
-    min: min_price || 0,
-    max: max_price || 1000,
-  });
-  const [Range, setRange] = useState({
-    min: 0,
-    max: 1000,
-  });
-
-  const [filters, setFilters] = useState({
-    category: "",
-    price: [0, 1000],
-    size: "",
-    brand: [],
-    color: "",
-  });
+  const { categories = [], priceRange = { min: 0, max: 1000 } } = currentFilters || {};
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -93,14 +80,6 @@ const Filter = ({ onApplyFilters }) => {
     const updatedFilters = { ...filters, [key]: value };
     setFilters(updatedFilters);
     onApplyFilters(updatedFilters);
-  };
-
-  const updateQueryParams = (newParams) => {
-    const currentQuery = Route.query;
-    Route.push({
-      pathname: "/shop",
-      query: { ...currentQuery, ...newParams },
-    });
   };
 
   useEffect(() => {
@@ -114,17 +93,6 @@ const Filter = ({ onApplyFilters }) => {
     };
   }, [isMobileFilterOpen]);
 
-  // Handle the change for the min or max price
-  const handlePriceChange = (type, value) => {
-    setRange({ ...Range, [type]: value });
-  };
-
-  // Handle the slider change
-  const handleSliderChange = (value) => {
-    setPriceRange({ min: value[0], max: value[1] });
-    
-    // setRange({ min: value[0], max: value[1] });
-  };
   return (
     <div>
       <button
@@ -164,13 +132,15 @@ const Filter = ({ onApplyFilters }) => {
             <h3 className="text-md font-semibold text-black mb-2">
               Product Type
             </h3>
-            {loading ? (
+            {storeLoading ? (
               <p>Loading categories...</p>
-            ) : fetchError ? (
-              <p>Error: {fetchError}</p>
+            ) : storeError ? (
+              <p>Error: {storeError}</p>
+            ) : availableCategories.length === 0 ? (
+              <p>No categories available</p>
             ) : (
               <ul>
-                {categroies.map((item) => (
+                {availableCategories.map((item) => (
                   <li
                     key={item.id}
                     className={`flex py-1 justify-between text-sm cursor-pointer ${
@@ -193,11 +163,11 @@ const Filter = ({ onApplyFilters }) => {
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Size</h3>
             <div className="flex flex-wrap gap-2 text-sm">
-              {["XS", "S", "M", "L", "XL"].map((size) => (
+              {availableSizes.map((size) => (
                 <button
                   key={size}
                   className={`p-[4px] px-[16px] text-xs border border-gray-900 rounded-sm ${
-                    seleted_size === size
+                    selected_size === size
                       ? "bg-theme-blue text-white"
                       : "bg-white text-black"
                   }`}
@@ -298,28 +268,26 @@ const Filter = ({ onApplyFilters }) => {
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Colors</h3>
             <div className="flex flex-wrap gap-2">
-              {["blue", "red", "yellow", "green", "black", "white"].map(
-                (color) => (
+              {availableColors.map((color) => (
+                <div
+                  key={color}
+                  className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
+                    color === selected_color
+                      ? "border-black"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => updateQueryParams({ color })}
+                  style={{ cursor: "pointer" }}
+                >
                   <div
-                    key={color}
-                    className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
-                      color === seleted_color
-                        ? "border-black"
-                        : "border-gray-300"
-                    }`}
-                    onClick={() => updateQueryParams({ color: color })}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div
-                      className="w-4 h-4 rounded-2xl border-2"
-                      style={{ backgroundColor: color }}
-                    ></div>
-                    <span className="capitalize text-xs text-cream">
-                      {color}
-                    </span>
-                  </div>
-                )
-              )}
+                    className="w-4 h-4 rounded-2xl border-2"
+                    style={{ backgroundColor: color.toLowerCase() }}
+                  ></div>
+                  <span className="capitalize text-xs text-cream">
+                    {color}
+                  </span>
+                </div>
+              ))}
             </div>
             <hr className="my-4" />
           </div>
