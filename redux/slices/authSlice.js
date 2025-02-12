@@ -2,9 +2,14 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { createApiUrl } from '../../utils/apiConfig';
 import { setCookie, removeCookie } from '../../utils/cookieUtils';
+import Cookies from 'js-cookie';
 
 const header_key = process.env.NEXT_PUBLIC_HEADER_KEY;
 const header_value = process.env.NEXT_PUBLIC_HEADER_VALUE
+
+
+
+
 
 // Create async thunk for login
 export const loginUser = createAsyncThunk(
@@ -19,27 +24,48 @@ export const loginUser = createAsyncThunk(
         validateStatus: (status) => status >= 200 && status < 500,
       });
 
-      if (response.headers['content-type']?.includes('text/html')) {
-        return rejectWithValue('Server returned HTML instead of JSON. Please check if the server is running.');
+      // Handle common error cases with user-friendly messages
+      if (response.status === 401) {
+        return rejectWithValue('Incorrect email or password. Please try again.');
       }
 
-      if (response?.data?.success) {
-        const { token, user } = response.data.data;
-        // Set cookie with token
-        setCookie('auth_token', token);
-        return { user, token };
-      } else {
-        console.log(response?.data?.error?.message)
-        return rejectWithValue(response?.data?.error);
+      if (response.status === 404) {
+        return rejectWithValue('Account not found. Please check your email or create a new account.');
       }
+
+      if (response.status >= 400 && response.status < 500) {
+        return rejectWithValue(response.data?.message || 'Please check your login details and try again.');
+      }
+
+      if (response.status >= 500) {
+        return rejectWithValue('Our servers are having trouble. Please try again in a few minutes.');
+      }
+
+      if (!response.data?.success) {
+        return rejectWithValue('Unable to log in at this time. Please try again later.');
+      }
+
+      const { token, user } = response.data.data;
+      setCookie('auth_token', token);
+      return { user, token };
 
     } catch (error) {
-      console.error('Login error:', error);
-      return rejectWithValue(error?.response?.data?.message || 'Failed to connect to server');
+      // Handle network and other errors with user-friendly messages
+      if (error.code === 'ECONNREFUSED') {
+        return rejectWithValue('Unable to connect to our servers. Please check your internet connection.');
+      }
+      
+      if (error.code === 'ETIMEDOUT') {
+        return rejectWithValue('The connection timed out. Please try again.');
+      }
+
+      return rejectWithValue('Something went wrong. Please try again later.');
     }
   }
 );
 
+
+// This is the logic for the regiseter User
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
@@ -48,25 +74,53 @@ export const registerUser = createAsyncThunk(
         validateStatus: (status) => status >= 200 && status < 500,
       });
 
-      if (response.headers['content-type']?.includes('text/html')) {
-        return rejectWithValue('Server returned HTML instead of JSON. Please check if the server is running.');
+      if (response.status === 201) {
+        // Return undefined on success (as we're doing currently)
+        return undefined;
       }
 
-      console.log(response)
-
-      if(response?.status == 400){
-        return rejectWithValue(response?.data?.message)
+      // Handle various error cases with user-friendly messages
+      if (response.status === 400) {
+        return rejectWithValue(response.data?.message || 'Invalid registration details.');
       }
 
-      else if(response?.status == 201){
-        return 
-      }
-
+      return rejectWithValue('Registration failed. Please try again.');
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || 'Registration failed. Please try again later.');
     }
   }
 );
+
+
+// Add userInfo thunk
+export const userInfo = createAsyncThunk(
+  'auth/userInfo',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = Cookies.get('auth_token'); // Get token from cookies
+      
+      if (!token) {
+        return rejectWithValue('No auth token found');
+      }
+
+      const response = await axios.get(createApiUrl('/auth/me'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.data.user) {
+        return rejectWithValue('User data not found');
+      }
+
+      return response.data.user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user info');
+    }
+  }
+);
+
 
 export const retrieveCustomer = createAsyncThunk(
   'customer/retrieveCustomer',
@@ -91,6 +145,8 @@ export const updateCustomer = createAsyncThunk(
     }
   }
 );
+
+
 
 // Create auth slice
 const authSlice = createSlice({
@@ -149,6 +205,21 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || 'An error occurred';
       })
+      .addCase(userInfo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(userInfo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(userInfo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.isAuthenticated = false;
+      });
   },
 });
 

@@ -34,28 +34,26 @@ const Register = () => {
   }, [router])
 
   const handleRegister = async e => {
-    e.preventDefault()
-    // const secretKey = process.env.NEXT_PUBLIC_REVALIDATE_SECRET || ""
-    console.log("These are the detail of the Register Page", firstName, lastName, email, password);
-
-
+    e.preventDefault();
     try {
-      await dispatch(registerUser({firstName, lastName, email, phone, password}));
-        // await dispatch(
-        //   signup({
-        //     formData: {
-        //       firstName,
-        //       lastName,
-        //       email,
-        //       password,
-        //       phone
-        //     }, 
-        //     secretKey
-        //   })
-        // ).unwrap()
-        // router.push("/auth/dashboard")
+      const result = await dispatch(registerUser({
+        firstName, 
+        lastName, 
+        email, 
+        phone, 
+        password
+      })).unwrap();
+
+      // If registration is successful (no error was thrown)
+      if (result === undefined) { // Since our registerUser returns undefined on success
+        // Show success message (optional)
+        // alert("Registration successful! Please login with your credentials.");
+        // Redirect to login page
+        router.push("/auth/login");
+      }
     } catch (error) {
       console.error("Registration failed", error);
+      // Error handling is already done in the slice
     }
   }
 

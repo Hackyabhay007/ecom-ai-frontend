@@ -7,35 +7,43 @@ import { getCookie } from "utils/cookieUtils";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorValue, setErrorValue] = useState("");
   const router = useRouter();
   const dispatch = useDispatch();
   const { error, loading, isAuthenticated } = useSelector((state) => state.auth);
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    try {
+      if (email && password) {
+        const credentials = { email, password };
+        const result = await dispatch(loginUser(credentials));
+        if (!result.error) {
+          router.push('/auth/dashboard'); // Redirect on successful login
+        }
+      }
+    } catch (error) {
+      setErrorValue("Invalid email or password"); // Set error message
+    }
+  };
 
   useEffect(() => {
     // Check if user is already authenticated
     const cookie = getCookie('auth_token');
     if (cookie || isAuthenticated) {
-      // router.push('/dashboard'); // or wherever you want to redirect authenticated users
+      router.push('/auth/dashboard'); // or wherever you want to redirect authenticated users
       console.log("User is already Logged Now");
     }
   }, [isAuthenticated]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    if (email && password) {
-      const credentials = { email, password };
-      const result = await dispatch(loginUser(credentials));
-      if (!result.error) {
-        router.push('/dashboard'); // Redirect on successful login
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (error) {
-      console.log("This is the Error of the Login Page", error);
-    }
+  useEffect(()=>{
+    setErrorValue(error);
   }, [error]);
+
+
+  useEffect(() => { 
+    setErrorValue(""); // Set error message
+  }, []);
 
   return (
     <div className="flex flex-col md:flex-row min-h-fit md:min-h-screen bg-white">
@@ -44,7 +52,8 @@ const Login = () => {
           Login
         </h2>
 
-        {error && <p className="text-xs text-red-500 mb-4">{error}</p>}
+        {/* Updated error message display */}
+        {error && <p className="text-xs text-red-500 mb-4">{errorValue}</p>}
 
         <form className="space-y-6" onSubmit={handleLogin}>
           <div>

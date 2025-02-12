@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import ProductCard from "../ProductCard";
+// import GridLayout from "../GridLayout"; // Add this import
 
 const ShimmerProductCard = () => (
   <div className="animate-pulse">
@@ -12,10 +13,12 @@ const ShimmerProductCard = () => (
   </div>
 );
 
-const ProductList = ({ layout }) => {
+const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayoutChange and currentSort prop
   const { products, loading } = useSelector(state => state.shop);
+  const [sortedProducts, setSortedProducts] = useState([]);
   const [productsPerPage, setProductsPerPage] = useState(9); // Default to 9 for desktop
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSaleOnly, setShowSaleOnly] = useState(false);
 
   // Adjust products per page based on screen width (Mobile: 8, Desktop: 9)
   useEffect(() => {
@@ -35,10 +38,58 @@ const ProductList = ({ layout }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Sort products when sort type or products change
+  useEffect(() => {
+    if (!products) return;
+
+    const sortProducts = (items, sortType) => {
+      const sorted = [...items];
+      
+      switch (sortType) {
+        case 'price-asc':
+          return sorted.sort((a, b) => 
+            (a.variants[0]?.price || 0) - (b.variants[0]?.price || 0)
+          );
+        
+        case 'price-desc':
+          return sorted.sort((a, b) => 
+            (b.variants[0]?.price || 0) - (a.variants[0]?.price || 0)
+          );
+        
+        case 'discount':
+          return sorted.sort((a, b) => 
+            (b.metadata?.discount || 0) - (a.metadata?.discount || 0)
+          );
+        
+        case 'newest':
+          return sorted.sort((a, b) => 
+            new Date(b.created_at) - new Date(a.created_at)
+          );
+        
+        default:
+          return sorted; // Best selling or default order
+      }
+    };
+
+    const sorted = sortProducts(products, currentSort);
+    setSortedProducts(sorted);
+  }, [products, currentSort]);
+
+  // Handle sort change
+  const handleSortChange = (sortType) => {
+    setCurrentSort(sortType);
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  // Handle sale toggle
+  const handleSaleToggle = () => {
+    setShowSaleOnly(!showSaleOnly);
+  };
+
   // Calculate the index range for the current page
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
 
   // Function to go to the previous page
   const prevPage = () => {
@@ -79,6 +130,14 @@ const ProductList = ({ layout }) => {
 
   return (
     <div className="min-h-screen h-fit">
+      {/* Products Count */}
+      {/* <div className="text-left items-center mb-4">
+        <span className="text-gray-600">
+          {sortedProducts.length} Product{sortedProducts.length !== 1 ? "s" : ""} found
+        </span>
+      </div> */}
+
+      {/* Products Grid */}
       <div
         className={`grid h-fit ${
           layout === "grid"

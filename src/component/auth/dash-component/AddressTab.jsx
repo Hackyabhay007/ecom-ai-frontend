@@ -6,37 +6,68 @@ import {
 } from "@/redux/slices/authSlice";
 
 const AddressForm = () => {
-  const { currentCustomer: user } = useSelector((state) => state.customer);
   const dispatch = useDispatch();
+  
+  // Access user data from auth state
+  const { user, loading, error } = useSelector((state) => state.auth);
 
-  // Get the first address or use default empty state
-  const existingAddress = user?.addresses?.[0] || {};
+  // Log user data for debugging
+  console.log('User data in AddressForm:', user);
 
-  const initialAddressState = {
-    address_name: existingAddress.address_name || `${user?.first_name || ''} ${user?.last_name || ''}`,
-    company: existingAddress.company || user?.company_name || '',
-    first_name: existingAddress.first_name || user?.first_name || '',
-    last_name: existingAddress.last_name || user?.last_name || '',
-    address_1: existingAddress.address_1 || '',
-    address_2: existingAddress.address_2 || '',
-    city: existingAddress.city || '',
-    country_code: existingAddress.country_code || '',
-    province: existingAddress.province || '',
-    postal_code: existingAddress.postal_code || '',
-    phone: existingAddress.phone || user?.phone || '',
-    is_default_billing: existingAddress.is_default_billing || false,
-    is_default_shipping: existingAddress.is_default_shipping || false,
-    metadata: existingAddress.metadata || {},
-  };
+  // Initialize state with user data
+  const [newAddress, setNewAddress] = useState({
+    address_name: '',
+    company: '',
+    first_name: '',
+    last_name: '',
+    address_1: '',
+    address_2: '',
+    city: '',
+    country_code: '',
+    province: '',
+    postal_code: '',
+    phone: '',
+    is_default_billing: false,
+    is_default_shipping: false,
+    metadata: {},
+  });
 
-  const [newAddress, setNewAddress] = useState(initialAddressState);
+  // Add buttonText state
   const [buttonText, setButtonText] = useState("Update Address");
 
+  // Update form when user data changes
+  useEffect(() => {
+    if (user) {
+      setNewAddress(prev => ({
+        ...prev,
+        // Map both camelCase and snake_case variations
+        first_name: user.firstName || user.first_name || '',
+        last_name: user.lastName || user.last_name || '',
+        phone: user.phone || '',
+        // Set address name based on user's name if not set
+        address_name: prev.address_name || '',
+        // Merge existing address data if available
+        ...(user.addresses?.[0] || {})
+      }));
+    }
+  }, [user]);
+
+  // Fetch user data if not available
   useEffect(() => {
     if (!user) {
       dispatch(retrieveCustomer());
     }
   }, [dispatch, user]);
+
+  // Show loading state
+  if (loading) {
+    return <div className="text-center py-4">Loading address information...</div>;
+  }
+
+  // Show error state
+  if (error) {
+    return <div className="text-red-500 text-center py-4">Error: {error}</div>;
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

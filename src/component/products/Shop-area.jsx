@@ -55,7 +55,7 @@ const ShopArea = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [layout, setLayout] = useState("grid");
   const [showSaleOnly, setShowSaleOnly] = useState(false);
-  const [sortBy, setSortBy] = useState("");
+  const [sortBy, setSortBy] = useState("default");
 
   // Handle filter actions
   const clearFilter = (key, value) => {
@@ -143,6 +143,11 @@ const ShopArea = () => {
     dispatch(fetchProducts({ page: 1, filters: {} }));
   };
 
+  // Handle sort change
+  const handleSortChange = (value) => {
+    setSortBy(value);
+  };
+
   return (
     <div className="py-16 md:py-0 md:mb-5">
       {loading && <SkeletonScreen />}
@@ -173,9 +178,10 @@ const ShopArea = () => {
           <GridLayout 
             onLayoutChange={setLayout}
             onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}
-            onSortChange={(e) => setSortBy(e.target.value)}
+            onSortChange={handleSortChange} // Updated: Pass the function directly
             currentLayout={layout}
             showSaleOnly={showSaleOnly}
+            currentSort={sortBy} // Add this prop
           />
 
           <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
@@ -197,6 +203,8 @@ const ShopArea = () => {
               products={products} // Use products directly from store
               layout={layout}
               loading={loading}
+              onLayoutChange={setLayout} // Add this prop
+              currentSort={sortBy} // Add this prop
             />
           )}
         </div>

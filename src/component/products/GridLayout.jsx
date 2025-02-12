@@ -6,6 +6,7 @@ const GridLayout = ({
   showSaleOnly,
   onSaleToggle,
   onSortChange,
+  currentSort
 }) => {
   return (
     <div className="flex justify-between flex-wrap gap-4 items-center mb-4">
@@ -47,14 +48,15 @@ const GridLayout = ({
       {/* Right Controls: Sort Dropdown */}
       <div>
         <select
-          onChange={onSortChange}
-          className=" pr-8 px-4 border rounded-none"
-          defaultValue="best-selling"
+          onChange={(e) => onSortChange(e.target.value)}
+          value={currentSort}
+          className="pr-8 px-4 border rounded-none"
         >
-          <option value="best-selling">Sort By: Best Selling</option>
-          <option value="low-to-high">Price: Low to High</option>
-          <option value="high-to-low">Price: High to Low</option>
-          <option value="best-discount">Best Discount</option>
+          <option value="default">Sort By: Best Selling</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="discount">Best Discount</option>
+          <option value="newest">Newest First</option>
         </select>
       </div>
       
