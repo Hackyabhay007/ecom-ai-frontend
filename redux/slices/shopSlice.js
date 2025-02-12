@@ -66,6 +66,48 @@ export const fetchSingleProduct = createAsyncThunk(
   }
 );
 
+// Add new fetchProductsBySearch thunk
+export const fetchProductsBySearch = createAsyncThunk(
+  'shop/fetchProductsBySearch',
+  async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
+    try {
+      const queryParams = new URLSearchParams({
+        ...(searchQuery && { query: searchQuery }),
+        page: filters.page || 1,
+        limit: filters.limit || 10,
+        ...(filters.onSale !== undefined && { onSale: filters.onSale }),
+        ...(filters.categoryId && { categoryId: filters.categoryId }),
+        ...(filters.size && { size: filters.size }),
+        ...(filters.color && { color: filters.color }),
+        ...(filters.minPrice && { minPrice: filters.minPrice }),
+        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
+        // We can add more parameters here based on your requirements
+      });
+
+      const response = await axios.get(
+        createApiUrl(`/products/search?${queryParams.toString()}`),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.data.success) {
+        return rejectWithValue('Failed to search products');
+      }
+
+      return {
+        products: response.data.data.products,
+        filters: response.data.data.filters,
+        meta: response.data.data.meta
+      };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to search products');
+    }
+  }
+);
+
 const shopSlice = createSlice({
   name: 'shop',
   initialState: {
@@ -89,6 +131,8 @@ const shopSlice = createSlice({
     selectedProduct: null, // Add this for single product
     selectedProductLoading: false,
     selectedProductError: null,
+    searchLoading: false,
+    searchError: null,
   },
   reducers: {
     setFilters: (state, action) => {
@@ -138,6 +182,24 @@ const shopSlice = createSlice({
       .addCase(fetchSingleProduct.rejected, (state, action) => {
         state.selectedProductLoading = false;
         state.selectedProductError = action.payload;
+      })
+      // Add cases for fetchProductsBySearch
+      .addCase(fetchProductsBySearch.pending, (state) => {
+        state.searchLoading = true;
+        state.searchError = null;
+      })
+      .addCase(fetchProductsBySearch.fulfilled, (state, action) => {
+        state.searchLoading = false;
+        state.products = action.payload.products;
+        state.filters = {
+          ...state.filters,
+          ...action.payload.filters
+        };
+        state.meta = action.payload.meta;
+      })
+      .addCase(fetchProductsBySearch.rejected, (state, action) => {
+        state.searchLoading = false;
+        state.searchError = action.payload;
       });
   }
 });

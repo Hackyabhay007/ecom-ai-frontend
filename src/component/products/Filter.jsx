@@ -16,10 +16,17 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
   } = useSelector((state) => state.shop);
   const Route = useRouter();
 
+  // Initialize local state for filters
+  const [localFilters, setLocalFilters] = useState({
+    brand: [], // Initialize empty brand array
+    ...filters
+  });
+
   // Get dynamic values from Redux store
   const availableSizes = filters.sizes || [];
   const availableColors = filters.colors || [];
   const availableCategories = filters.categories || [];
+  const { collections } = useSelector((state) => state.shop.filters);
   
   // Initialize price range from filters
   const [Range, setRange] = useState({
@@ -77,8 +84,8 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const handleFilterChange = (key, value) => {
-    const updatedFilters = { ...filters, [key]: value };
-    setFilters(updatedFilters);
+    const updatedFilters = { ...localFilters, [key]: value };
+    setLocalFilters(updatedFilters);
     onApplyFilters(updatedFilters);
   };
 
@@ -200,6 +207,8 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
             </p>
             <hr className="my-4" />
           </div> */}
+
+          {/* Price Filter */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Price</h3>
             <div className="flex items-center gap-4">
@@ -293,35 +302,27 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
           </div>
 
           {/* Brand Filter */}
-          {/* <div className="mb-4">
+          <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Brand</h3>
             <div className="flex flex-col gap-2">
-              {[
-                "Adidas",
-                "Gucci",
-                "Hermes",
-                "Zara",
-                "Nike",
-                "LV",
-                "Puma",
-                "HM",
-              ].map((brand) => (
-                <label key={brand} className="flex items-center gap-2">
+              {collections?.map((collection) => (
+                <label key={collection.id} className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={filters.brand.includes(brand)}
+                    checked={localFilters.brand?.includes(collection.title) || false}
                     onChange={() => {
-                      const newBrandFilter = filters.brand.includes(brand)
-                        ? filters.brand.filter((b) => b !== brand)
-                        : [...filters.brand, brand];
+                      const currentBrands = localFilters.brand || [];
+                      const newBrandFilter = currentBrands.includes(collection.title)
+                        ? currentBrands.filter((b) => b !== collection.title)
+                        : [...currentBrands, collection.title];
                       handleFilterChange("brand", newBrandFilter);
                     }}
                   />
-                  {brand}
+                  <span className="text-sm">{collection.title}</span>
                 </label>
               ))}
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>
