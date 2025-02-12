@@ -33,6 +33,8 @@ const GridLayout = ({
             <i className="ri-menu-fill font-semibold"></i>
           </button>
         </div>
+
+        {/* This is control whether we wanted to display the sales product or not  */}
         <label className="flex items-center gap-2">
           <input
             type="checkbox"

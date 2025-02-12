@@ -26,6 +26,14 @@ const ShopArea = () => {
   const router = useRouter();
   const { cat_id, size, color, min_price, max_price } = router.query;
 
+  // Move state declarations before the useEffect
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [heading, setHeading] = useState("Shop");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [layout, setLayout] = useState("grid");
+  const [showSaleOnly, setShowSaleOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("default");
+
   // Get categories from store filters
   const categories = storeFilters?.categories || [];
 
@@ -38,10 +46,11 @@ const ShopArea = () => {
         size,
         color,
         minPrice: min_price,
-        maxPrice: max_price
+        maxPrice: max_price,
+        saleOnly: showSaleOnly // Add this line
       }
     }));
-  }, [dispatch, cat_id, size, color, min_price, max_price]);
+  }, [dispatch, cat_id, size, color, min_price, max_price, showSaleOnly]); // Add showSaleOnly to dependencies
 
   // Update filtered products when products change
   useEffect(() => {
@@ -49,13 +58,6 @@ const ShopArea = () => {
       setFilteredProducts(products);
     }
   }, [products]);
-
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [heading, setHeading] = useState("Shop");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [layout, setLayout] = useState("grid");
-  const [showSaleOnly, setShowSaleOnly] = useState(false);
-  const [sortBy, setSortBy] = useState("default");
 
   // Handle filter actions
   const clearFilter = (key, value) => {
@@ -148,6 +150,11 @@ const ShopArea = () => {
     setSortBy(value);
   };
 
+  // Update the handleSaleToggle function
+  const handleSaleToggle = () => {
+    setShowSaleOnly(!showSaleOnly);
+  };
+
   return (
     <div className="py-16 md:py-0 md:mb-5">
       {loading && <SkeletonScreen />}
@@ -177,7 +184,7 @@ const ShopArea = () => {
         <div className="md:w-3/4 w-full">
           <GridLayout 
             onLayoutChange={setLayout}
-            onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}
+            onSaleToggle={handleSaleToggle}
             onSortChange={handleSortChange} // Updated: Pass the function directly
             currentLayout={layout}
             showSaleOnly={showSaleOnly}

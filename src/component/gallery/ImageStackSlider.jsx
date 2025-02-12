@@ -43,7 +43,7 @@ const ImageStackSlider = ({catalogdata}) => {
       });
       setImages(carouselData);
 
-      console.log("This is the Carousel Data of the Image Stack Slider Data", carouselData);
+      // console.log("This is the Carousel Data of the Image Stack Slider Data", carouselData);
       // console.log("This is the Carousel Array Data of the  Image Stack Slider Data", images);
     }
   }, [galleryTwoSection]);

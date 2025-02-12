@@ -18,7 +18,6 @@ const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayo
   const [sortedProducts, setSortedProducts] = useState([]);
   const [productsPerPage, setProductsPerPage] = useState(9); // Default to 9 for desktop
   const [currentPage, setCurrentPage] = useState(1);
-  const [showSaleOnly, setShowSaleOnly] = useState(false);
 
   // Adjust products per page based on screen width (Mobile: 8, Desktop: 9)
   useEffect(() => {
@@ -79,11 +78,6 @@ const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayo
   const handleSortChange = (sortType) => {
     setCurrentSort(sortType);
     setCurrentPage(1); // Reset to first page when sorting changes
-  };
-
-  // Handle sale toggle
-  const handleSaleToggle = () => {
-    setShowSaleOnly(!showSaleOnly);
   };
 
   // Calculate the index range for the current page

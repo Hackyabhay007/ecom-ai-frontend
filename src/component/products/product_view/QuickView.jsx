@@ -1,79 +1,36 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addToCart,
-  updateLineItem,
-  updateCart,
-  appendToCart,
-} from "../../../lib/data/cart";
+import { addToCart, updateCart } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useRegion } from "../../../contexts/RegionContext";
-import axios from "axios";
-import { fetchProducts } from "@/redux/slices/productSlice";
 
 const QuickView = ({ productId, initialData, onClose }) => {
-  const [product, setProduct] = useState(initialData);
-  const { products, loading } = useSelector((state) => state.shop);
+  const dispatch = useDispatch();
+  const router = useRouter();
   const { region } = useRegion();
+  const { products, filters } = useSelector((state) => state.shop);
+
+  // Group all useState declarations together
+  const [product, setProduct] = useState(initialData);
+  const [loading, setLoading] = useState(true);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [warning, setWarning] = useState("");
   const [isProgressVisible, setIsProgressVisible] = useState(false);
-  const [additionalImages , setAdditionalImages] = useState([]);
-  const [discount, setdiscount] = useState(0);
+  const [additionalImages, setAdditionalImages] = useState([]);
+  const [discount, setDiscount] = useState(0);
   const [variantPrice, setVariantPrice] = useState(0);
-  const [discountedamount, setDiscountedamount] = useState(0);
-  const [categories, setCategory] = useState([]);
-  const [rating, setRating] = useState([]);
+  const [discountedAmount, setDiscountedAmount] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const [avaragerating, setAvaragerating] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
 
-  useEffect(() => {
-    // Find the product in the Redux store
-    const productFromStore = products.find(p => p.id === productId);
-    if (productFromStore) {
-      setProduct(productFromStore);
-    }
-  }, [productId, products]);
-
-  // Get available options from product data
-  const colors = product?.variants?.reduce((acc, variant) => {
-    const colorOption = variant.options?.find(opt => opt.option_id === "opt_color");
-    if (colorOption && !acc.includes(colorOption.value)) {
-      acc.push(colorOption.value);
-    }
-    return acc;
-  }, []) || [];
-
-  const sizes = product?.variants?.reduce((acc, variant) => {
-    const sizeOption = variant.options?.find(opt => opt.option_id === "opt_size");
-    if (sizeOption && !acc.includes(sizeOption.value)) {
-      acc.push(sizeOption.value);
-    }
-    return acc;
-  }, []) || [];
-
-  // Get current variant based on selection
-  const getCurrentVariant = () => {
-    return product?.variants?.find(variant => 
-      (!selectedColor || variant.options?.some(opt => opt.value === selectedColor)) &&
-      (!selectedSize || variant.options?.some(opt => opt.value === selectedSize))
-    );
-  };
-
-  // Get price for current variant
-  const getVariantPrice = () => {
-    const variant = getCurrentVariant();
-    return variant?.price || product?.variants?.[0]?.price || 0;
-  };
-
-  if (!product || loading) {
-    return <div className="...loading styles...">Loading...</div>;
-  }
-
+  // Group useEffects together
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -81,74 +38,96 @@ const QuickView = ({ productId, initialData, onClose }) => {
     };
   }, []);
 
-  const handleQuantityChange = (type) => {
-    setQuantity((prev) =>
-      type === "increment" ? prev + 1 : Math.max(1, prev - 1)
+  useEffect(() => {
+    setLoading(true);
+    const currentProduct = products.find(p => p.id === productId);
+    if (currentProduct) {
+      const uniqueColors = [...new Set(currentProduct.variants
+        .map(variant => variant.options?.find(opt => opt.option_id === "opt_color")?.value)
+        .filter(Boolean))];
+      
+      const uniqueSizes = [...new Set(currentProduct.variants
+        .map(variant => variant.options?.find(opt => opt.option_id === "opt_size")?.value)
+        .filter(Boolean))];
+
+      const productCategories = filters.categories.filter(cat => 
+        currentProduct.categories?.includes(cat.id)
+      );
+
+      setProduct(currentProduct);
+      setColors(uniqueColors);
+      setSizes(uniqueSizes);
+      setCategories(productCategories);
+      
+      // Set initial variant and price
+      if (currentProduct.variants?.length > 0) {
+        setSelectedVariant(currentProduct.variants[0]);
+        setVariantPrice(currentProduct.variants[0].price);
+        
+        if (currentProduct.metadata?.discount) {
+          setDiscount(currentProduct.metadata.discount);
+          const discounted = currentProduct.variants[0].price * (1 - currentProduct.metadata.discount / 100);
+          setDiscountedAmount(discounted);
+        }
+      }
+      
+      setLoading(false);
+    }
+  }, [productId, products, filters]);
+
+  // Helper functions
+  const getCurrentVariant = () => {
+    return product?.variants?.find(variant => 
+      (!selectedColor || variant.options?.some(opt => opt.value === selectedColor)) &&
+      (!selectedSize || variant.options?.some(opt => opt.value === selectedSize))
     );
   };
 
+  const getVariantPrice = () => {
+    const variant = getCurrentVariant();
+    return variant?.price || product?.variants?.[0]?.price || 0;
+  };
+
+  // Handler functions
+  const handleQuantityChange = (type) => {
+    setQuantity(prev => type === "increment" ? prev + 1 : Math.max(1, prev - 1));
+  };
+
   const handleAddToCart = async () => {
-     process.env.NEXT_PUBLIC_REVALIDATE_SECRET;
-     if (!selectedSize) {
-       setWarning("Please select  size.");
-       setIsProgressVisible(true);
- 
-       setTimeout(() => {
-         setWarning("");
-         setIsProgressVisible(false);
-       }, 3000);
-       return;
-     }
-     if (!selectedSize) {
-       setWarning("Please select  size.");
-       setIsProgressVisible(true);
- 
-       setTimeout(() => {
-         setWarning("");
-         setIsProgressVisible(false);
-       }, 3000);
-       return;
-     }
+    if (!selectedSize) {
+      setWarning("Please select a size.");
+      setIsProgressVisible(true);
+      setTimeout(() => {
+        setWarning("");
+        setIsProgressVisible(false);
+      }, 3000);
+      return;
+    }
 
-     console.log(selectedVariant , "this is selected variant");
- 
-     await addToCart(
-       {
-         variantId: selectedVariant.id,
-         quantity: 1,
-         region: region,
-         Updater: updateCart,
-       },
-       process.env.NEXT_PUBLIC_REVALIDATE_SECRET
-     );
- 
-     setIsAdded(true);
-   };
+    try {
+      await addToCart({
+        variantId: selectedVariant.id,
+        quantity,
+        region,
+        Updater: updateCart,
+      }, process.env.NEXT_PUBLIC_REVALIDATE_SECRET);
+      
+      setIsAdded(true);
+    } catch (error) {
+      setWarning("Failed to add to cart");
+    }
+  };
 
-  const handleBuyNow = async () => {
-      if (!selectedSize) {
-        setWarning("Please select a size.");
-        setIsProgressVisible(true);
-  
-        setTimeout(() => {
-          setWarning("");
-          setIsProgressVisible(false);
-        }, 3000);
-        return;
-      }
-  
-      await addToCart(
-        {
-          variantId: selectedVariant.id,
-          quantity: 1,
-          region: region,
-          Updater: updateCart,
-        },
-        process.env.NEXT_PUBLIC_REVALIDATE_SECRET
-      );
-  
-      Router.push("/checkout");
-    };
+  // Loading state check
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg">
+          <p>Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 pb-20 md:pb-5 z-50 ">
@@ -188,7 +167,7 @@ const QuickView = ({ productId, initialData, onClose }) => {
 
           {/* Star Rating */}
           <div className="flex items-center mb-4">
-            {Array.from({ length: avaragerating }, (_, i) => (
+            {Array.from({ length: averageRating }, (_, i) => (
               <i key={i} className="ri-star-fill text-yellow-400"></i>
             ))}
           </div>
@@ -197,7 +176,7 @@ const QuickView = ({ productId, initialData, onClose }) => {
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">
             ₹ {product?.metadata?.discount > 0
-                ? discountedamount
+                ? discountedAmount
                 : getVariantPrice()}
             </span>
             {product?.metadata?.discount > 0 && (
@@ -235,13 +214,6 @@ const QuickView = ({ productId, initialData, onClose }) => {
                   style={{ backgroundColor: color }}
                   onClick={() => {
                     setSelectedColor(color);
-                    // Router.push({
-                    //   pathname: Router.pathname,
-                    //   query: {
-                    //     ...Router.query,
-                    //     temp_color: color,
-                    //   },
-                    // });
                     getVariantPrice();
                   }}
                 />
@@ -261,13 +233,6 @@ const QuickView = ({ productId, initialData, onClose }) => {
                   }`}
                   onClick={() => {
                     setSelectedSize(size);
-                    // Router.push({
-                    //   pathname: Router.pathname,
-                    //   query: {
-                    //     ...Router.query,
-                    //     temp_size: size,
-                    //   },
-                    // });
                     getVariantPrice();
                   }}
                 >

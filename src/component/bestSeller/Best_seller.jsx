@@ -60,7 +60,7 @@ function BestSeller() {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("This is the Best Seller data of the Best_Seller.jsx page", bestSellerSection);
+    // console.log("This is the Best Seller data of the Best_Seller.jsx page", bestSellerSection);
     if(bestSellerSection?.section_data?.title){
 
       setBestSellerInfo({

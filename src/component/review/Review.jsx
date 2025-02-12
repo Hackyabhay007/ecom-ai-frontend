@@ -40,7 +40,7 @@ const Review = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("This is the Review Section data", reviewSection);
+    // console.log("This is the Review Section data", reviewSection);
     if(reviewSection?.section_data?.title){
       setTitle(reviewSection?.section_data?.title);
     }

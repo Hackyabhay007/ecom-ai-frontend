@@ -14,6 +14,7 @@ export const fetchProducts = createAsyncThunk(
         ...(filters.color && { color: filters.color }),
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }), 
+        ...(filters.saleOnly && { saleOnly: filters.saleOnly }), // Add this line
       });
 
       const response = await axios.get(
@@ -40,6 +41,31 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
+// Add new fetchSingleProduct thunk
+export const fetchSingleProduct = createAsyncThunk(
+  'shop/fetchSingleProduct',
+  async (productId, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        createApiUrl(`/products/${productId}`),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.data.success) {
+        return rejectWithValue('Failed to fetch product details');
+      }
+
+      return response.data.data.product;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch product details');
+    }
+  }
+);
+
 const shopSlice = createSlice({
   name: 'shop',
   initialState: {
@@ -59,7 +85,10 @@ const shopSlice = createSlice({
     },
     loading: false,
     error: null,
-    appliedFilters: {} // Track currently applied filters
+    appliedFilters: {}, // Track currently applied filters
+    selectedProduct: null, // Add this for single product
+    selectedProductLoading: false,
+    selectedProductError: null,
   },
   reducers: {
     setFilters: (state, action) => {
@@ -96,6 +125,19 @@ const shopSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Add cases for fetchSingleProduct
+      .addCase(fetchSingleProduct.pending, (state) => {
+        state.selectedProductLoading = true;
+        state.selectedProductError = null;
+      })
+      .addCase(fetchSingleProduct.fulfilled, (state, action) => {
+        state.selectedProductLoading = false;
+        state.selectedProduct = action.payload;
+      })
+      .addCase(fetchSingleProduct.rejected, (state, action) => {
+        state.selectedProductLoading = false;
+        state.selectedProductError = action.payload;
       });
   }
 });
