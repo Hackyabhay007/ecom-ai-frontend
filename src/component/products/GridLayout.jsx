@@ -1,4 +1,6 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 
 const GridLayout = ({
   currentLayout,
@@ -8,12 +10,27 @@ const GridLayout = ({
   onSortChange,
   currentSort
 }) => {
+  const dispatch = useDispatch();
+  const { appliedFilters } = useSelector(state => state.shop);
+
+  const handleSaleToggle = (e) => {
+    const isChecked = e.target.checked;
+    onSaleToggle(e); // Keep existing toggle behavior
+    
+    // Dispatch search with onSale parameter
+    dispatch(fetchProductsBySearch({
+      searchQuery: { onSale: isChecked },
+      filters: {
+        ...appliedFilters,
+        onSale: isChecked
+      }
+    }));
+  };
+
   return (
     <div className="flex justify-between flex-wrap gap-4 items-center mb-4">
       {/* Left Controls: Sale Checkbox and Layout Switch */}
       <div className="flex items-center gap-4">
-        {/* Sale Checkbox */}
-       
         {/* Layout Toggle */}
         <div className="flex gap-2"> 
           <button
@@ -34,17 +51,16 @@ const GridLayout = ({
           </button>
         </div>
 
-        {/* This is control whether we wanted to display the sales product or not  */}
+        {/* Sale Product Filter */}
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={showSaleOnly}
-            onChange={onSaleToggle}
+            onChange={handleSaleToggle}
             className="w-5 h-5 accent-white rounded-none"
           />
           <span className="text-black text-sm ">Sale Product </span>
         </label>
-
       </div>
 
       {/* Right Controls: Sort Dropdown */}

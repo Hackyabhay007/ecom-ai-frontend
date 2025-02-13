@@ -152,6 +152,7 @@ const ShopArea = () => {
 
   // Update the handleSaleToggle function
   const handleSaleToggle = () => {
+    console.log("this is the handleSale Toggle value form the SHop area js ", showSaleOnly);
     setShowSaleOnly(!showSaleOnly);
   };
 

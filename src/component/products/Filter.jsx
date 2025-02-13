@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useDispatch, useSelector } from "react-redux";
-import { setPriceRange, setFilters } from "../../../redux/slices/shopSlice";
+import { setPriceRange, setFilters, fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 
 const Filter = ({ onApplyFilters, currentFilters }) => {
   const dispatch = useDispatch();
@@ -20,6 +20,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
   const availableSizes = filters.sizes || [];
   const availableColors = filters.colors || [];
   const availableCategories = filters.categories || [];
+  const availableCollections = filters.collections || []; // Add this line
   
   // Initialize price range from filters
   const [Range, setRange] = useState({
@@ -46,6 +47,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
   };
 
   const updateQueryParams = (newParams) => {
+    console.log("newParamss",newParams);
     const currentQuery = { ...Route.query };
     const updatedQuery = { ...currentQuery, ...newParams };
     
@@ -59,8 +61,20 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
       query: updatedQuery
     }, undefined, { shallow: true });
 
-    // Update filters in Redux store
+    // Update filters in Redux store and fetch filtered products
     dispatch(setFilters(newParams));
+    dispatch(fetchProductsBySearch({ 
+      filters: {
+        ...filters,
+        ...newParams,
+        categoryId: newParams.cat_id,
+        size: newParams.size,
+        color: newParams.color,
+        minPrice: newParams.min_price,
+        maxPrice: newParams.max_price,
+        brand: filters.brand
+      }
+    }));
   };
 
   const {
@@ -79,6 +93,12 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
   const handleFilterChange = (key, value) => {
     const updatedFilters = { ...filters, [key]: value };
     setFilters(updatedFilters);
+    
+    // Fetch products with updated filters
+    dispatch(fetchProductsBySearch({ 
+      filters: updatedFilters
+    }));
+    
     onApplyFilters(updatedFilters);
   };
 
@@ -147,7 +167,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
                       cat_name === item.name ? "text-theme-blue" : "text-black"
                     }`}
                     onClick={() => {
-                      updateQueryParams({ cat_id: item.id, cat_name: item.name });
+                      updateQueryParams({ cat_id: item.id });
                     }}
                   >
                     <span className="capitalize">{item.name}</span>
@@ -173,7 +193,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
                   }`}
                   onClick={() => {
                     updateQueryParams({ size });
-                    handleFilterChange("size", size);
+                    handleFilterChange("size", size); 
                   }}
                 >
                   {size}
@@ -264,7 +284,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
             </div>
           </div>
 
-          {/* Colors Filter */}
+          {/* Colors Filter Section */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Colors</h3>
             <div className="flex flex-wrap gap-2">
@@ -292,36 +312,35 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
             <hr className="my-4" />
           </div>
 
-          {/* Brand Filter */}
-          {/* <div className="mb-4">
+          {/* Brand Filter Section */}
+          <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Brand</h3>
             <div className="flex flex-col gap-2">
-              {[
-                "Adidas",
-                "Gucci",
-                "Hermes",
-                "Zara",
-                "Nike",
-                "LV",
-                "Puma",
-                "HM",
-              ].map((brand) => (
-                <label key={brand} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.brand.includes(brand)}
-                    onChange={() => {
-                      const newBrandFilter = filters.brand.includes(brand)
-                        ? filters.brand.filter((b) => b !== brand)
-                        : [...filters.brand, brand];
-                      handleFilterChange("brand", newBrandFilter);
-                    }}
-                  />
-                  {brand}
-                </label>
-              ))}
+              {storeLoading ? (
+                <p>Loading brands...</p>
+              ) : storeError ? (
+                <p>Error: {storeError}</p>
+              ) : availableCollections.length === 0 ? (
+                <p>No brands available</p>
+              ) : (
+                availableCollections.map((brand) => (
+                  <label key={brand.id} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={filters.brand?.includes(brand.name)}
+                      onChange={() => {
+                        const newBrandFilter = filters.brand?.includes(brand.name)
+                          ? filters.brand.filter((b) => b !== brand.name)
+                          : [...(filters.brand || []), brand.name];
+                        handleFilterChange("brand", newBrandFilter);
+                      }}
+                    />
+                    {brand.title}
+                  </label>
+                ))
+              )}
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>
