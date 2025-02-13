@@ -2,17 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { createApiUrl } from '../../utils/apiConfig';
 
-// Add retry utility
-const retryRequest = async (fn, retries = 3, delay = 1000) => {
-  try {
-    return await fn();
-  } catch (error) {
-    if (retries === 0) throw error;
-    await new Promise(resolve => setTimeout(resolve, delay));
-    return retryRequest(fn, retries - 1, delay * 2);
-  }
-};
-
 export const fetchProducts = createAsyncThunk(
   'shop/fetchProducts',
   async ({ page = 1, filters = {} }, { rejectWithValue }) => {
@@ -128,33 +117,16 @@ export const fetchProductsBySearch = createAsyncThunk(
       const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
       console.log('Final URL being called:', finalUrl);
 
-      // Wrap the axios call in retry logic
-      const response = await retryRequest(
-        async () => {
-          try {
-            const result = await axios.get(finalUrl, {
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              signal,
-              timeout: 5000, // Add timeout
-            });
-            return result;
-          } catch (error) {
-            console.error('Request failed:', {
-              status: error.response?.status,
-              message: error.message,
-              data: error.response?.data
-            });
-            throw error;
-          }
-        }
-      );
+      const response = await axios.get(finalUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal, // Add signal for request cancellation
+      });
 
       console.log('And this is the Output after applying the Final URL :', response.data);
 
       if (!response.data.success) {
-        console.error('API returned success: false', response.data);
         return rejectWithValue('Failed to search products');
       }
 
@@ -169,12 +141,7 @@ export const fetchProductsBySearch = createAsyncThunk(
         // Handle cancelled request
         return rejectWithValue('Request cancelled');
       }
-      console.error('Search error:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        stack: error.stack
-      });
+      console.error('Search error:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to search products');
     }
   }
