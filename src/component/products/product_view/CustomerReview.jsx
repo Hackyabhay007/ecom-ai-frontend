@@ -2,27 +2,29 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import CustomerComment from "./CustomerComment";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchReviews } from "../../../../redux/slices/reviewSlice";
 
-const CustomerReview = ({ reviews, productImage , productId }) => {
+const CustomerReview = ({ productImage, productId }) => {
+  const dispatch = useDispatch();
+  const { reviews, stats, loading } = useSelector((state) => state.reviews);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [reviewData, setReviewData] = useState();
-
 
   useEffect(() => {
-    setReviewData(reviews);
-  }, [reviews]);
-  // Calculate overall rating and total ratings
-  const totalRatings = reviews.length;
-  const overallRating = (
-    reviews.reduce((acc, review) => acc + review.rating, 0) / totalRatings
-  ).toFixed(1) ;
+    if (productId) {
+      dispatch(fetchReviews({ productId }));
+    }
+  }, [dispatch, productId]);
 
+  // Use stats from Redux store instead of calculating
+  const totalRatings = stats.total;
+  const overallRating = stats.average;
   const ratingBreakdown = {
-    5: ((reviews.filter((review) => review.rating === 5).length / totalRatings) * 100).toFixed(0) || 0,
-    4: ((reviews.filter((review) => review.rating === 4).length / totalRatings) * 100).toFixed(0) || 0,
-    3: ((reviews.filter((review) => review.rating === 3).length / totalRatings) * 100).toFixed(0)|| 0,
-    2: ((reviews.filter((review) => review.rating === 2).length / totalRatings) * 100).toFixed(0) || 0,
-    1: ((reviews.filter((review) => review.rating === 1).length / totalRatings) * 100).toFixed(0) || 0,
+    5: stats.distribution["5"].percentage,
+    4: stats.distribution["4"].percentage,
+    3: stats.distribution["3"].percentage,
+    2: stats.distribution["2"].percentage,
+    1: stats.distribution["1"].percentage,
   };
 
   // Render the full-screen modal using a portal
@@ -70,6 +72,12 @@ const CustomerReview = ({ reviews, productImage , productId }) => {
   
       return formattedDate;
     }
+
+  // Add loading state display
+  if (loading) {
+    return <div className="mt-8 bg-[#F7F7F7] p-6 rounded-lg">Loading reviews...</div>;
+  }
+
   return (
     <div className="mt-8 bg-[#F7F7F7] p-6 rounded-lg">
       {/* Top Heading */}
@@ -131,36 +139,38 @@ const CustomerReview = ({ reviews, productImage , productId }) => {
       </div>
 
       {/* Customer Reviews */}
-      <div className="mt-8 space-y-2  flex flex-col-reverse">
-        {reviewData && reviewData.map((review) => (
+      <div className="mt-8 space-y-2 flex flex-col-reverse">
+        {reviews && reviews.length > 0 ? (
+          reviews.map((review) => (
             <div
-            key={review.id}
-            className="w-full px-5 border-2 border-theme-blue rounded-lg"
-           
-          >
-            <div className="relative mb-4 ">
-              <Image
-                src={review.user_pic}
-                alt={`Review by ${review.user_name}`}
-                width={200}
-                height={200}
-                className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
-              />
-              <div className="ml-20 my-5">
-                <div className="text-yellow-600">
-                {renderStars(review.rating)}
+              key={review.id}
+              className="w-full px-5 border-2 border-theme-blue rounded-lg"
+            >
+              <div className="relative mb-4">
+                <Image
+                  src={review.user_pic || '/default-avatar.png'} // Add fallback image
+                  alt={`Review by ${review.user_name}`}
+                  width={200}
+                  height={200}
+                  className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
+                />
+                <div className="ml-20 my-5">
+                  <div className="text-yellow-600">
+                    {renderStars(review.rating)}
+                  </div>
+                  <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
                 </div>
-                <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
+                <p className="text-sub-color mt-2">{review.description}</p>
+                <p className="text-sm font-bold mt-2">{review.user_name}</p>
+                <p className="text-sm text-sub-color mt-2">
+                  {formatLocalDate(review.created_at || Date.now())}
+                </p>
               </div>
-              <p className="text-sub-color mt-2">{review.description}</p>
-              <p className="text-sm font-bold mt-2">{review.user_name}</p>
-              <p className="text-sm text-sub-color mt-2">
-
-                {formatLocalDate(review.created_at || Date.now())}
-              </p>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div className="text-center py-4">No reviews yet. Be the first to review!</div>
+        )}
       </div>
 
       {/* Full-Screen Popup */}

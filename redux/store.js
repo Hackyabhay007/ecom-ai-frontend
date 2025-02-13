@@ -1,7 +1,6 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import reviewReducer from "./slices/reviewSlice";
 import {
   FLUSH,
   REHYDRATE,
@@ -17,6 +16,7 @@ import wishReducer from "./slices/wishSlice";
 import homePageReducer from "./slices/homePageSlice";
 import authReducer from "./slices/authSlice"; // Add this import
 import shopReducer from './slices/shopSlice';
+import reviewReducer from './slices/reviewSlice';
 
 // Persist configuration
 const persistConfig = {
@@ -36,6 +36,7 @@ const rootReducer = combineReducers({
   homePage: homePageReducer,
   auth: authReducer, // Add this line
   shop: shopReducer,
+  reviews: reviewReducer
 });
 
 // Persist the combined reducer
