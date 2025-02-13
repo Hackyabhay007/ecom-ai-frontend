@@ -16,8 +16,7 @@ import products from "../data/product_data";
 import { useRegion } from "../../../contexts/RegionContext";
 import axios from "axios";
 import {
-  addToCart,
-  updateLineItem,
+    updateLineItem,
   appendToCart,
 } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
@@ -25,6 +24,8 @@ import { useCart } from "@/contexts/CartContext";
 import Loader from "../../loader/Loader";
 import { addProduct } from "@/redux/slices/intrestedSlice";
 import { fetchSingleProduct } from "../../../../redux/slices/shopSlice";
+import { addToCart, clearMessage } from "../../../../redux/slices/cartSlice";
+import { toast } from 'react-hot-toast'; // Add this if you haven't already
 
 const ProductView = ({ productId }) => {
   const dispatch = useDispatch();
@@ -220,24 +221,66 @@ const ProductView = ({ productId }) => {
     );
   };
 
-  const handleAddToCart = async () => {
-    if (!selectedSize) {
-      setWarning("Please select size.");
-      setIsProgressVisible(true);
+  const { message } = useSelector((state) => state.cart);
+
+  // Add effect to handle cart message
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      setIsAdded(true);
+      dispatch(clearMessage());
+      
+      // Reset isAdded after 3 seconds
       setTimeout(() => {
-        setWarning("");
-        setIsProgressVisible(false);
+        setIsAdded(false);
       }, 3000);
+    }
+  }, [message, dispatch]);
+
+  const handleAddToCart = async () => {
+    console.log('1. Starting handleAddToCart');
+    console.log('Selected Size:', selectedSize);
+    console.log('Selected Color:', selectedColor);
+    console.log('Quantity:', quantity);
+    console.log('Product ID:', selectedProduct.id);
+
+    if (!selectedSize) {
+      console.log('2. Size not selected - showing warning');
+      setWarning("Please select size.");
+      setTimeout(() => setWarning(""), 3000);
       return;
     }
 
-    const variantToAdd = selectedProduct.variants.find(v => v.size === selectedSize);
+    const variantToAdd = selectedProduct.variants.find(
+      v => v.size === selectedSize && v.color === selectedColor
+    );
+    
+    console.log('3. Found variant:', variantToAdd);
+    
     if (!variantToAdd) {
-      setWarning("Selected size not available");
+      console.log('4. Variant not available');
+      setWarning("Selected variant not available");
       return;
     }
 
-    // ... rest of your cart logic
+    try {
+      console.log('5. Dispatching addToCart with payload:', {
+        productId: selectedProduct.id,
+        variantId: variantToAdd.id,
+        quantity: quantity
+      });
+
+      const result = await dispatch(addToCart({
+        productId: selectedProduct.id,
+        variantId: variantToAdd.id,
+        quantity: quantity
+      })).unwrap();
+
+      console.log('6. AddToCart result:', result);
+    } catch (error) {
+      console.log('7. Error in addToCart:', error);
+      toast.error(error || "Failed to add item to cart");
+    }
   };
 
   const handleBuyNow = async () => {

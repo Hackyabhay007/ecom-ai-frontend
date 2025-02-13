@@ -36,7 +36,8 @@ const rootReducer = combineReducers({
   homePage: homePageReducer,
   auth: authReducer, // Add this line
   shop: shopReducer,
-  reviews: reviewReducer
+  reviews: reviewReducer,
+  cart: cartReducer,
 });
 
 // Persist the combined reducer
