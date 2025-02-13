@@ -149,6 +149,12 @@ export const updateCustomer = createAsyncThunk(
 
 
 // Create auth slice
+const initialState = {
+  customer: null,
+  loading: false,
+  error: null,
+};
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {

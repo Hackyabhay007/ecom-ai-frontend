@@ -1,20 +1,43 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import { addReview } from "@/redux/slices/reviewSlice"; // Import Redux action
+import { addReview, postReview } from "@/redux/slices/reviewSlice";
 import { retrieveCustomer } from "@/redux/slices/authSlice";
+import Link from "next/link";
+import { getCookie } from "../../../../utils/cookieUtils";
 
-const CustomerComment = ({ productImage, setReviewData, setIsPopupOpen, productId }) => {
+const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdded }) => {
   const [selectedStars, setSelectedStars] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const dispatch = useDispatch();
 
-  const { currentCustomer: user } = useSelector((state) => state.customer);
-  const { status, error } = useSelector((state) => state.reviews); // Get review submission state
+  // Fix the selector to properly access customer state
+  const customer = useSelector((state) => state.auth?.customer) || {};
+  const { status, error } = useSelector((state) => state.reviews);
 
   useEffect(() => {
     dispatch(retrieveCustomer());
   }, [dispatch]);
+
+  // Replace customer authentication check with cookie check
+  const authToken = getCookie('auth_token'); // or whatever your cookie name is
+  console.log("This is the authToken of the Customer Comment Page", authToken);
+  if (!authToken) {
+    return (
+      <div className="p-6 bg-[#F7F7F7] rounded-lg">
+        <h2 className="text-2xl font-bold mb-4">Write a Review</h2>
+        <p className="text-gray-600">Please sign in to write a review.</p>
+        <button
+          className="mt-4 bg-black text-white px-4 py-2 rounded"
+          onClick={() => {
+            setIsPopupOpen(false);
+          }}
+        >
+          <Link href="/auth/login">Sign In</Link>
+        </button>
+      </div>
+    );
+  }
 
   const handleStarClick = (star) => {
     setSelectedStars(star);
@@ -28,23 +51,51 @@ const CustomerComment = ({ productImage, setReviewData, setIsPopupOpen, productI
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    const reviewData = {
-      rating: selectedStars,
-      title: reviewText.split(" ").slice(0, 5).join(" "),
-      description: reviewText,
-      user_pic: user?.metadata?.avatar,
-      user_name: `${user?.first_name} ${user?.last_name}`,
-      date: new Date().toISOString(),
-      product_id: productId,
-    };
-
-    const res = dispatch(addReview(reviewData));
-    if (res) {  
-      setIsPopupOpen(false);
-      setReviewData((prev) => [ ...prev , reviewData ]);
+    
+    if (!selectedStars) {
+      console.error('Please select a rating');
+      return;
     }
-    console.log(reviewData);
+
+    if (wordCount < 10) {
+      console.error('Please write at least 10 words');
+      return;
+    }
+
+    try {
+      // Format review data according to API requirements
+      const reviewData = {
+        productId: productId,
+        rating: selectedStars,
+        title: reviewText.split(" ").slice(0, 5).join(" "), // First 5 words as title
+        message: reviewText // Full review text
+      };
+
+      console.log('Sending review data:', reviewData); // Debug log
+
+      const resultAction = await dispatch(postReview(reviewData)).unwrap();
+      console.log('API Response:', resultAction); // Debug log
+
+      if (resultAction) {
+        // Create UI update data
+        const uiReviewData = {
+          id: resultAction.id, // Assuming API returns review ID
+          rating: selectedStars,
+          title: reviewData.title,
+          description: reviewText,
+          user_pic: customer?.avatar || '/default-avatar.png',
+          user_name: `${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Anonymous',
+          created_at: new Date().toISOString(),
+          product_id: productId,
+        };
+        
+        onReviewAdded(uiReviewData);
+        setIsPopupOpen(false);
+      }
+    } catch (err) {
+      console.error('Failed to add review:', err.message);
+      // You might want to show this error to the user
+    }
   };
 
   return (
@@ -84,21 +135,21 @@ const CustomerComment = ({ productImage, setReviewData, setIsPopupOpen, productI
 
           {/* Review Text Area */}
           <textarea
-            placeholder="Write your review (minimum 200 words)"
+            placeholder="Write your review (minimum 10 words)" // Changed placeholder
             value={reviewText}
             onChange={handleTextChange}
             className="border p-2 rounded-xl w-full mt-4"
             rows={6}
           />
-          <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 200</p>
+          <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 10</p> {/* Changed word count target */}
 
           {/* Error Message */}
           {error && <p className="text-sm text-red-500">Error: {error}</p>}
 
-          {/* Submit Button */}
+          {/* Submit Button - update minimum word requirement */}
           <button
             className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto"
-            disabled={wordCount < 4 || status === "loading"}
+            disabled={wordCount < 10 || status === "loading"} // Changed minimum word requirement
             onClick={(event) => handleSubmit(event)}
           >
             {status === "loading" ? "Submitting..." : "Submit Review"}

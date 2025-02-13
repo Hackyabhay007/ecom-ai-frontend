@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { createApiUrl } from '../../utils/apiConfig';
+import { getCookie } from '../../utils/cookieUtils';
 
 export const fetchReviews = createAsyncThunk(
   'reviews/fetchReviews',
@@ -22,6 +23,44 @@ export const fetchReviews = createAsyncThunk(
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch reviews');
+    }
+  }
+);
+
+export const postReview = createAsyncThunk(
+  'reviews/postReview',
+  async (reviewData, { rejectWithValue }) => {
+    try {
+      const authToken = getCookie('auth_token');
+      
+      if (!authToken) {
+        return rejectWithValue('Authentication required');
+      }
+
+      const response = await axios.post(
+        createApiUrl('/reviews'),
+        reviewData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        }
+      );
+
+      console.log('Review API Response:', response.data); // Debug log
+
+      if (!response.data.success) {
+        return rejectWithValue(response.data.error?.message || 'Failed to post review');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      console.error('Review API Error:', error.response?.data); // Debug log
+      return rejectWithValue(
+        error.response?.data?.error?.message || 
+        'Failed to post review'
+      );
     }
   }
 );
@@ -66,6 +105,18 @@ const reviewSlice = createSlice({
         state.meta = action.payload.meta;
       })
       .addCase(fetchReviews.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(postReview.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(postReview.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reviews = [action.payload, ...state.reviews];
+      })
+      .addCase(postReview.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

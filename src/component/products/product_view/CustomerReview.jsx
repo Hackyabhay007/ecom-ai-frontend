@@ -9,12 +9,20 @@ const CustomerReview = ({ productImage, productId }) => {
   const dispatch = useDispatch();
   const { reviews, stats, loading } = useSelector((state) => state.reviews);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [localReviews, setLocalReviews] = useState([]); // Add local reviews state
 
   useEffect(() => {
     if (productId) {
       dispatch(fetchReviews({ productId }));
     }
   }, [dispatch, productId]);
+
+  useEffect(() => {
+    // Update local reviews when Redux reviews change
+    if (reviews) {
+      setLocalReviews(reviews);
+    }
+  }, [reviews]);
 
   // Use stats from Redux store instead of calculating
   const totalRatings = stats.total;
@@ -39,7 +47,16 @@ const CustomerReview = ({ productImage, productId }) => {
             ✕
           </button>
           <div className="w-full max-w-4xl p-6">
-            <CustomerComment productImage={productImage} setReviewData={setReviewData} setIsPopupOpen={setIsPopupOpen} productId={productId} />
+            <CustomerComment 
+              productImage={productImage} 
+              setIsPopupOpen={setIsPopupOpen}
+              productId={productId}
+              onReviewAdded={(newReview) => {
+                setLocalReviews(prev => [newReview, ...prev]);
+                // Optionally trigger a refresh of reviews from the server
+                dispatch(fetchReviews({ productId }));
+              }}
+            />
           </div>
         </div>
       </div>,
@@ -140,8 +157,8 @@ const CustomerReview = ({ productImage, productId }) => {
 
       {/* Customer Reviews */}
       <div className="mt-8 space-y-2 flex flex-col-reverse">
-        {reviews && reviews.length > 0 ? (
-          reviews.map((review) => (
+        {localReviews && localReviews.length > 0 ? (
+          localReviews.map((review) => (
             <div
               key={review.id}
               className="w-full px-5 border-2 border-theme-blue rounded-lg"
