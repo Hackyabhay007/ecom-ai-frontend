@@ -70,84 +70,142 @@ export const fetchSingleProduct = createAsyncThunk(
 // Add new fetchProductsBySearch thunk
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
-  async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
+  async ({ searchQuery = '', filters = {}, signal }, { getState, rejectWithValue }) => {
     try {
-      const queryParams = new URLSearchParams({
-        ...(searchQuery && { query: searchQuery }),
-        page: filters.page || 1,
-        limit: filters.limit || 10,
-        ...(filters.onSale !== undefined && { onSale: filters.onSale }),
-        ...(filters.categoryId && { categoryId: filters.categoryId }),
-        ...(filters.size && { size: filters.size }),
-        ...(filters.color && { color: filters.color }),
-        ...(filters.minPrice && { minPrice: filters.minPrice }),
-        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-        // We can add more parameters here based on your requirements
+      const state = getState();
+      const currentFilters = state.shop.lastAppliedFilters;
+      
+      // Compare new filters with last applied filters
+      if (currentFilters && JSON.stringify(currentFilters) === JSON.stringify(filters)) {
+        return null; // Skip API call if filters haven't changed
+      }
+
+      let queryParams = new URLSearchParams();
+
+      // Ensure limit is always set
+      const limit = filters.limit || 9;
+      queryParams.append('limit', String(limit));
+      
+      // Add page parameter with fallback
+      const page = filters.page || 1;
+      queryParams.append('page', String(page));
+
+      // Only add onSale from either searchQuery or filters, not both
+      const onSaleValue = typeof searchQuery === 'object' && searchQuery.onSale !== undefined 
+        ? searchQuery.onSale 
+        : filters.onSale;
+
+      // Add onSale parameter if it exists
+      if (onSaleValue !== undefined) {
+        queryParams.append('onSale', String(onSaleValue));
+      }
+
+      // Add regular search query if it exists and searchQuery is a string
+      if (typeof searchQuery === 'string' && searchQuery) {
+        queryParams.append('query', searchQuery);
+      }
+
+      // Add other filter parameters (excluding onSale since we handled it above)
+      if (filters.page) queryParams.append('page', String(filters.page));
+      if (filters.limit) queryParams.append('limit', String(filters.limit));
+      if (filters.categoryId) queryParams.append('categoryId', filters.categoryId);
+      if (filters.sizes) queryParams.append('sizes', filters.sizes);
+      if (filters.color) queryParams.append('color', filters.color);
+      if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+
+      const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
+      console.log('Final URL being called:', finalUrl);
+
+      const response = await axios.get(finalUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal, // Add signal for request cancellation
       });
 
-      const response = await axios.get(
-        createApiUrl(`/products/search?${queryParams.toString()}`),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      console.log('And this is the Output after applying the Final URL :', response.data);
 
       if (!response.data.success) {
         return rejectWithValue('Failed to search products');
       }
 
+      // Ensure we're returning exactly what we got from the API
       return {
         products: response.data.data.products,
         filters: response.data.data.filters,
         meta: response.data.data.meta
       };
     } catch (error) {
+      if (axios.isCancel(error)) {
+        // Handle cancelled request
+        return rejectWithValue('Request cancelled');
+      }
+      console.error('Search error:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to search products');
     }
   }
 );
 
 
+const initialState = {
+  products: [],
+  filters: {
+    priceRange: { min: 0, max: 1000 },
+    colors: [],
+    sizes: [],
+    categories: [],
+    collections: [],
+    brands: [],
+  },
+  meta: {
+    total: 0,
+    page: 1,
+    limit: 9,
+    totalPages: 1
+  },
+  loading: false,
+  searchLoading: false,
+  error: null,
+  appliedFilters: {},
+  lastAppliedFilters: null, // Add this to track last applied filters
+  selectedProduct: null,
+  selectedProductLoading: false,
+  selectedProductError: null,
+  isFiltered: false, // Add this to track if filters are applied
+};
 
 const shopSlice = createSlice({
   name: 'shop',
-  initialState: {
-    products: [],
-    filters: {
-      priceRange: { min: 0, max: 1000 },
-      colors: [], // Will be populated from API
-      sizes: [], // Will be populated from API
-      categories: [], // Will be populated from API
-      collections: [],
-      searchLoading: false,
-      searchError: null,
-    },
-    meta: {
-      total: 0,
-      page: 1,
-      limit: 10,
-      totalPages: 1
-    },
-    loading: false,
-    error: null,
-    appliedFilters: {}, // Track currently applied filters
-    selectedProduct: null, // Add this for single product
-    selectedProductLoading: false,
-    selectedProductError: null,
-  },
+  initialState,
   reducers: {
     setFilters: (state, action) => {
-      state.appliedFilters = { ...state.appliedFilters, ...action.payload };
+      // Merge new filters with existing ones instead of replacing
+      state.appliedFilters = {
+        ...state.appliedFilters,
+        ...action.payload
+      };
+      state.isFiltered = true;
+      state.lastAppliedFilters = { ...state.appliedFilters };
     },
     clearFilters: (state) => {
       state.appliedFilters = {};
-      state.filters = shopSlice.initialState.filters;
+      state.isFiltered = false;
+      state.lastAppliedFilters = null;
+      // Don't reset available filters, only applied ones
+      state.filters = {
+        ...state.filters,
+        priceRange: initialState.filters.priceRange
+      };
     },
     setPriceRange: (state, action) => {
-      state.appliedFilters.minPrice = action.payload.min;
-      state.appliedFilters.maxPrice = action.payload.max;
+      // Preserve other filters when updating price range
+      state.appliedFilters = {
+        ...state.appliedFilters,
+        minPrice: action.payload.min,
+        maxPrice: action.payload.max
+      };
+      state.isFiltered = true;
     }
   },
   extraReducers: (builder) => {
@@ -191,19 +249,31 @@ const shopSlice = createSlice({
        .addCase(fetchProductsBySearch.pending, (state) => {
         state.searchLoading = true;
         state.searchError = null;
+        // Don't clear products here to prevent flashing
       })
       .addCase(fetchProductsBySearch.fulfilled, (state, action) => {
+        if (action.payload === null) return; // Skip state update if no new data
+        
         state.searchLoading = false;
+        state.searchError = null;
         state.products = action.payload.products;
+        state.meta = action.payload.meta;
+        
+        // Preserve applied filters while updating available ones
         state.filters = {
           ...state.filters,
-          ...action.payload.filters
+          priceRange: action.payload.filters.priceRange,
+          colors: action.payload.filters.colors || state.filters.colors,
+          sizes: action.payload.filters.sizes || state.filters.sizes,
+          categories: action.payload.filters.categories || state.filters.categories,
+          collections: action.payload.filters.collections || state.filters.collections,
+          brands: action.payload.filters.brands || state.filters.brands,
         };
-        state.meta = action.payload.meta;
       })
       .addCase(fetchProductsBySearch.rejected, (state, action) => {
         state.searchLoading = false;
         state.searchError = action.payload;
+        state.products = []; // Clear products on error
       });
   }
 });

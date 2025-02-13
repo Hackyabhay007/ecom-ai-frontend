@@ -472,7 +472,7 @@ const ProductView = ({ productId }) => {
       <ProductDetailsInfo categories={category} />
       <>
         <ProductDetails product={selectedProduct} />
-        <CustomerReview reviews={ratings} /> {/* Changed from rating to ratings */}
+        {/* <CustomerReview reviews={ratings} /> Changed from rating to ratings */}
       </>
       {/* <RelatedProducts currentProduct={selectedProduct} allProducts={allProducts} /> */}
       {/* <CustomerComment /> */}

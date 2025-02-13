@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import ProductCard from "../ProductCard";
-// import GridLayout from "../GridLayout"; // Add this import
+import { fetchProductsBySearch } from "../../../../redux/slices/shopSlice";
 
-const ShimmerProductCard = () => (
+// Memoize ShimmerProductCard component
+const ShimmerProductCard = memo(() => (
   <div className="animate-pulse">
     <div className="relative h-56 md:h-96 bg-gray-200 rounded-lg"></div>
     <div className="p-4">
@@ -11,126 +12,121 @@ const ShimmerProductCard = () => (
       <div className="h-4 bg-gray-200 rounded w-1/2"></div>
     </div>
   </div>
-);
+));
 
-const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayoutChange and currentSort prop
-  const { products, loading } = useSelector(state => state.shop);
-  const [sortedProducts, setSortedProducts] = useState([]);
-  const [productsPerPage, setProductsPerPage] = useState(9); // Default to 9 for desktop
+// Memoize ProductCard wrapper
+const MemoizedProductCard = memo(({ product, layout }) => (
+  <div className="transition-opacity duration-300 animate-fadeIn">
+    <ProductCard 
+      product={{
+        ...product,
+        thumbnail: product.variants?.[0]?.images?.[0]?.url || '',
+        images: product.variants?.flatMap(v => v.images || []) || []
+      }}
+      layout={layout} 
+    />
+  </div>
+));
+
+const ProductList = ({ layout, currentSort }) => {
+  const dispatch = useDispatch();
+  const { 
+    products, 
+    loading, 
+    searchLoading,  
+    appliedFilters,
+    meta,
+    isFiltered
+  } = useSelector(state => state.shop, (prev, next) => {
+    // Custom equality check to prevent unnecessary re-renders
+    return JSON.stringify(prev) === JSON.stringify(next);
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(9);
+  
+  // Add request cancellation reference
+  const abortControllerRef = useRef(null);
+ 
+  // Optimize fetch function
+  const fetchProducts = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-  // Adjust products per page based on screen width (Mobile: 8, Desktop: 9)
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setProductsPerPage(8); // Mobile
-      } else {
-        setProductsPerPage(9); // Desktop 
-      }
+    const debounceTimer = setTimeout(() => {
+      dispatch(fetchProductsBySearch({
+        filters: {
+          ...appliedFilters,
+          page: currentPage,
+          limit: productsPerPage,
+          sort: currentSort
+        },
+        signal: controller.signal
+      }));
+    }, 300);
+
+    return () => {
+      clearTimeout(debounceTimer);
+      controller.abort();
     };
+  }, [currentPage, currentSort, JSON.stringify(appliedFilters), productsPerPage]);
 
-    // Call handleResize on initial load and whenever the window resizes
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    // Clean up the event listener
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Sort products when sort type or products change
+  // Optimize effects
   useEffect(() => {
-    if (!products) return;
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [appliedFilters]);
 
-    const sortProducts = (items, sortType) => {
-      const sorted = [...items];
-      
-      switch (sortType) {
-        case 'price-asc':
-          return sorted.sort((a, b) => 
-            (a.variants[0]?.price || 0) - (b.variants[0]?.price || 0)
-          );
-        
-        case 'price-desc':
-          return sorted.sort((a, b) => 
-            (b.variants[0]?.price || 0) - (a.variants[0]?.price || 0)
-          );
-        
-        case 'discount':
-          return sorted.sort((a, b) => 
-            (b.metadata?.discount || 0) - (a.metadata?.discount || 0)
-          );
-        
-        case 'newest':
-          return sorted.sort((a, b) => 
-            new Date(b.created_at) - new Date(a.created_at)
-          );
-        
-        default:
-          return sorted; // Best selling or default order
-      }
-    };
+  useEffect(() => {
+    const cleanup = fetchProducts();
+    return () => cleanup();
+  }, [fetchProducts]);
 
-    const sorted = sortProducts(products, currentSort);
-    setSortedProducts(sorted);
-  }, [products, currentSort]);
+  console.log("This is the Products of the PageList", products)
 
-  // Handle sort change
-  const handleSortChange = (sortType) => {
-    setCurrentSort(sortType);
-    setCurrentPage(1); // Reset to first page when sorting changes
-  };
-
-  // Calculate the index range for the current page
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-
-  // Function to go to the previous page
+  // Handle pagination
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
 
-  // Function to go to the next page
   const nextPage = () => {
-    if (currentPage < Math.ceil(products.length / productsPerPage)) {
+    if (currentPage < meta.totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
-  // Calculate page numbers to show (max 4 pages)
-  const totalPages = Math.ceil(products.length / productsPerPage);
+  // Calculate page numbers
   const pageNumbers = [];
-
-  // Show pages 1 to 4, based on the current page
-  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(meta.totalPages, currentPage + 2); i++) {
     pageNumbers.push(i);
   }
 
-  if (loading && !products.length) {
+  // Loading state with fixed height
+  if ((loading || searchLoading) && !products.length) {
     return (
-      <div className={`grid ${
-        layout === "grid"
-          ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          : "grid-cols-1 gap-6"
-      }`}>
-        {[...Array(6)].map((_, index) => (
-          <ShimmerProductCard key={index} />
-        ))}
+      <div className="min-h-[600px]">
+        <div className={`grid ${
+          layout === "grid"
+            ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            : "grid-cols-1 gap-6"
+        }`}>
+          {[...Array(6)].map((_, index) => (
+            <ShimmerProductCard key={index} />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen h-fit">
-      {/* Products Count */}
-      {/* <div className="text-left items-center mb-4">
-        <span className="text-gray-600">
-          {sortedProducts.length} Product{sortedProducts.length !== 1 ? "s" : ""} found
-        </span>
-      </div> */}
-
       {/* Products Grid */}
       <div
         className={`grid h-fit ${
@@ -139,22 +135,13 @@ const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayo
             : "grid-cols-1 gap-6"
         }`}
       >
-        {loading ? (
+        {(loading || searchLoading) ? (
           [...Array(6)].map((_, index) => (
             <ShimmerProductCard key={index} />
           ))
-        ) : currentProducts.length ? (
-          currentProducts.map((product) => (
-            <div className="transition-opacity duration-300 animate-fadeIn" key={product.id}>
-              <ProductCard 
-                product={{
-                  ...product,
-                  thumbnail: product.variants?.[0]?.images?.[0]?.url || '',
-                  images: product.variants?.flatMap(v => v.images || []) || []
-                }}
-                layout={layout} 
-              />
-            </div>
+        ) : products && products.length > 0 ? (  // Add null check
+          products.map((product) => (
+            <MemoizedProductCard key={product.id} product={product} layout={layout} />
           ))
         ) : (
           <p className="text-center col-span-full">No products found.</p>
@@ -162,23 +149,22 @@ const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayo
       </div>
 
       {/* Pagination Controls */}
-      {currentProducts.length > 0 && (
+      {products.length > 0 && (
         <div className="text-sm md:text-base flex justify-center mt-4">
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className="md:px-4 py-2  px-3 border md:rounded-sm rounded-none"
+            className="md:px-4 py-2 px-3 border md:rounded-sm rounded-none"
           >
             Previous
           </button>
 
-          {/* Page Numbers */}
           <div className="flex items-center mx-2">
             {pageNumbers.map((page) => (
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`md:px-4 py-2  px-3 border md:rounded-sm rounded-none mx-1 ${
+                className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none mx-1 ${
                   currentPage === page
                     ? "bg-black text-white"
                     : "bg-white text-black hover:bg-gray-200"
@@ -191,8 +177,8 @@ const ProductList = ({ layout, onLayoutChange, currentSort }) => { // Add onLayo
 
           <button
             onClick={nextPage}
-            disabled={currentPage >= totalPages}
-            className="md:px-4 py-2  px-3 border md:rounded-sm rounded-none"
+            disabled={currentPage >= meta.totalPages}
+            className="md:px-4 py-2 px-3 border md:rounded-sm rounded-none"
           >
             Next
           </button>

@@ -6,7 +6,7 @@ import GridLayout from "./GridLayout";
 import SelectedFilters from "./SelectedFilters";
 import ProductList from "./product_view/PageList";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts, setFilters, clearFilters } from "../../../redux/slices/shopSlice";
+import { fetchProducts, setFilters, clearFilters, fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 import { useRegion } from "../../contexts/RegionContext.jsx";
 import { useRouter } from "next/router";
 // import { fetchcategores } from "../../../redux/slices/categorySlice";
@@ -51,6 +51,8 @@ const ShopArea = () => {
       }
     }));
   }, [dispatch, cat_id, size, color, min_price, max_price, showSaleOnly]); // Add showSaleOnly to dependencies
+
+   const { appliedFilters } = useSelector(state => state.shop);
 
   // Update filtered products when products change
   useEffect(() => {
@@ -152,8 +154,19 @@ const ShopArea = () => {
 
   // Update the handleSaleToggle function
   const handleSaleToggle = () => {
-    console.log("this is the handleSale Toggle value form the SHop area js ", showSaleOnly);
     setShowSaleOnly(!showSaleOnly);
+
+    const isChecked = showSaleOnly;
+    // onSaleToggle(e); // Keep existing toggle behavior
+    
+    // Dispatch search with onSale parameter
+    dispatch(fetchProductsBySearch({
+      searchQuery: { onSale: isChecked },
+      filters: {
+        ...appliedFilters,
+        onSale: isChecked
+      }
+    }));
   };
 
   return (

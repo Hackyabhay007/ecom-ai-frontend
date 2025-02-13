@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { useRouter } from "next/router";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { setPriceRange, setFilters, fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 
-const Filter = ({ onApplyFilters, currentFilters }) => {
+const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const dispatch = useDispatch();
   // Get all necessary states from Redux store
   const { 
@@ -38,16 +38,33 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
     }
   }, [filters.priceRange]);
 
-  const handlePriceChange = (type, value) => {
-    setRange(prev => ({ ...prev, [type]: value }));
-  };
+  const handlePriceChange = useCallback((type, value) => {
+    const newRange = { ...Range, [type]: value };
+    setRange(newRange);
+    
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...appliedFilters,
+        minPrice: newRange.min,
+        maxPrice: newRange.max
+      }
+    }));
+  }, [Range, appliedFilters, dispatch]);
 
   const handleSliderChange = (value) => {
     dispatch(setPriceRange({ min: value[0], max: value[1] }));
+    
+    // Dispatch search with updated price range
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...filters,
+        minPrice: value[0],
+        maxPrice: value[1]
+      }
+    }));
   };
 
-  const updateQueryParams = (newParams) => {
-    console.log("newParamss",newParams);
+  const updateQueryParams = useCallback((newParams) => {
     const currentQuery = { ...Route.query };
     const updatedQuery = { ...currentQuery, ...newParams };
     
@@ -56,26 +73,33 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
       updatedQuery[key] == null && delete updatedQuery[key]
     );
 
+    // Create complete filters object combining existing and new filters
+    const searchFilters = {
+      ...appliedFilters, // Keep existing filters
+      categoryId: newParams.cat_id || currentQuery.cat_id || appliedFilters.categoryId,
+      size: newParams.size || currentQuery.size || appliedFilters.size,
+      color: newParams.color || currentQuery.color || appliedFilters.color,
+      minPrice: newParams.min_price || currentQuery.min_price || appliedFilters.minPrice,
+      maxPrice: newParams.max_price || currentQuery.max_price || appliedFilters.maxPrice,
+    };
+
+    // Update URL without losing existing params
     Route.push({
       pathname: "/shop",
       query: updatedQuery
     }, undefined, { shallow: true });
 
-    // Update filters in Redux store and fetch filtered products
-    dispatch(setFilters(newParams));
-    dispatch(fetchProductsBySearch({ 
-      filters: {
-        ...filters,
-        ...newParams,
-        categoryId: newParams.cat_id,
-        size: newParams.size,
-        color: newParams.color,
-        minPrice: newParams.min_price,
-        maxPrice: newParams.max_price,
-        brand: filters.brand
-      }
+    // Update filters in Redux store while preserving existing ones
+    dispatch(setFilters({
+      ...appliedFilters,
+      ...searchFilters
     }));
-  };
+
+    // Dispatch search with complete filters
+    dispatch(fetchProductsBySearch({ 
+      filters: searchFilters
+    }));
+  }, [appliedFilters, Route, dispatch]);
 
   const {
     cat_id,
@@ -90,17 +114,40 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const handleFilterChange = (key, value) => {
-    const updatedFilters = { ...filters, [key]: value };
-    setFilters(updatedFilters);
+  const debouncedUpdateFilters = useCallback((newFilters) => {
+    dispatch(setFilters(newFilters));
     
-    // Fetch products with updated filters
-    dispatch(fetchProductsBySearch({ 
+    // Use a single dispatch for search
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...appliedFilters,
+        ...newFilters
+      }
+    }));
+  }, [dispatch, appliedFilters]);
+
+  // Optimize filter handlers
+  const handleFilterChange = useCallback((key, value) => {
+    const newFilters = { ...appliedFilters, [key]: value };
+    debouncedUpdateFilters(newFilters);
+  }, [appliedFilters, debouncedUpdateFilters]);
+
+  // Add new handler for size filter
+  const handleSizeFilter = useCallback((size) => {
+    const updatedFilters = {
+      ...appliedFilters,
+      sizes: size
+    };
+
+    dispatch(fetchProductsBySearch({
       filters: updatedFilters
     }));
-    
-    onApplyFilters(updatedFilters);
-  };
+
+    Route.push({
+      pathname: "/shop",
+      query: { ...Route.query, size }
+    }, undefined, { shallow: true });
+  }, [appliedFilters, Route, dispatch]);
 
   useEffect(() => {
     if (isMobileFilterOpen) {
@@ -179,7 +226,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
             <hr className="my-4" />
           </div>
 
-          {/* Size Filter */}
+          {/* Size Filter - Updated */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Size</h3>
             <div className="flex flex-wrap gap-2 text-sm">
@@ -191,10 +238,7 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
                       ? "bg-theme-blue text-white"
                       : "bg-white text-black"
                   }`}
-                  onClick={() => {
-                    updateQueryParams({ size });
-                    handleFilterChange("size", size); 
-                  }}
+                  onClick={() => handleSizeFilter(size)}
                 >
                   {size}
                 </button>
@@ -345,6 +389,6 @@ const Filter = ({ onApplyFilters, currentFilters }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Filter;

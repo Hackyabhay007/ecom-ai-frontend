@@ -11,21 +11,11 @@ const GridLayout = ({
   currentSort
 }) => {
   const dispatch = useDispatch();
-  const { appliedFilters } = useSelector(state => state.shop);
+  // const { appliedFilters } = useSelector(state => state.shop);
 
-  const handleSaleToggle = (e) => {
-    const isChecked = e.target.checked;
-    onSaleToggle(e); // Keep existing toggle behavior
-    
-    // Dispatch search with onSale parameter
-    dispatch(fetchProductsBySearch({
-      searchQuery: { onSale: isChecked },
-      filters: {
-        ...appliedFilters,
-        onSale: isChecked
-      }
-    }));
-  };
+  // const handleSaleToggle = (e) => {
+
+  // };
 
   return (
     <div className="flex justify-between flex-wrap gap-4 items-center mb-4">
@@ -56,7 +46,7 @@ const GridLayout = ({
           <input
             type="checkbox"
             checked={showSaleOnly}
-            onChange={handleSaleToggle}
+            onChange={onSaleToggle}
             className="w-5 h-5 accent-white rounded-none"
           />
           <span className="text-black text-sm ">Sale Product </span>
