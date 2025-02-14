@@ -5,6 +5,7 @@ import { addReview, postReview } from "@/redux/slices/reviewSlice";
 import { retrieveCustomer } from "@/redux/slices/authSlice";
 import Link from "next/link";
 import { getCookie } from "../../../../utils/cookieUtils";
+import { toast } from 'react-hot-toast';
 
 const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdded }) => {
   const [selectedStars, setSelectedStars] = useState(0);
@@ -66,76 +67,83 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
   const wordCount = reviewText.split(/\s+/).filter((word) => word).length;
 
   const handleSubmit = async (event) => {
-    console.log("Hanleing the Submit Btn of the Customer Comment")
+    // Prevent default form submission
     event.preventDefault();
-    setReviewError(""); // Clear any previous errors
+    event.stopPropagation();
     
+    setReviewError("");
+    console.log('1. Starting review submission...');
+
+    // Add more detailed validation logging
     if (!selectedStars) {
-      const starError = "Please select a rating";
-      console.log("Form validation error:", starError);
-      setReviewError(starError);
+      console.log('Validation failed: No rating');
+      toast.error("Please select a rating");
       return;
     }
 
-    if (!reviewTitle) {
-      setReviewError("Please enter a title for your review");
-      console.log(reviewError);
+    if (!reviewTitle.trim()) {
+      console.log('Validation failed: No title');
+      toast.error("Please enter a review title");
       return;
     }
 
-    if(!reviewText) {
-      setReviewError("Please enter a review message");
-      console.log(reviewError);
+    if (!reviewText.trim()) {
+      console.log('Validation failed: No review text');
+      toast.error("Please enter a review message");
       return;
     }
 
-    if (wordCount > 300) {
-      const wordCountError = "Please write at least 10 words";
-      console.log("Form validation error:", wordCountError);
-      setReviewError(wordCountError);
-      return;
-    }
+    const reviewData = {
+      productId: productId, // Make sure productId is passed correctly
+      rating: selectedStars,
+      title: reviewTitle.trim(),
+      message: reviewText.trim()
+    };
+
+    console.log('Submitting review data:', reviewData);
+
+    // Show loading state
+    const loadingToast = toast.loading('Submitting your review...');
 
     try {
-      const reviewData = {
-        productId: productId,
-        rating: selectedStars,
-        title: reviewTitle,
-        message: reviewText
-      };
+      const result = await dispatch(postReview(reviewData)).unwrap();
+      console.log('Review submission result:', result);
 
-      console.log('Attempting to submit review with data:', reviewData);
+      toast.dismiss(loadingToast);
+      toast.success('Review submitted successfully!');
 
-      const resultAction = await dispatch(postReview(reviewData)).unwrap();
-      console.log('Review submission successful:', resultAction);
-
-      if (resultAction) {
+      // Create UI review data
+      if (result.data) {
         const uiReviewData = {
-          id: resultAction.id,
+          id: result.data.id,
           rating: selectedStars,
-          title: reviewData.title,
+          title: reviewTitle,
           description: reviewText,
           user_pic: customer?.avatar || '/default-avatar.png',
           user_name: `${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Anonymous',
           created_at: new Date().toISOString(),
           product_id: productId,
         };
-        
+
         onReviewAdded(uiReviewData);
         setShowSuccess(true);
-        // Auto close success popup and form after 2 seconds
+
+        // Reset form
+        setSelectedStars(0);
+        setReviewTitle('');
+        setReviewText('');
+
+        // Close popup after delay
         setTimeout(() => {
           setShowSuccess(false);
           setIsPopupOpen(false);
         }, 2000);
       }
-    } catch (err) {
-      console.error('Review submission failed:', {
-        error: err,
-        message: err.message,
-        stack: err.stack
-      });
-      setReviewError(err.message || "Failed to submit review. Please try again.");
+    } catch (error) {
+      console.error('Review submission error:', error);
+      toast.dismiss(loadingToast);
+      toast.error(error.message || 'Failed to submit review');
+      setReviewError(error.message || 'Failed to submit review');
     }
   };
 
@@ -171,7 +179,7 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
         {/* Review Form */}
         <div className="w-full md:w-2/3">
           <h2 className="md:text-4xl text-2xl font-bold mb-4">Write a Review</h2>
-          <form>
+          <form onSubmit={handleSubmit} className="w-full">
             {/* Star Rating */}
             <div className="flex items-center gap-1 mb-4">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -208,7 +216,7 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
               className="border p-2 rounded-xl w-full mt-4"
               rows={6}
             />
-            <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 10</p> {/* Changed word count target */}
+            <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 1</p> {/* Changed word count target */}
 
             {/* Error Message */}
             {reviewError && (
@@ -217,12 +225,11 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
 
             {/* Submit Button - update minimum word requirement */}
             <button
-              className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto cursor-pointer"
-              disabled={wordCount < 10 || status === "loading"} // Changed minimum word requirement
-              onClick={handleSubmit}
+              type="submit"
+              className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!selectedStars || !reviewTitle.trim() || !reviewText.trim() || wordCount < 1}
             >
-                Submit Review
-              {/* {status === "loading" ? "Submitting..." : "Submit Review"} */}
+              Submit Review
             </button>
           </form>
         </div>

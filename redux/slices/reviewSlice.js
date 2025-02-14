@@ -31,13 +31,18 @@ export const fetchReviews = createAsyncThunk(
 export const postReview = createAsyncThunk(
   'reviews/postReview',
   async (reviewData, { rejectWithValue }) => {
+    console.log('1. Starting review submission with data:', reviewData);
+    
     try {
       const authToken = getCookie('auth_token');
+      console.log('2. Auth token retrieved:', authToken ? 'Present' : 'Missing');
       
       if (!authToken) {
-        return rejectWithValue('Authentication required');
+        console.log('3. No auth token found - rejecting');
+        return rejectWithValue('Please login to submit a review');
       }
 
+      console.log('4. Sending POST request to review API');
       const response = await axios.post(
         createApiUrl('/reviews'),
         reviewData,
@@ -49,18 +54,26 @@ export const postReview = createAsyncThunk(
         }
       );
 
-      console.log('Review API Response:', response.data); // Debug log
+      console.log('5. Review API Response:', response.data);
 
       if (!response.data.success) {
+        console.log('6. API reported failure:', response.data.error);
         return rejectWithValue(response.data.error?.message || 'Failed to post review');
       }
 
-      return response.data.data;
+      console.log('7. Review submitted successfully:', response.data.data);
+      return {
+        data: response.data.data,
+        message: 'Review submitted successfully!'
+      };
     } catch (error) {
-      console.error('Review API Error:', error.response?.data); // Debug log
+      console.error('8. Review submission error:', {
+        error: error.response?.data,
+        status: error.response?.status
+      });
       return rejectWithValue(
         error.response?.data?.error?.message || 
-        'Failed to post review'
+        'Failed to submit review. Please try again.'
       );
     }
   }
