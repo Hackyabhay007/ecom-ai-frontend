@@ -110,6 +110,8 @@ export const getAllCart = createAsyncThunk(
   }
 );
 
+
+
 export const updateCart = createAsyncThunk(
   'cart/updateCart',
   async ({ itemId, updateData }, { rejectWithValue }) => {
@@ -122,7 +124,7 @@ export const updateCart = createAsyncThunk(
         ...(token && { Authorization: `Bearer ${token}` })
       };
 
-      const response = await axios.patch(
+      const response = await axios.put(
         createApiUrl(`/cart/items/${itemId}`),
         {
           ...updateData,
@@ -130,6 +132,8 @@ export const updateCart = createAsyncThunk(
         },
         { headers }
       );
+
+      console.log(response);
 
       if (!response.data.success) {
         return rejectWithValue('Failed to update cart item');

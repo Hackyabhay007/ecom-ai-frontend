@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, updateCart } from "../../../lib/data/cart";
+import { addToCart } from "../../../../redux/slices/cartSlice"; // Update import
+import { updateCart } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useRegion } from "../../../contexts/RegionContext";
 
@@ -10,6 +11,9 @@ const QuickView = ({ productId, initialData, onClose }) => {
   const router = useRouter();
   const { region } = useRegion();
   const { products, filters } = useSelector((state) => state.shop);
+
+  console.log("This is the Products of the QuickView", products);
+  console.log("This is the initialData of the QuickView", initialData);
 
   // Group all useState declarations together
   const [product, setProduct] = useState(initialData);
@@ -94,26 +98,36 @@ const QuickView = ({ productId, initialData, onClose }) => {
   };
 
   const handleAddToCart = async () => {
-    if (!selectedSize) {
-      setWarning("Please select a size.");
-      setIsProgressVisible(true);
-      setTimeout(() => {
-        setWarning("");
-        setIsProgressVisible(false);
-      }, 3000);
-      return;
-    }
+    console.log("Handle Add To Cart is called of the Quick View");
+    // if (!selectedSize) {
+    //   setWarning("Please select a size.");
+    //   setIsProgressVisible(true);
+    //   setTimeout(() => {
+    //     setWarning("");
+    //     setIsProgressVisible(false);
+    //   }, 3000);
+    //   return;
+    // }
 
+    console.log("hello")
     try {
-      await addToCart({
+      // Create the action payload object
+      const payload = {
+        productId: product.id,
         variantId: selectedVariant.id,
-        quantity,
-        region,
-        Updater: updateCart,
-      }, process.env.NEXT_PUBLIC_REVALIDATE_SECRET);
-      
+        quantity
+      };
+
+      console.log('Adding to cart:', payload);
+
+      // Dispatch the action and await the result
+      await dispatch(addToCart(payload)).unwrap();
+
+      // Show success state
       setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 3000);
     } catch (error) {
+      console.error("Error adding to cart:", error);
       setWarning("Failed to add to cart");
     }
   };
@@ -143,8 +157,8 @@ const QuickView = ({ productId, initialData, onClose }) => {
         {/* Images Section */}
         <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom">
           <Image
-            src={product?.thumbnail}
-            alt={product.title}
+            src={initialData?.images?.url}
+            alt={initialData?.images?.alt}
             width={300}
             height={300}
             className="rounded-lg object-cover"
@@ -194,11 +208,14 @@ const QuickView = ({ productId, initialData, onClose }) => {
           {/* Categories */}
           <div className="mb-4">
             <span className="text-md font-bold">Category: </span>
-            {categories.map((category, index) => (
+            {
+              initialData?.category?.name
+            }
+            {/* {categories.map((category, index) => (
               <span key={index} className="text-sm text-sub-color mr-2">
                 {category.name}
               </span>
-            ))}
+            ))} */}
           </div>
 
           {/* Colors */}

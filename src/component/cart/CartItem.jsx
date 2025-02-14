@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
-import { updateCart } from "../../../redux/slices/cartSlice";
+import { updateCart, getAllCart } from "../../../redux/slices/cartSlice"; // Add getAllCart import
 import { formatPriceToINR } from "../../../utils/currencyUtils";
 
 const CartItem = ({ item }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(item?.quantity || 1);
+  
+  // Get cart state and loading status
+  const { items, loading } = useSelector(state => state.cart);
+  const updatedItem = items.find(cartItem => cartItem.id === item.id);
 
-  // Update quantity when item changes
+  // Update quantity only when the specific item changes
   useEffect(() => {
-    if (item?.quantity) {
-      setQuantity(item.quantity);
+    if (updatedItem && updatedItem.quantity !== quantity) {
+      setQuantity(updatedItem.quantity);
     }
-  }, [item?.quantity]);
+  }, [updatedItem?.quantity]);
 
   // Basic validation
   if (!item || !item.product) {
@@ -32,17 +36,20 @@ const CartItem = ({ item }) => {
     if (newQuantity < 1) return;
     
     try {
-      await dispatch(updateCart({
+      const payload = {
         itemId: item.id,
         updateData: { 
-          quantity: newQuantity,
-          variantId: item.variantId,
-          productId: item.productId
+          quantity: newQuantity
         }
-      })).unwrap();
-      setQuantity(newQuantity);
+      };
+
+      await dispatch(updateCart(payload)).unwrap();
+      // Refresh all cart items after update
+      await dispatch(getAllCart());
     } catch (error) {
       console.error('Failed to update quantity:', error);
+      // Revert to previous quantity on error
+      setQuantity(updatedItem?.quantity || quantity);
     }
   };
 
