@@ -16,6 +16,8 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
   const customer = useSelector((state) => state.auth?.customer) || {};
   const { status, error } = useSelector((state) => state.reviews);
 
+  console.log("This is the value of the productImage it is getting int he CustomerComment component", productImage)
+
   useEffect(()=>{
     console.log("Customer Comment Page error", error);
   }, [error]);

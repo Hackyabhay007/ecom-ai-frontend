@@ -53,7 +53,7 @@ export const fetchGalleryOneSection = createAsyncThunk(
             }
 
             const data = await response.json();
-            return data?.data?.sections[1];
+            return data?.data?.sections[3];
         } catch (error) {
             console.error("Error fetching woman section:", error);
             return rejectWithValue("Failed to fetch woman section");
@@ -82,7 +82,7 @@ export const fetchGallery_Two = createAsyncThunk(
             }
 
             const data = await response.json();
-            return data?.data?.sections[2];
+            return data?.data?.sections[4];
         } catch (error) {
             console.error("Error fetching review section:", error);
             return rejectWithValue("Failed to fetch review section");
@@ -111,7 +111,7 @@ export const fetchBestSeller_Section = createAsyncThunk(
             }
 
             const data = await response.json();
-            return data?.data?.sections[3];
+            return data?.data?.sections[2];
         } catch (error) {
             console.error("Error fetching review section:", error);
             return rejectWithValue("Failed to fetch review section");
@@ -140,7 +140,7 @@ export const fetchReviewSection = createAsyncThunk(
             }
 
             const data = await response.json();
-            return data?.data?.sections[4];
+            return data?.data?.sections[1];
         } catch (error) {
             console.error("Error fetching review section:", error);
             return rejectWithValue("Failed to fetch review section");

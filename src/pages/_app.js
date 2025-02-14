@@ -9,6 +9,7 @@ import { CryptoProvider } from "@/contexts/CryptoContext";
 import WishlistSidebar from "@/component/wishlist/WishlistSidebar";
 import Script from "next/script"; // Import the Script component
 import "@fontsource/instrument-sans";
+import { Toaster } from 'react-hot-toast';
 
 function MyApp({ Component, pageProps }) {
   return (
@@ -19,6 +20,7 @@ function MyApp({ Component, pageProps }) {
           <RegionProvider>
             <CartProvider>
                 <WishlistSidebar /> {/* Ensure the sidebar is always available */}
+                <Toaster position="top-center" /> {/* Add this line */}
                 <Component {...pageProps} />
             
             </CartProvider>

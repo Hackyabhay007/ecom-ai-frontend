@@ -35,6 +35,7 @@ const CustomerReview = ({ productImage, productId }) => {
     1: stats.distribution["1"].percentage,
   };
 
+  console.log("This is the Product Image from the CustomerReview.jsx page", productImage);
   // Render the full-screen modal using a portal
   const renderPopup = () =>
     createPortal(

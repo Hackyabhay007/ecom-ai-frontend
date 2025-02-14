@@ -35,6 +35,8 @@ function Gallery2() {
       setCenterText(galleryTwoSection?.section_data?.center_text);
     }
 
+    console.log("This is the Gallery Two Section data", galleryTwoSection);
+    console.log("This is the Gallery Two Section data", galleryTwoSection?.video?.url);
     if (galleryTwoSection?.section_data?.video?.url) {
       setVideo({
         url: galleryTwoSection.section_data.video.url || "",
