@@ -244,4 +244,13 @@ const shopSlice = createSlice({
 });
 
 export const { setFilters, clearFilters, setPriceRange } = shopSlice.actions;
+
+// Add this selector at the bottom of the file
+export const selectMatchingProducts = (state, productIds) => {
+  const allProducts = state.shop.products;
+  return productIds && allProducts
+    ? allProducts.filter(product => productIds.includes(product.id))
+    : [];
+};
+
 export default shopSlice.reducer;

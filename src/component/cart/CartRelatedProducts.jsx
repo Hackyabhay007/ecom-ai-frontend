@@ -3,24 +3,58 @@ import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import { addToCart } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
+import { fetchProductsByIds, selectVisitedProducts } from "../../../redux/slices/productSlice";
+import { selectMatchingProducts } from "../../../redux/slices/shopSlice";
 
 const CartRelatedProducts = ({ items, totalAmount }) => {
-  console.log("This is the items value from the CartRelatedProducts.jsx");
   const dispatch = useDispatch();
-
-  console.log("This is the items value from the CartRelatedProducts.jsx", items);
-  console.log("This is the totalAmount value from the CartRelatedProducts.jsx", totalAmount);
-
-  const {visitedProducts} = useSelector(state => state.auth);
-
-  useEffect(() => { 
-    console.log("This is the visitedProducts value from the CartRelatedProducts.jsx", visitedProducts);
-  }, [visitedProducts]);
-
-  // console.log("This is the items value from the CartRelatedProducts.jsx", visitedProducts);
+  const { visitedProducts } = useSelector(state => state.auth);
+  const allProducts = useSelector(state => state.shop.products);
   
-  // Get unique products from cart items to avoid suggesting items already in cart
+  // Move formatProductData function definition to the top
+  const formatProductData = (product) => ({
+    id: product.id,
+    title: product.title || product.name,
+    price: product.variants[0]?.calculated_price || product.variants[0]?.price,
+    thumbnail: product.thumbnail || '/placeholder-image.jpg',
+    selectedVariant: product.variants[0]?.id,
+    variants: product.variants
+  });
+
+  // Get product IDs from visited products
+  const visitedProductIds = visitedProducts?.map(item => item.productId) || [];
+  
+  // Get matched products from visited products
+  const matchedProducts = useSelector(state => 
+    selectMatchingProducts(state, visitedProductIds)
+  );
+
+  // Get cart product IDs
   const cartProductIds = items.map(item => item.productId);
+
+  // Create suggested products from all products excluding cart items
+  const suggestedProducts = allProducts
+    .filter(product => 
+      product?.variants?.length > 0 && 
+      !cartProductIds.includes(product.id)
+    )
+    .map(formatProductData)
+    .slice(0, 5);
+
+  // Determine which products to display
+  const displayProducts = matchedProducts.length > 0
+    ? matchedProducts
+        .filter(product => !cartProductIds.includes(product.id))
+        .map(formatProductData)
+        .slice(0, 5)
+    : suggestedProducts;
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Matched Products:", matchedProducts);
+    console.log("Suggested Products:", suggestedProducts);
+    console.log("Display Products:", displayProducts);
+  }, [matchedProducts, suggestedProducts, displayProducts]);
 
   const handleAddToCart = async (product, variantId) => {
     try {
@@ -34,25 +68,27 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
     }
   };
 
-  // Calculate suggested products - you might want to replace this with your actual related products logic
-  const suggestedProducts = items
-    .filter(item => item.product.variants?.length > 0) // Only products with variants
-    .map(item => ({
-      id: item.product.id,
-      title: item.product.name,
-      price: item.price,
-      thumbnail: item.product.images?.[0]?.url || '/placeholder-image.jpg',
-      selectedVariant: item.product.variants[0]?.id,
-      variants: item.product.variants
-    }))
-    .slice(0, 5); // Limit to 5 suggestions
+  // Add error handling and loading state
+  const productsLoading = useSelector(state => state.products?.status === 'loading');
+  if (productsLoading) {
+    return <div>Loading related products...</div>;
+  }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 px-1 md:px-8">
-      {suggestedProducts.map((product) => (
+    <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 px-1 md:px-8">
+      {/* Display Header based on which products are shown */}
+      <div className="col-span-2 mb-4">
+        <h2 className="text-xl font-semibold">
+          {matchedProducts.length > 0 
+            ? "Products You've Viewed"
+            : "Suggested Products"}
+        </h2>
+      </div>
+
+      {displayProducts.map((product) => (
         <div
           key={product.id}
-          className="rounded-lg text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform h-fit"
+          className="rounded-lg text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform h-fit hover:shadow-lg"
           onClick={() => window.location.href = `/shop/${product.id}`}
         >
           <div className="relative w-full h-48">
