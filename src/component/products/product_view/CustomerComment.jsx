@@ -9,7 +9,9 @@ import { getCookie } from "../../../../utils/cookieUtils";
 const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdded }) => {
   const [selectedStars, setSelectedStars] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [reviewTitle, setReviewTitle] = useState(""); // Add this for title
   const [reviewError, setReviewError] = useState(""); // Add this for error handling
+  const [showSuccess, setShowSuccess] = useState(false);
   const dispatch = useDispatch();
 
   // Fix the selector to properly access customer state
@@ -25,6 +27,13 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
   useEffect(() => {
     dispatch(retrieveCustomer());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      console.log("Review submission error from Redux state:", error);
+      setReviewError(error.message || "An error occurred while submitting the review");
+    }
+  }, [error]);
 
   // Replace customer authentication check with cookie check
   const authToken = getCookie('auth_token'); // or whatever your cookie name is
@@ -57,37 +66,52 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
   const wordCount = reviewText.split(/\s+/).filter((word) => word).length;
 
   const handleSubmit = async (event) => {
+    console.log("Hanleing the Submit Btn of the Customer Comment")
     event.preventDefault();
     setReviewError(""); // Clear any previous errors
     
     if (!selectedStars) {
-      setReviewError("Please select a rating");
+      const starError = "Please select a rating";
+      console.log("Form validation error:", starError);
+      setReviewError(starError);
       return;
     }
 
-    if (wordCount < 10) {
-      setReviewError("Please write at least 10 words");
+    if (!reviewTitle) {
+      setReviewError("Please enter a title for your review");
+      console.log(reviewError);
+      return;
+    }
+
+    if(!reviewText) {
+      setReviewError("Please enter a review message");
+      console.log(reviewError);
+      return;
+    }
+
+    if (wordCount > 300) {
+      const wordCountError = "Please write at least 10 words";
+      console.log("Form validation error:", wordCountError);
+      setReviewError(wordCountError);
       return;
     }
 
     try {
-      // Format review data according to API requirements
       const reviewData = {
         productId: productId,
         rating: selectedStars,
-        title: reviewText.split(" ").slice(0, 5).join(" "), // First 5 words as title
-        message: reviewText // Full review text
+        title: reviewTitle,
+        message: reviewText
       };
 
-      console.log('Sending review data:', reviewData); // Debug log
+      console.log('Attempting to submit review with data:', reviewData);
 
       const resultAction = await dispatch(postReview(reviewData)).unwrap();
-      console.log('API Response:', resultAction); // Debug log
+      console.log('Review submission successful:', resultAction);
 
       if (resultAction) {
-        // Create UI update data
         const uiReviewData = {
-          id: resultAction.id, // Assuming API returns review ID
+          id: resultAction.id,
           rating: selectedStars,
           title: reviewData.title,
           description: reviewText,
@@ -98,75 +122,112 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
         };
         
         onReviewAdded(uiReviewData);
-        setIsPopupOpen(false);
+        setShowSuccess(true);
+        // Auto close success popup and form after 2 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsPopupOpen(false);
+        }, 2000);
       }
     } catch (err) {
-      console.error('Failed to add review:', err);
+      console.error('Review submission failed:', {
+        error: err,
+        message: err.message,
+        stack: err.stack
+      });
       setReviewError(err.message || "Failed to submit review. Please try again.");
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-2 md:p-6 bg-[#F7F7F7] rounded-lg">
-      {/* Product Image */}
-      <div className="w-full md:w-1/3">
-        <Image
-          src={productImage}
-          alt="Product"
-          width={200}
-          height={200}
-          className="md:w-full h-1/4 md:h-auto rounded-lg border"
-        />
-      </div>
-
-      {/* Review Form */}
-      <div className="w-full md:w-2/3">
-        <h2 className="md:text-4xl text-2xl font-bold mb-4">Write a Review</h2>
-        <form>
-          {/* Star Rating */}
-          <div className="flex items-center gap-1 mb-4">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <span
-                key={star}
-                className={`cursor-pointer text-3xl ${
-                  star <= selectedStars ? "text-yellow-500" : "text-gray-400"
-                }`}
-                onClick={() => handleStarClick(star)}
-              >
-                ★
-              </span>
-            ))}
-            <span className="ml-2 text-gray-500">
-              {selectedStars} Star{selectedStars > 1 ? "s" : ""}
-            </span>
+    <>
+      {showSuccess && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 shadow-xl border-2 border-green-500 max-w-md mx-4">
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full p-2 mx-auto w-12 h-12 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Review Submitted Successfully!</h3>
+              <p className="text-gray-600">Thank you for sharing your feedback.</p>
+            </div>
           </div>
-
-          {/* Review Text Area */}
-          <textarea
-            placeholder="Write your review (minimum 10 words)" // Changed placeholder
-            value={reviewText}
-            onChange={handleTextChange}
-            className="border p-2 rounded-xl w-full mt-4"
-            rows={6}
+        </div>
+      )}
+      <div className="flex flex-col md:flex-row gap-6 p-2 md:p-6 bg-[#F7F7F7] rounded-lg">
+        {/* Product Image */}
+        <div className="w-full md:w-1/3">
+          <Image
+            src={productImage}
+            alt="Product"
+            width={200}
+            height={200}
+            className="md:w-full h-1/4 md:h-auto rounded-lg border"
           />
-          <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 10</p> {/* Changed word count target */}
+        </div>
 
-          {/* Error Message */}
-          {reviewError && (
-            <p className="text-sm text-red-500 mt-2">{reviewError}</p>
-          )}
+        {/* Review Form */}
+        <div className="w-full md:w-2/3">
+          <h2 className="md:text-4xl text-2xl font-bold mb-4">Write a Review</h2>
+          <form>
+            {/* Star Rating */}
+            <div className="flex items-center gap-1 mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`cursor-pointer text-3xl ${
+                    star <= selectedStars ? "text-yellow-500" : "text-gray-400"
+                  }`}
+                  onClick={() => handleStarClick(star)}
+                >
+                  ★
+                </span>
+              ))}
+              <span className="ml-2 text-gray-500">
+                {selectedStars} Star{selectedStars > 1 ? "s" : ""}
+              </span>
+            </div>
 
-          {/* Submit Button - update minimum word requirement */}
-          <button
-            className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto cursor-pointer"
-            disabled={wordCount < 10 || status === "loading"} // Changed minimum word requirement
-            onClick={(event) => handleSubmit(event)}
-          >
-            {status === "loading" ? "Submitting..." : "Submit Review"}
-          </button>
-        </form>
+            {/* Review Title */}
+            <input
+              placeholder="Title of your review" // Changed placeholder
+              value={reviewTitle}
+              onChange={(event)=>{ setReviewTitle(event.target.value)}}
+              className="border p-2 rounded-xl w-full mt-4"
+              rows={6}
+            />
+
+
+            {/* Review Text Area */}
+            <textarea
+              placeholder="Write your review (maximum 300 words)" // Changed placeholder
+              value={reviewText}
+              onChange={handleTextChange}
+              className="border p-2 rounded-xl w-full mt-4"
+              rows={6}
+            />
+            <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 10</p> {/* Changed word count target */}
+
+            {/* Error Message */}
+            {reviewError && (
+              <p className="text-sm text-red-500 mt-2">{reviewError}</p>
+            )}
+
+            {/* Submit Button - update minimum word requirement */}
+            <button
+              className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto cursor-pointer"
+              disabled={wordCount < 10 || status === "loading"} // Changed minimum word requirement
+              onClick={handleSubmit}
+            >
+                Submit Review
+              {/* {status === "loading" ? "Submitting..." : "Submit Review"} */}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

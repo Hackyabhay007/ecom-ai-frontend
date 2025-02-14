@@ -9,18 +9,19 @@ const ProductDetails = ({ product }) => {
 
       {/* Product Description */}
       <div className="mt-4 text-sm md:text-base">
+        <strong>Description:</strong>
         <p>{product?.description}</p>
       </div>
 
       {/* Material */}
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <strong>Material:</strong> {product?.material}
-      </div>
+      </div> */}
 
       {/* Price */}
-      <div className="">
+      {/* <div className="">
         <strong>Discount:</strong> {product?.metadata?.discount}%
-      </div>
+      </div> */}
 
       {/* Product Images
       <div className="mt-4">

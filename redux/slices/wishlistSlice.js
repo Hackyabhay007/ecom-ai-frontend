@@ -210,10 +210,11 @@ const wishlistSlice = createSlice({
       })
       .addCase(removeFromWishlist.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = state.items.filter(item => item.product.id !== action.payload.productId);
+        // Filter out the removed item using the wishlistId
+        state.items = state.items.filter(item => item.id !== action.payload.wishlistId);
         state.count = Math.max(0, state.count - 1);
         state.message = action.payload.message;
-        state.deleteSuccess = true; // Set to true on successful deletion
+        state.deleteSuccess = true;
       })
       .addCase(removeFromWishlist.rejected, (state, action) => {
         state.loading = false;

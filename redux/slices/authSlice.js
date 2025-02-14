@@ -3,6 +3,7 @@ import axios from 'axios';
 import { createApiUrl } from '../../utils/apiConfig';
 import { setCookie, removeCookie } from '../../utils/cookieUtils';
 import Cookies from 'js-cookie';
+import { getVisitedProducts } from '../../utils/visitedProducts';
 
 const header_key = process.env.NEXT_PUBLIC_HEADER_KEY;
 const header_value = process.env.NEXT_PUBLIC_HEADER_VALUE
@@ -146,6 +147,12 @@ export const updateCustomer = createAsyncThunk(
   }
 );
 
+export const updateVisitedProducts = createAsyncThunk(
+  'auth/updateVisitedProducts',
+  async () => {
+    return getVisitedProducts();
+  }
+);
 
 
 // Create auth slice
@@ -164,6 +171,7 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     isAuthenticated: false,
+    visitedProducts: [],
   },
   reducers: {
     logout: (state) => {
@@ -174,6 +182,11 @@ const authSlice = createSlice({
       state.error = null;
       state.isAuthenticated = false;
       removeCookie('auth_token');
+      // Clear auth tokens from visited products
+      state.visitedProducts = state.visitedProducts.map(product => ({
+        ...product,
+        authToken: null
+      }));
     },
     clearError: (state) => {
       state.error = null;
@@ -191,6 +204,13 @@ const authSlice = createSlice({
         state.token = action?.payload?.token;
         state.isAuthenticated = true;
         state.error = null;
+        // Update visited products with auth token
+        const guestId = Cookies.get('guest_id');
+        state.visitedProducts = state.visitedProducts.map(product => ({
+          ...product,
+          authToken: action.payload.token,
+          guestId
+        }));
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -225,6 +245,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
+      })
+      .addCase(updateVisitedProducts.fulfilled, (state, action) => {
+        state.visitedProducts = action.payload;
       });
   },
 });

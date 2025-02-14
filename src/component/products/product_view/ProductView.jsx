@@ -7,46 +7,41 @@ import CustomerReview from "./CustomerReview.jsx";
 import CustomerComment from "./CustomerComment";
 import RelatedProducts from "./RelatedProducts";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCartoncaches } from "../../../../redux/slices/cartSlice";
+import { addToCart, clearMessage, selectGuestId, initializeGuestId } from "../../../../redux/slices/cartSlice";
 import ProductDetailsInfo from "./ProductDetailsInfo";
 import CustomSize from "./CustomSize";
 import HandleInfo from "./HandleInfo";
 import ImageCarousel from "./ImageCrousal";
-import products from "../data/product_data";
 import { useRegion } from "../../../contexts/RegionContext";
-import axios from "axios";
-import {
-    updateLineItem,
-  appendToCart,
-} from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useCart } from "@/contexts/CartContext";
 import Loader from "../../loader/Loader";
-import { addProduct } from "@/redux/slices/intrestedSlice";
 import { fetchSingleProduct } from "../../../../redux/slices/shopSlice";
-import { addToCart, clearMessage } from "../../../../redux/slices/cartSlice";
-import { toast } from 'react-hot-toast'; // Add this if you haven't already
+import { toast } from 'react-hot-toast';
 import { formatPriceToINR } from "utils/currencyUtils";
 import { fetchReviews } from "../../../../redux/slices/reviewSlice";
+import { addVisitedProduct } from '../../../../utils/visitedProducts';
+import { getCookie } from '../../../../utils/cookieUtils';
+import { updateVisitedProducts } from "@/redux/slices/authSlice";
 
 const ProductView = ({ productId }) => {
   const dispatch = useDispatch();
   const router = useRouter();
-  
-  // Update selector to get products array from shop state
+  const guestId = useSelector(selectGuestId);
+
   const { 
     selectedProduct, 
     selectedProductLoading, 
     selectedProductError,
-    products: allProducts // This will get the products array from shop.products
+    products: allProducts 
   } = useSelector(
     (state) => ({
       selectedProduct: state.shop.selectedProduct,
       selectedProductLoading: state.shop.selectedProductLoading,
       selectedProductError: state.shop.selectedProductError,
-      products: state.shop.products // Get all products from shop slice
+      products: state.shop.products 
     }),
-    (prev, next) => {
+    (prev, next) => {  
       return prev.selectedProduct?.id === next.selectedProduct?.id &&
              prev.selectedProductLoading === next.selectedProductLoading &&
              prev.selectedProductError === next.selectedProductError &&
@@ -54,7 +49,6 @@ const ProductView = ({ productId }) => {
     }
   );
 
-  // Add debug logging for products
   useEffect(() => {
     console.log('ProductView - Available Products:', {
       count: allProducts?.length,
@@ -66,7 +60,6 @@ const ProductView = ({ productId }) => {
     });
   }, [allProducts]);
 
-  // Local state
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -75,26 +68,17 @@ const ProductView = ({ productId }) => {
   const [isCustomSizeVisible, setIsCustomSizeVisible] = useState(false);
   const [category, setCategory] = useState([]);
   const { updateCart } = useCart();
-  
-  // Initialize ratings state with empty array and 0 average
+  const [productImages, setProductImages] = useState([]);
   const [ratings, setRatings] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
-
-  // Add new state for images
-  const [productImages, setProductImages] = useState([]);
-
-  // Update state declarations
   const [selectedColor, setSelectedColor] = useState(null);
   const [price, setPrice] = useState(null);
   const [discount, setDiscount] = useState(0);
   const [discountedAmount, setDiscountedAmount] = useState(null);
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
-
-  // Add customSize state
   const [customSize, setCustomSize] = useState(null);
 
-  // Updated renderStars function
   const renderStars = (rating) => {
     const stars = [];
     const totalStars = 5;
@@ -103,7 +87,6 @@ const ProductView = ({ productId }) => {
 
     for (let i = 0; i < totalStars; i++) {
       if (i < fullStars) {
-        // Full star
         stars.push(
           <span key={i} className="text-yellow-400">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -112,7 +95,6 @@ const ProductView = ({ productId }) => {
           </span>
         );
       } else if (i === fullStars && hasHalfStar) {
-        // Half star
         stars.push(
           <span key={i} className="text-yellow-400">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -127,7 +109,6 @@ const ProductView = ({ productId }) => {
           </span>
         );
       } else {
-        // Empty star
         stars.push(
           <span key={i} className="text-gray-300">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -146,27 +127,23 @@ const ProductView = ({ productId }) => {
     );
   };
 
-  // Only fetch product if we don't have it already
   useEffect(() => {
     if (productId && (!selectedProduct || selectedProduct.id !== productId)) {
       dispatch(fetchSingleProduct(productId));
     }
   }, [dispatch, productId, selectedProduct]);
 
-  // Update local state when product data changes
   useEffect(() => {
     if (selectedProduct?.variants?.length > 0) {
       setSelectedVariant(selectedProduct.variants[0]);
       setSelectedSize(selectedProduct.variants[0].size);
       setCategory(selectedProduct.category ? [selectedProduct.category] : []);
     }
-  }, [selectedProduct?.id]); // Only run when product ID changes
+  }, [selectedProduct?.id]);
 
-  // Add useEffect for ratings
   useEffect(() => {
     if (selectedProduct?.ratings) {
       setRatings(selectedProduct.ratings);
-      // Calculate average if ratings exist
       const avg = selectedProduct.ratings.length > 0
         ? selectedProduct.ratings.reduce((acc, curr) => acc + curr.rating, 0) / selectedProduct.ratings.length
         : 0;
@@ -174,7 +151,6 @@ const ProductView = ({ productId }) => {
     }
   }, [selectedProduct?.ratings]);
 
-  // Add new useEffect to handle images
   useEffect(() => {
     if (selectedProduct?.variants) {
       const allImages = selectedProduct.variants.reduce((acc, variant) => {
@@ -199,25 +175,20 @@ const ProductView = ({ productId }) => {
     }
   }, [selectedProduct]);
 
-  // Add effect to process variant data
   useEffect(() => {
     if (selectedProduct?.variants) {
-      // Extract unique sizes and colors
       const uniqueSizes = [...new Set(selectedProduct.variants.map(v => v.size))];
       const uniqueColors = [...new Set(selectedProduct.variants.map(v => v.color))];
-      
       setSizes(uniqueSizes);
       setColors(uniqueColors);
 
-      // Set initial variant and price
       if (selectedProduct.variants.length > 0) {
         const initialVariant = selectedProduct.variants[0];
         setSelectedVariant(initialVariant);
         setSelectedColor(initialVariant.color);
         setSelectedSize(initialVariant.size);
         setPrice(initialVariant.price);
-        
-        // Handle sale price if available
+
         if (initialVariant.isOnSale && initialVariant.salePrice) {
           const discountPercentage = Math.round((1 - initialVariant.salePrice / initialVariant.price) * 100);
           setDiscount(discountPercentage);
@@ -227,12 +198,11 @@ const ProductView = ({ productId }) => {
     }
   }, [selectedProduct]);
 
-  // Update price when variant changes
   const getPriceForVariant = () => {
     const variant = selectedProduct.variants.find(
       v => v.size === selectedSize && v.color === selectedColor
     );
-    
+
     if (variant) {
       setPrice(variant.price);
       if (variant.isOnSale && variant.salePrice) {
@@ -265,14 +235,11 @@ const ProductView = ({ productId }) => {
 
   const { message } = useSelector((state) => state.cart);
 
-  // Add effect to handle cart message
   useEffect(() => {
     if (message) {
       toast.success(message);
       setIsAdded(true);
       dispatch(clearMessage());
-      
-      // Reset isAdded after 3 seconds
       setTimeout(() => {
         setIsAdded(false);
       }, 3000);
@@ -280,14 +247,7 @@ const ProductView = ({ productId }) => {
   }, [message, dispatch]);
 
   const handleAddToCart = async () => {
-    console.log('1. Starting handleAddToCart');
-    console.log('Selected Size:', selectedSize);
-    console.log('Selected Color:', selectedColor);
-    console.log('Quantity:', quantity);
-    console.log('Product ID:', selectedProduct.id);
-
     if (!selectedSize) {
-      console.log('2. Size not selected - showing warning');
       setWarning("Please select size.");
       setTimeout(() => setWarning(""), 3000);
       return;
@@ -296,31 +256,19 @@ const ProductView = ({ productId }) => {
     const variantToAdd = selectedProduct.variants.find(
       v => v.size === selectedSize && v.color === selectedColor
     );
-    
-    console.log('3. Found variant:', variantToAdd);
-    
+
     if (!variantToAdd) {
-      console.log('4. Variant not available');
       setWarning("Selected variant not available");
       return;
     }
 
     try {
-      console.log('5. Dispatching addToCart with payload:', {
-        productId: selectedProduct.id,
-        variantId: variantToAdd.id,
-        quantity: quantity
-      });
-
       const result = await dispatch(addToCart({
         productId: selectedProduct.id,
         variantId: variantToAdd.id,
         quantity: quantity
       })).unwrap();
-
-      console.log('6. AddToCart result:', result);
     } catch (error) {
-      console.log('7. Error in addToCart:', error);
       toast.error(error || "Failed to add item to cart");
     }
   };
@@ -328,10 +276,8 @@ const ProductView = ({ productId }) => {
   const handleBuyNow = async () => {
     if (!selectedSize) {
       setWarning("Please select size.");
-      setIsProgressVisible(true);
       setTimeout(() => {
         setWarning("");
-        setIsProgressVisible(false);
       }, 3000);
       return;
     }
@@ -363,17 +309,14 @@ const ProductView = ({ productId }) => {
     return <div>Product not found</div>;
   }
 
-  // Add reviews selector
   const reviewsState = useSelector((state) => state.reviews);
 
-  // Replace the ratings useEffect with this
   useEffect(() => {
     if (productId) {
       dispatch(fetchReviews({ productId }))
         .unwrap()
         .then(() => {
           console.log('Reviews fetched successfully:', reviewsState);
-          // The average rating will be automatically available in reviewsState.stats.average
         })
         .catch(error => {
           console.error('Error fetching reviews:', error);
@@ -381,37 +324,45 @@ const ProductView = ({ productId }) => {
     }
   }, [productId, dispatch]);
 
-  // Get average rating from Redux state instead of local state
   const averageRatingValue = reviewsState?.stats?.average || 0;
+  const totalReviews = reviewsState?.reviews?.length || 0;
 
   useEffect(() => {
     setAverageRating(averageRatingValue);
   }, [averageRatingValue]);
-  
-  const totalReviews = reviewsState?.reviews?.length || 0;
+
+  useEffect(() => {
+    const trackProductVisit = () => {
+      const authToken = getCookie('auth_token');
+      
+      if (!authToken && !guestId) {
+        dispatch(initializeGuestId());
+      }
+
+      addVisitedProduct(productId, authToken, guestId);
+      dispatch(updateVisitedProducts());
+    };
+
+    if (productId) {
+      trackProductVisit();
+    }
+  }, [productId, dispatch, guestId]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="w-full">
-          {/* Explicitly log images before passing to carousel */}
           {console.log('Images being passed to carousel:', productImages)}
           <ImageCarousel images={productImages} />
         </div>
         <div>
-          {/* Product Title */}
           <h1 className="text-2xl font-bold mb-4">{selectedProduct.name}</h1>
-            
-          {/* Star Rating */}
           <div className="flex items-center mb-4">
             {renderStars(averageRating)}
             <span className="ml-2 text-sm text-gray-500">
               ({totalReviews} {totalReviews === 1 ? 'review' : 'reviews'})
             </span>
           </div>
-
-          
-          {/* Category */}
           {selectedProduct.category && (
             <div className="mb-4">
               <span className="text-sm text-theme-blue">Category: </span>
@@ -420,8 +371,6 @@ const ProductView = ({ productId }) => {
               </span>
             </div>
           )}
-
-          {/* Pricing Details */}
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">
               {formatPriceToINR(discountedAmount || price)}
@@ -437,9 +386,7 @@ const ProductView = ({ productId }) => {
               </>
             )}
           </div>
-
           <div>
-            {/* Colors */}
             {colors && (
               <div className="mb-4">
                 <span className="text-sm text-cream">Color: </span>
@@ -447,10 +394,8 @@ const ProductView = ({ productId }) => {
                   {colors.map((color, index) => (
                     <button
                       key={index}
-                      className={`w-8 h-8 rounded-lg border-2 cursor-pointer bg-red-300 ${
-                        selectedColor === color ? "border-black" : ""
-                      }`}
-                      style={{ backgroundColor: color.toLowerCase() }} // Ensures proper color formatting
+                      className={`w-8 h-8 rounded-lg border-2 cursor-pointer bg-red-300 ${selectedColor === color ? "border-black" : ""}`}
+                      style={{ backgroundColor: color.toLowerCase() }}
                       onClick={() => {
                         setSelectedColor(color);
                         getPriceForVariant();
@@ -460,41 +405,34 @@ const ProductView = ({ productId }) => {
                 </div>
               </div>
             )}
-
-            {/* Size Selection */}
-            <div className="mb-4 text-xs">
-              <span className="text-sm text-cream">Size: </span>
-              <div className="flex flex-wrap gap-4">
-                {sizes.map((size, index) => (
-                  <button
-                    key={index}
-                    className={`w-14 h-8 border px-2 rounded-lg flex items-center justify-center cursor-pointer ${
-                      selectedSize === size ? "border-black" : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedSize(size);
-                      getPriceForVariant();
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
+          </div>
+          <div className="mb-4 text-xs">
+            <span className="text-sm text-cream">Size: </span>
+            <div className="flex flex-wrap gap-4">
+              {sizes.map((size, index) => (
                 <button
-                  className={`w-fit hover:bg-discount-color border border-gray-300 rounded-lg transition-all px-4 h-8 flex items-center justify-center cursor-pointer ${
-                    selectedSize === "Custom" ? "border-black" : ""
-                  }`}
-                  onClick={() => setIsCustomSizeVisible(true)}
+                  key={index}
+                  className={`w-14 h-8 border px-2 rounded-lg flex items-center justify-center cursor-pointer ${selectedSize === size ? "border-black" : ""}`}
+                  onClick={() => {
+                    setSelectedSize(size);
+                    getPriceForVariant();
+                  }}
                 >
-                  Custom size
+                  {size}
                 </button>
-                {warning && !selectedSize && (
-                  <div className="text-red-700 text-sm mt-2 capitalize">
-                    <i className="ri-information-fill"></i> Please select a size
-                  </div>
-                )}
-              </div>
+              ))}
+              <button
+                className={`w-fit hover:bg-discount-color border border-gray-300 rounded-lg transition-all px-4 h-8 flex items-center justify-center cursor-pointer ${selectedSize === "Custom" ? "border-black" : ""}`}
+                onClick={() => setIsCustomSizeVisible(true)}
+              >
+                Custom size
+              </button>
+              {warning && !selectedSize && (
+                <div className="text-red-700 text-sm mt-2 capitalize">
+                  <i className="ri-information-fill"></i> Please select a size
+                </div>
+              )}
             </div>
-
             {customSize && (
               <div className="mt-2 text-sm text-gray-600">
                 Custom Size Selected: Chest {customSize.chest} cm, Sleeve{" "}
@@ -503,8 +441,6 @@ const ProductView = ({ productId }) => {
               </div>
             )}
           </div>
-
-          {/* Render CustomSize popup */}
           {isCustomSizeVisible && (
             <CustomSize
               onClose={() => setIsCustomSizeVisible(false)}
@@ -514,87 +450,55 @@ const ProductView = ({ productId }) => {
               }}
             />
           )}
-
-
-
-            {/* Render CustomSize popup */}
-            {isCustomSizeVisible && (
-              <CustomSize
-                onClose={() => setIsCustomSizeVisible(false)}
-                onApply={(selectedSizes) => {
-                  setCustomSize(selectedSizes);
-                  setSelectedSize("Custom");
-                }}
-              />
-            )}
-
-            {/* Add to Cart and Buy Now */}
-            <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap items-center gap-4 mb-6">
-              <button
-                className={`flex-1 w-full md:w-1/2 px-6 py-2 bg-black text-black  ${
-                  isAdded ? "bg-discount-color " : "bg-black text-white"
-                }`}
-                onClick={() => {
-                  handleAddToCart();
-                  // console.log("run");
-                }}
-              >
-                {isAdded ? (
-                  <>
-                    <i className="ri-luggage-cart-line mr-2"></i> Added
-                  </>
-                ) : (
-                  "Add to Cart"
-                )}
-              </button>
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2"
-              >
-                Buy It Now
-              </button>
-            </div>
-            {/* Product Description */}
-            <div className="my-8">
-              <p className="text-theme-blue text-sm leading-relaxed">
-                {selectedProduct?.description}
-              </p>
-            </div>
-
-            <div className="flex gap-4 mt-4">
-              <button className="text-black flex items-center gap-2">
-                <span>
-                  <i className="ri-share-fill text-xl border rounded-lg p-2"></i>
-                </span>{" "}
-                Share
-              </button>
-            </div>
-            <HandleInfo
-              categories={category}
-              product={selectedProduct}
-              reviews={ratings} // Changed from rating to ratings
-            />
+          <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap items-center gap-4 mb-6">
+            <button
+              className={`flex-1 w-full md:w-1/2 px-6 py-2 bg-black text-black  ${isAdded ? "bg-discount-color " : "bg-black text-white"}`}
+              onClick={() => {
+                handleAddToCart();
+              }}
+            >
+              {isAdded ? (
+                <>
+                  <i className="ri-luggage-cart-line mr-2"></i> Added
+                </>
+              ) : (
+                "Add to Cart"
+              )}
+            </button>
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 w-full md:w-1/2 bg-white text-black border border-cream px-6 py-2"
+            >
+              Buy It Now
+            </button>
+          </div>
+          <div className="my-8">
+            <p className="text-theme-blue text-sm leading-relaxed">
+              {selectedProduct?.description}
+            </p>
+          </div>
+          <div className="flex gap-4 mt-4">
+            <button className="text-black flex items-center gap-2">
+              <span>
+                <i className="ri-share-fill text-xl border rounded-lg p-2"></i>
+              </span>{" "}
+              Share
+            </button>
+          </div>
+          <HandleInfo
+            categories={category}
+            product={selectedProduct}
+            reviews={ratings}
+          />
         </div>
       </div>
-
-      {console.log("This is the selectedProduct value of the ProductView page", selectedProduct)}
-      {/* Additional Sections */}
       <ProductDetailsInfo 
-        categories={category} 
-        sku={selectedProduct?.variants[0]?.sku || 'N/A'} // Add SKU prop here
+        categories={category}
+        sku={selectedProduct?.variants[0]?.sku || 'N/A'}
       />
-      <>
-        {/* <ProductDetails product={selectedProduct} /> */}
-        {/* <CustomerReview reviews={ratings} /> Changed from rating to ratings */}
-      </>
       <RelatedProducts currentProduct={selectedProduct} allProducts={allProducts} />
-      {/* <CustomerComment /> */}
-
-      {/* Related Products */}
     </div>
   );
 };
 
-
-
-export default React.memo(ProductView); // Add memoization to prevent unnecessary re-renders
+export default React.memo(ProductView);

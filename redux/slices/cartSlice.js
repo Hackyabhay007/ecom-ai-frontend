@@ -13,8 +13,8 @@ const generateGuestId = () => {
   return result;
 };
 
-// Function to get or create guestId
-const getGuestId = () => {
+// Modified getGuestId to work with Redux state
+const getOrCreateGuestId = () => {
   let guestId = localStorage.getItem('guestId');
   if (!guestId) {
     guestId = generateGuestId();
@@ -25,12 +25,13 @@ const getGuestId = () => {
 
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ productId, variantId, quantity = 1 }, { rejectWithValue }) => {
+  async ({ productId, variantId, quantity = 1 }, { getState, rejectWithValue }) => {
     console.log('1. Starting addToCart thunk with:', { productId, variantId, quantity });
     
     try {
       const token = Cookies.get('auth_token');
-      const guestId = !token ? getGuestId() : null;
+      const state = getState();
+      const guestId = !token ? state.cart.guestId : null;
 
       console.log('2. Auth details:', { 
         hasToken: !!token, 
@@ -81,10 +82,11 @@ export const addToCart = createAsyncThunk(
 
 export const getAllCart = createAsyncThunk(
   'cart/getAllCart',
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
-      const guestId = !token ? getGuestId() : null;
+      const state = getState();
+      const guestId = !token ? state.cart.guestId : null;
 
       const headers = {
         'Content-Type': 'application/json',
@@ -148,6 +150,7 @@ export const updateCart = createAsyncThunk(
   }
 );
 
+// Update initial state to include guestId
 const initialState = {
   items: [],
   totalAmount: 0,
@@ -155,8 +158,9 @@ const initialState = {
   error: null,
   cartId: null,
   isActive: false,
-  message: null,  // Add this
-  isItemAdded: false  // Add this
+  message: null,
+  isItemAdded: false,
+  guestId: null // Add guestId to state
 };
 
 const cartSlice = createSlice({
@@ -175,6 +179,19 @@ const cartSlice = createSlice({
     clearMessage: (state) => {
       state.message = null;
       state.isItemAdded = false;
+    },
+    initializeGuestId: (state) => {
+      if (!state.guestId) {
+        state.guestId = getOrCreateGuestId();
+      }
+    },
+    clearGuestId: (state) => {
+      state.guestId = null;
+      localStorage.removeItem('guestId');
+    },
+    setGuestId: (state, action) => {
+      state.guestId = action.payload;
+      localStorage.setItem('guestId', action.payload);
     }
   },
   extraReducers: (builder) => {
@@ -184,6 +201,10 @@ const cartSlice = createSlice({
         state.error = null;
         state.message = null;
         state.isItemAdded = false;
+        // Initialize guestId if needed
+        if (!state.guestId && !Cookies.get('auth_token')) {
+          state.guestId = getOrCreateGuestId();
+        }
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
@@ -235,5 +256,17 @@ const cartSlice = createSlice({
   }
 });
 
-export const { clearCart, clearError, clearMessage } = cartSlice.actions;
+// Export new actions
+export const { 
+  clearCart, 
+  clearError, 
+  clearMessage, 
+  initializeGuestId, 
+  clearGuestId, 
+  setGuestId 
+} = cartSlice.actions;
+
+// Add selector for guestId
+export const selectGuestId = (state) => state.cart.guestId;
+
 export default cartSlice.reducer;

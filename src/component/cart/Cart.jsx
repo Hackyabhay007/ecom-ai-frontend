@@ -59,11 +59,12 @@ const Cart = () => {
         <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:px-4 mb-5 md:mb-10">
           Product you may like
         </h2>
-        {interestedProducts?.length > 0 ? (
+        <CartRelatedProducts items={items} totalAmount={totalAmount} />
+        {/* {interestedProducts?.length > 0 ? (
           <CartRelatedProducts items={items} totalAmount={totalAmount} />
         ) : (
           <p className="text-gray-500">Add items in the cart</p>
-        )}
+        )} */}
       </div>
 
       {/* Right Component - Cart Items and Summary */}

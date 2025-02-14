@@ -3,6 +3,7 @@ import axios from "axios";
 import { createApiUrl } from '../../utils/apiConfig';
 import { getCookie } from '../../utils/cookieUtils';
 
+// Make sure the fetchReviews thunk includes pagination params
 export const fetchReviews = createAsyncThunk(
   'reviews/fetchReviews',
   async ({ productId, page = 1, limit = 10 }, { rejectWithValue }) => {

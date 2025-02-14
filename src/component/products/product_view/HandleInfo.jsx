@@ -58,7 +58,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
   };
 
   return (
-    <div className="py-5 ">
+    <div className="py-5">
       {/* Buttons to open modals */}
       <button
         className="group relative w-full px-6 py-4 text-sm text-black border-t border-b border-gray-300 hover:bg-white flex items-center justify-between"
@@ -155,7 +155,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
 
       {/* Customer Review Sliding Component */}
       <div
-        className={`fixed top-0 right-0 w-full md:w-1/2 h-full z-50 transition-transform duration-500 ease-in-out ${
+        className={`fixed top-0 bg-white right-0 w-full md:w-1/2 h-full z-50 transition-transform duration-500 ease-in-out ${
           isReviewOpen
             ? "opacity-100 visible md:animate-handleInfoSlideInRight animate-handleInfoSlideInBottom"
             : "opacity-0 invisible md:animate-handleInfoSlideOutLeft animate-handleInfoSlideOutTop"

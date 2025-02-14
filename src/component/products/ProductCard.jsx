@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addToWishlist,
   toggleWishlistSidebar,
-} from "../../../redux/slices/wishlistSlice";
+  removeFromWishlist // Add this import
+} from "../../../redux/slices/wishlistSlice"; // Fix the path
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
 import { addToCart } from "../../../redux/slices/cartSlice"; // Fixed import path
@@ -25,6 +26,7 @@ const ProductCard = ({ product, layout }) => {
   const wishlistError = useSelector((state) => state.wishlist?.error);
   const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -115,46 +117,60 @@ const ProductCard = ({ product, layout }) => {
     }
   }, [wishlistState.items, product]);
 
+  // Add this effect to log wishlist items for debugging
+  useEffect(() => {
+    if (wishlistItems.length > 0) {
+      console.log('Current wishlist items:', wishlistItems);
+    }
+  }, [wishlistItems]);
+
   // Updated handleAddToWishlist function
   const handleAddToWishlist = async (event) => {
     event.stopPropagation();
+    setWishlistLoading(true);
     
-    console.log('Starting add to wishlist with product:', {
-      productId: product.id,
-      variantId: variants[0]?.id
-    });
-
-    if (!product.id || !variants[0]?.id) {
-      console.error('Missing required IDs:', {
-        productId: product.id,
-        variantId: variants[0]?.id
-      });
-      return;
-    }
-
     try {
-      const result = await dispatch(addToWishlist({
-        productId: product.id,
-        variantId: variants[0].id
-      })).unwrap();
+      if (isInWishlist) {
+        // Find the wishlist item for this product
+        const wishlistItem = wishlistItems.find(item => 
+          item.product?.id === product.id
+        );
+        
+        console.log('Removing item from wishlist:', {
+          wishlistItemId: wishlistItem?.id,
+          productId: product.id
+        });
 
-      console.log('Wishlist add success:', {
-        message: result.message,
-        item: result.item
-      });
-
-      setIsInWishlist(true);
+        if (wishlistItem?.id) {
+          const result = await dispatch(removeFromWishlist(wishlistItem.id)).unwrap();
+          console.log('Remove result:', result);
+          if (result) {
+            setIsInWishlist(false);
+          }
+        } else {
+          console.error('Could not find wishlist item ID for product:', product.id);
+        }
+      } else {
+        const result = await dispatch(addToWishlist({
+          productId: product.id,
+          variantId: variants[0].id
+        })).unwrap();
+        
+        console.log('Add result:', result);
+        if (result) {
+          setIsInWishlist(true);
+        }
+      }
     } catch (error) {
-      console.error('Wishlist add failed:', {
-        error: error,
-        wishlistError
-      });
+      console.error('Wishlist operation failed:', error);
+    } finally {
+      setWishlistLoading(false);
     }
   };
 
-  // Update useEffect to check wishlist status
+  // Update useEffect to check wishlist status and log for debugging
   useEffect(() => {
-    if (wishlistItems) {
+    if (wishlistItems && product) {
       const isInList = wishlistItems.some(item => item.product?.id === product.id);
       console.log('Wishlist status check:', {
         productId: product.id,
@@ -163,7 +179,7 @@ const ProductCard = ({ product, layout }) => {
       });
       setIsInWishlist(isInList);
     }
-  }, [wishlistItems, product.id]);
+  }, [wishlistItems, product]);
 
   const handleAddToCart = async (event) => {
     event.stopPropagation();
@@ -321,13 +337,17 @@ const ProductCard = ({ product, layout }) => {
             className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
             onClick={handleAddToWishlist}
           >
-            <i
-              className={`text-xl ${
-                isInWishlist
-                  ? "text-black ri-heart-fill"
-                  : "text-black ri-heart-line"
-              }`}
-            ></i>
+            {wishlistLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+            ) : (
+              <i
+                className={`text-xl ${
+                  isInWishlist
+                    ? "text-black ri-heart-fill"
+                    : "text-black ri-heart-line"
+                }`}
+              ></i>
+            )}
           </div>
 
           {/* Shopping Bag Icon */}

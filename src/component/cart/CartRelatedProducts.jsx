@@ -1,14 +1,23 @@
-import React from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import { addToCart } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
 
 const CartRelatedProducts = ({ items, totalAmount }) => {
+  console.log("This is the items value from the CartRelatedProducts.jsx");
   const dispatch = useDispatch();
 
   console.log("This is the items value from the CartRelatedProducts.jsx", items);
   console.log("This is the totalAmount value from the CartRelatedProducts.jsx", totalAmount);
+
+  const {visitedProducts} = useSelector(state => state.auth);
+
+  useEffect(() => { 
+    console.log("This is the visitedProducts value from the CartRelatedProducts.jsx", visitedProducts);
+  }, [visitedProducts]);
+
+  // console.log("This is the items value from the CartRelatedProducts.jsx", visitedProducts);
   
   // Get unique products from cart items to avoid suggesting items already in cart
   const cartProductIds = items.map(item => item.productId);
