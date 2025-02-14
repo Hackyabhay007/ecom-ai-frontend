@@ -88,33 +88,52 @@ export const addToWishlist = createAsyncThunk(
 // Remove from wishlist
 export const removeFromWishlist = createAsyncThunk(
   'wishlist/removeFromWishlist',
-  async (productId, { rejectWithValue }) => {
+  async (wishlistId, { rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
+      console.log('Remove from wishlist - Starting with:', {
+        wishlistId,
+        token: token ? 'Present' : 'Missing'
+      });
       
       if (!token) {
+        console.error('Authentication token missing');
         return rejectWithValue('Authentication required');
       }
 
-      const response = await axios.delete(
-        createApiUrl(`/wishlist/${productId}`),
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+      // Make sure productId is valid
+      if (!wishlistId) {
+        console.error('Invalid wishlistID:', wishlistId);
+        return rejectWithValue('Invalid wishlist ID');
+      }
+
+      const apiUrl = createApiUrl(`/wishlist/${wishlistId}`); // Updated endpoint
+      console.log('Sending DELETE request to:', apiUrl);
+
+      const response = await axios.delete(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      );
+      });
+
+      console.log('Remove from wishlist - Response:', response.data);
 
       if (!response.data.success) {
-        return rejectWithValue('Failed to remove item from wishlist');
+        console.error('Server returned success: false', response.data);
+        return rejectWithValue(response.data.message || 'Failed to remove item from wishlist');
       }
 
       return {
         productId,
-        message: response.data.data.message
+        message: response.data.message || 'Item removed from wishlist'
       };
     } catch (error) {
+      console.error('Remove from wishlist - Error:', {
+        message: error.message,
+        response: error.response?.data
+      });
+      
       return rejectWithValue(
         error.response?.data?.message || 'Failed to remove item from wishlist'
       );

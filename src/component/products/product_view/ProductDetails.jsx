@@ -52,7 +52,7 @@ const ProductDetails = ({ product }) => {
       {/* Variants */}
       
         {product?.variants?.length > 0 && (
-          <div className="mt-4 w-fit h-fit   ">
+          <div className="mt-4 w-fit h-fit  ">
             <strong>Available Variants:</strong>
             <div className="flex flex-wrap w-full  h-full gap-4">
               

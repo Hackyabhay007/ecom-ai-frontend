@@ -83,12 +83,7 @@ const ProductCard = ({ product, layout }) => {
         ) || variants[0];
 
         if (targetVariant) {
-          setVariantPrice(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: currency_code,
-            }).format(targetVariant.price || 0)
-          );
+          setVariantPrice(targetVariant?.price);
 
           if (metadata?.discount > 0) {
             setdiscount(metadata.discount);

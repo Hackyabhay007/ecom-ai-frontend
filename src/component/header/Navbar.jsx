@@ -308,7 +308,7 @@ function Navbar() {
           variants={iconVariants}
           whileHover="hover"
           whileTap="tap"
-          className="ri-heart-line text-xl cursor-pointer hover:text-black"
+          className="ri-heart-line relative text-xl cursor-pointer hover:text-black"
           onClick={handleWishlistClick}
         >
           {/* Optional: Add wishlist count badge */}

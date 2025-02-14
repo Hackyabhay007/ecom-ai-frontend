@@ -42,6 +42,26 @@ const Wishlist = () => {
     setFilters(prev => ({ ...prev, [filterName]: value }));
   };
 
+  const handleRemoveFromWishlist = async (wishlistId) => {
+    console.log('Starting removal process for wishlist item:', wishlistId);
+    
+    try {
+      console.log('Dispatching removeFromWishlist action...');
+      const resultAction = await dispatch(removeFromWishlist(wishlistId)).unwrap();
+      
+      console.log('Remove from wishlist success:', {
+        wishlistId: resultAction.wishlistId,
+        message: resultAction.message,
+        remainingItems: wishlistItems.filter(item => item.id !== wishlistId)
+      });
+    } catch (error) {
+      console.error('Remove from wishlist failed:', {
+        wishlistId,
+        error: error
+      });
+    }
+  };
+
   // Show error state if any
   if (error) {
     return (
@@ -124,7 +144,13 @@ const Wishlist = () => {
                   ₹{item.variant.price}
                 </span>
                 <button
-                  onClick={() => dispatch(removeFromWishlist(item.product.id))}
+                  onClick={() => {
+                    console.log('Remove button clicked for wishlist item:', {
+                      wishlistId: item.id,
+                      productName: item.product.name
+                    });
+                    handleRemoveFromWishlist(item.id);
+                  }}
                   className="bg-red-500 duration-200 text-white px-2 py-1 rounded-lg hover:bg-red-700"
                 >
                   remove

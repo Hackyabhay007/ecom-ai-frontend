@@ -26,6 +26,7 @@ import { addProduct } from "@/redux/slices/intrestedSlice";
 import { fetchSingleProduct } from "../../../../redux/slices/shopSlice";
 import { addToCart, clearMessage } from "../../../../redux/slices/cartSlice";
 import { toast } from 'react-hot-toast'; // Add this if you haven't already
+import { formatPriceToINR } from "utils/currencyUtils";
 
 const ProductView = ({ productId }) => {
   const dispatch = useDispatch();
@@ -352,10 +353,7 @@ const ProductView = ({ productId }) => {
           {/* Pricing Details */}
           <div className="flex items-center gap-4 mb-4">
             <span className="text-md text-theme-blue font-bold">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD"
-              }).format(discountedAmount || price)}
+              {formatPriceToINR(discountedAmount || price)}
             </span>
             {discount > 0 && (
               <>
