@@ -5,6 +5,7 @@ import CartItem from "./CartItem";
 import CartRelatedProducts from "./CartRelatedProducts";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { formatPriceToINR } from "utils/currencyUtils";
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -30,6 +31,8 @@ const Cart = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
+
+  console.log("This is the items value from the Cart.jsx", items);
 
   return (
     <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
@@ -82,7 +85,7 @@ const Cart = () => {
               Subtotal:
             </p>
             <p className="md:text-lg text-md font-bold text-cream">
-              ₹{totalAmount || 0}
+              {formatPriceToINR(totalAmount) || 0}
             </p>
           </div>
           <div className="flex gap-2 md:gap-4 md:px-2 px-1 w-full">

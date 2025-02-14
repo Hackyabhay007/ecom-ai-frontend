@@ -3,7 +3,6 @@ import { useRouter } from "next/router"; // Import useRouter for navigation
 
 const initialState = {
   wishlist: [],
-  isOpen: false,
 };
 
 const wishSlice = createSlice({
@@ -32,12 +31,8 @@ const wishSlice = createSlice({
       console.log(action.payload, "action.payload");
       state.wishlist = state.wishlist.filter((item) => item.id !== productId);
     },
-    toggleWishlistSidebar: (state) => {
-      state.isOpen = !state.isOpen;
-    },
   },
 });
 
-export const { addToWishlist, removeFromWishlist, toggleWishlistSidebar } =
-  wishSlice.actions;
+export const { addToWishlist, removeFromWishlist } = wishSlice.actions;
 export default wishSlice.reducer;

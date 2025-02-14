@@ -14,10 +14,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'example.com',
         port: '',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/uploads/**',
       }
     ],
   },
-
 };
 
 export default nextConfig;

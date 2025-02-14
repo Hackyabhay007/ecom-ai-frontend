@@ -17,6 +17,7 @@ import homePageReducer from "./slices/homePageSlice";
 import authReducer from "./slices/authSlice"; // Add this import
 import shopReducer from './slices/shopSlice';
 import reviewReducer from './slices/reviewSlice';
+import wishlistReducer from './slices/wishlistSlice';
 
 // Persist configuration
 const persistConfig = {
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
   shop: shopReducer,
   reviews: reviewReducer,
   cart: cartReducer,
+  wishlist: wishlistReducer, // Add this line
 });
 
 // Persist the combined reducer

@@ -4,7 +4,11 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
 import Link from "next/link"
-import { toggleWishlistSidebar } from "@/redux/slices/wishSlice"
+// Update this import
+import { 
+  toggleWishlistSidebar,
+  selectWishlistCount 
+} from "../../../redux/slices/wishlistSlice"
 import Search from "../search/Search"
 import NavCategory from "./NavCategory"
 import { retrieveCustomer } from "@/redux/slices/authSlice"
@@ -22,7 +26,9 @@ function Navbar() {
   const currentCustomer = "";
 
   const router = useRouter()
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  // Add wishlist count selector
+  const wishlistCount = useSelector(selectWishlistCount);
 
   // const { currentCustomer } = useSelector(state => state.customer)
 
@@ -141,6 +147,11 @@ function Navbar() {
       }
     />
   )
+
+  // Add handler for wishlist icon click
+  const handleWishlistClick = () => {
+    dispatch(toggleWishlistSidebar());
+  };
 
   if (isMobile) {
     return (
@@ -292,13 +303,21 @@ function Navbar() {
           onClick={() => setIsSearchOpen(!isSearchOpen)}
         />
         {desktopUserSection()}
+        {/* Update wishlist icon section */}
         <motion.i
           variants={iconVariants}
           whileHover="hover"
           whileTap="tap"
           className="ri-heart-line text-xl cursor-pointer hover:text-black"
-          onClick={() => dispatch(toggleWishlistSidebar())}
-        />
+          onClick={handleWishlistClick}
+        >
+          {/* Optional: Add wishlist count badge */}
+          {wishlistCount > 0 && (
+            <span className="absolute -top-1 -right-2 bg-white text-black border border-theme-blue p-1 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+              {wishlistCount}
+            </span>
+          )}
+        </motion.i>
         <div className="relative">
           <Link href="/cart">
             <motion.i

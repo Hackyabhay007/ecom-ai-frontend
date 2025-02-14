@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useDispatch } from 'react-redux';
 import { formatPriceToINR } from '../../../utils/currencyUtils';
@@ -6,87 +6,96 @@ import { updateCart } from '../../../redux/slices/cartSlice';
 
 const CartItem = ({ item }) => {
   const dispatch = useDispatch();
+  const [quantity, setQuantity] = useState(item?.quantity || 1);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Validate item data
-  if (!item?.product) {
+  useEffect(() => {
+    if (item?.quantity) {
+      setQuantity(item.quantity);
+    }
+  }, [item?.quantity]);
+
+  if (!item || !item.product) {
     return null;
   }
 
-  // Find the matching variant
-  const variant = item.product.variants?.find(v => v.id === item.variantId) || {};
-  
-  // Initialize state
-  const [quantity, setQuantity] = useState(item.quantity || 1);
-  
-  // Get price (use item price or variant price as fallback)
-  const basePrice = item.price || variant.price || 0;
-  const salePrice = variant.isOnSale ? (variant.salePrice || basePrice) : basePrice;
-  const finalPrice = salePrice * quantity;
+  const variant = item.product.variants?.find(v => v.id === item.variantId);
+  const productImage = variant?.images?.[0]?.url || item.product.images?.[0]?.url || '/placeholder-image.jpg';
 
-  const handleQuantityChange = async (newQuantity) => {
+  const handleQuantityChange = async (type) => {
+    const newQuantity = type === 'increment' ? quantity + 1 : quantity - 1;
+    
     if (newQuantity < 1) return;
+    if (isUpdating) return;
+
+    setIsUpdating(true);
     
     try {
-      setQuantity(newQuantity);
-      await dispatch(updateCart({
+      const updatePayload = {
         itemId: item.id,
-        updateData: { quantity: newQuantity }
-      })).unwrap();
+        updateData: {
+          quantity: newQuantity,
+          variantId: item.variantId,
+          productId: item.productId,
+          price: item.price
+        }
+      };
+
+      await dispatch(updateCart(updatePayload)).unwrap();
+      setQuantity(newQuantity);
     } catch (error) {
-      setQuantity(item.quantity || 1);
       console.error('Failed to update quantity:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
+
+  // Simple price calculations based on item price
+  const basePrice = item.price;
+  const totalPrice = basePrice * quantity;
 
   return (
     <div className="flex py-6">
       <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
         <Image
-          src={variant.images?.[0]?.url || '/placeholder-image.jpg'}
-          alt={item.product.name || 'Product'}
-          className="h-full w-full object-cover object-center"
+          src={productImage}
+          alt={item.product.name}
           width={100}
           height={100}
+          className="w-full h-full object-cover"
         />
       </div>
 
       <div className="ml-4 flex flex-1 flex-col">
         <div>
           <div className="flex justify-between text-base font-medium text-gray-900">
-            <h3>{item.product.name || 'Unnamed Product'}</h3>
-            <div className="ml-4">
-              {variant.isOnSale ? (
-                <div>
-                  <p className="text-red-600">{formatPriceToINR(finalPrice)}</p>
-                  <p className="text-gray-500 line-through text-sm">
-                    {formatPriceToINR(basePrice * quantity)}
-                  </p>
-                </div>
-              ) : (
-                <p>{formatPriceToINR(finalPrice)}</p>
-              )}
-            </div>
+            <h3>{item.product.name}</h3>
+            {/* <div className="ml-4">
+              <p>{formatPriceToINR(totalPrice)}</p>
+            </div> */}
           </div>
           
-          {variant.size && (
-            <p className="mt-1 text-sm text-gray-500">Size: {variant.size}</p>
-          )}
-          {item.color && (
-            <p className="mt-1 text-sm text-gray-500">Color: {item.color}</p>
-          )}
+          <div className="mt-1 space-y-1">
+            {item.color && (
+              <p className="text-sm text-gray-500">Color: {item.color}</p>
+            )}
+          </div>
           
-          <div className="mt-1 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2">
             <button
-              onClick={() => handleQuantityChange(quantity - 1)}
+              onClick={() => handleQuantityChange('decrement')}
               className="px-2 py-1 border rounded-md disabled:opacity-50"
-              disabled={quantity <= 1}
+              disabled={quantity <= 1 || isUpdating}
             >
               -
             </button>
-            <span className="px-4 py-1">{quantity}</span>
+            <span className="px-4 py-1">
+              {isUpdating ? '...' : quantity}
+            </span>
             <button
-              onClick={() => handleQuantityChange(quantity + 1)}
+              onClick={() => handleQuantityChange('increment')}
               className="px-2 py-1 border rounded-md"
+              disabled={isUpdating}
             >
               +
             </button>

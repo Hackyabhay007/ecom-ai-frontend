@@ -28,7 +28,7 @@ const ImageStackSlider = ({catalogdata}) => {
 
   // Log the hero section data from state
   useEffect(() => {
-    if (galleryTwoSection?.section_data?.carousel.length > 0) {
+    if (galleryTwoSection?.section_data?.carousel?.length > 0) {
       const carouselData = galleryTwoSection?.section_data?.carousel.map((item) => {
         return item.image;
         

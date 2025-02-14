@@ -16,6 +16,5 @@ export const formatINR = (price) => {
 };
 
 export const formatPriceToINR = (usdPrice) => {
-    console.log('usdPrice', usdPrice);
   return formatINR(convertToINR(usdPrice));
 };

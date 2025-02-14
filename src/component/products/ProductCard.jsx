@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   addToWishlist,
   toggleWishlistSidebar,
-} from "../../../redux/slices/wishSlice";
+} from "../../../redux/slices/wishlistSlice";
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
 import { addToCart, updateCart } from "@/lib/data/cart";
-import { useSelector } from "react-redux";
 import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
+import { formatPriceToINR } from "utils/currencyUtils";
 
 // import "./Hoverimagechnage.css"
 
@@ -20,8 +20,11 @@ const ProductCard = ({ product, layout }) => {
   const dispatch = useDispatch();
   const customer = useSelector((state) => state.customer) || {};
   const user = customer?.currentCustomer || null;
-  const { wishlist } = useSelector((state) => state.wishlist);
-  // console.log(user);
+  const wishlistState = useSelector((state) => state.wishlist) || {};
+  const wishlistMessage = wishlistState.message;
+  const wishlistError = useSelector((state) => state.wishlist?.error);
+  const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -108,37 +111,64 @@ const ProductCard = ({ product, layout }) => {
     fetchVariantDetails();
   }, [variants, size, color, currency_code, metadata]);
 
-  const handleAddToWishlist = (event) => {
-    event.stopPropagation(); // Prevent card click navigation
-    // console.log(user, " this is user");
-    // console.log(product, " this is product");
+  // Check if product is in wishlist
+  useEffect(() => {
+    if (wishlistState.items && product) {
+      setIsInWishlist(wishlistState.items.some(item => 
+        item?.product?.id === product.id
+      ));
+    }
+  }, [wishlistState.items, product]);
 
-    if (!user) {
-      router.push("/auth/login"); // Redirect to login if no user is logged in
+  // Updated handleAddToWishlist function
+  const handleAddToWishlist = async (event) => {
+    event.stopPropagation();
+    
+    console.log('Starting add to wishlist with product:', {
+      productId: product.id,
+      variantId: variants[0]?.id
+    });
+
+    if (!product.id || !variants[0]?.id) {
+      console.error('Missing required IDs:', {
+        productId: product.id,
+        variantId: variants[0]?.id
+      });
       return;
     }
-    
-    const currentWishlist = user?.metadata?.wishlist || [];
-    let update = {
-      metadata: {
-        wishlist: currentWishlist.some((item) => item.id === product.id)
-          ? currentWishlist
-          : [...currentWishlist, product],
-      },
-    };
 
-    const productExists = currentWishlist.some((item) => item.id === product.id);
+    try {
+      const result = await dispatch(addToWishlist({
+        productId: product.id,
+        variantId: variants[0].id
+      })).unwrap();
 
-    if (!productExists) {
-      dispatch(addToWishlist([product]));
-    } else {
-      dispatch(addToWishlist({product: currentWishlist}));
+      console.log('Wishlist add success:', {
+        message: result.message,
+        item: result.item
+      });
+
+      setIsInWishlist(true);
+    } catch (error) {
+      console.error('Wishlist add failed:', {
+        error: error,
+        wishlistError
+      });
     }
-
-    dispatch(updateCustomer(update));
-    dispatch(retrieveCustomer());
-    setIsWishlistAdded(true); // Mark as added to wishlist
   };
+
+  // Update useEffect to check wishlist status
+  useEffect(() => {
+    if (wishlistItems) {
+      const isInList = wishlistItems.some(item => item.product?.id === product.id);
+      console.log('Wishlist status check:', {
+        productId: product.id,
+        isInList,
+        totalItems: wishlistItems.length
+      });
+      setIsInWishlist(isInList);
+    }
+  }, [wishlistItems, product.id]);
 
   const handleAddToCart = async (event) => {
     event.stopPropagation();
@@ -293,11 +323,11 @@ const ProductCard = ({ product, layout }) => {
           {/* Heart Icon */}
           <div
             className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-            onClick={(event) => handleAddToWishlist(event)}
+            onClick={handleAddToWishlist}
           >
             <i
               className={`text-xl ${
-                isWishlistAdded || wishlist.some((item) => item.id === product.id)
+                isInWishlist
                   ? "text-black ri-heart-fill"
                   : "text-black ri-heart-line"
               }`}
@@ -331,7 +361,7 @@ const ProductCard = ({ product, layout }) => {
             layout === "list"
               ? "md:w-3/4 w-1/2 pl-10 flex flex-col justify-center items-start"
               : ""
-          }`}
+          }`} 
         >
           <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left  hover:text-gray-700 pt-2">
             {product.title || name}
@@ -339,7 +369,7 @@ const ProductCard = ({ product, layout }) => {
 
           {discount > 0 ? (
             <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
-              <span className="text-sm md:text-md">{discountedamount}</span>
+              <span className="text-sm md:text-md ">{discountedamount}</span>
               {/* <span className="md:text-sm text-xs text-sub-color line-through">
                 {variantPrice}
               </span> */}
@@ -349,7 +379,7 @@ const ProductCard = ({ product, layout }) => {
             </div>
           ) : (
             <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
-              <span className="text-sm md:text-md">{variantPrice}</span>
+              <span className="text-sm md:text-md">{formatPriceToINR(variantPrice)}</span>
               {/* <span className="md:text-sm text-xs text-sub-color line-through">
               {variantPrice}
             </span>
