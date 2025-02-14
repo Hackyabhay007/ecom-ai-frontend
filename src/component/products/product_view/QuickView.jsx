@@ -189,8 +189,8 @@ const QuickView = ({ productId, initialData, onClose }) => {
         {/* Images Section */}
         <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom">
           <Image
-            src={initialData?.images?.url}
-            alt={initialData?.images?.alt}
+            src={initialData?.images[0]?.url}
+            alt={initialData?.images[0]?.alt}
             width={300}
             height={300}
             className="rounded-lg object-cover"
