@@ -8,11 +8,14 @@ import {
   selectWishlistItems,
   selectWishlistLoading,
   removeFromWishlist,
-  fetchAllWishlistItems
+  fetchAllWishlistItems,
+  selectDeleteSuccess,
+  clearDeleteSuccess
 } from "../../../redux/slices/wishlistSlice";
 
 const WishlistSidebar = () => {
   const dispatch = useDispatch();
+  const deleteSuccess = useSelector(selectDeleteSuccess);
   
   // Get states from wishlistSlice
   const isOpen = useSelector(selectWishlistSidebarOpen);
@@ -26,13 +29,25 @@ const WishlistSidebar = () => {
     }
   }, [isOpen, dispatch]);
 
+  // Add effect to handle successful deletion
+  useEffect(() => {
+    if (deleteSuccess) {
+      console.log('Item successfully deleted, refreshing wishlist...');
+      dispatch(fetchAllWishlistItems());
+      dispatch(clearDeleteSuccess());
+    }
+  }, [deleteSuccess, dispatch]);
+
   const handleClose = () => {
     dispatch(toggleWishlistSidebar());
   };
 
-  const handleRemoveItem = async (productId) => {
+  const handleRemoveItem = async (wishlistId) => {
     try {
-      await dispatch(removeFromWishlist(productId));
+      console.log('Removing wishlist item:', wishlistId);
+      await dispatch(removeFromWishlist(wishlistId)).unwrap();
+      // Don't need to manually refresh here anymore,
+      // the useEffect will handle it when deleteSuccess becomes true
     } catch (error) {
       console.error('Failed to remove item:', error);
     }
@@ -61,7 +76,10 @@ const WishlistSidebar = () => {
           </h2>
           <button
             className="hover:bg-black bg-gray-700 text-white px-2 rounded-full"
-            onClick={handleClose}
+            onClick={() => {
+              console.log('Closing wishlist sidebar');
+              handleClose();
+            }}
           >
             ✕
           </button>
@@ -90,8 +108,9 @@ const WishlistSidebar = () => {
                     ₹{item.variant?.price || 0}
                   </p>
                 </div>
+                {console.log("This is the item of the Wishlist SIde", item)}
                 <button
-                  onClick={() => handleRemoveItem(item.product.id)}
+                  onClick={() => handleRemoveItem(item?.id)}
                   className="text-red-500 hover:text-red-700"
                 >
                   ✕

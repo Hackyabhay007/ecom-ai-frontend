@@ -7,14 +7,63 @@ const RelatedProducts = ({ currentProduct, allProducts }) => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
+  // Debug logs for incoming props
+  useEffect(() => {
+    console.log('RelatedProducts - Current Product:', {
+      id: currentProduct?.id,
+      name: currentProduct?.name,
+      categories: currentProduct?.categories
+    });
+    
+    console.log('RelatedProducts - All Products:', {
+      totalProducts: allProducts?.length,
+      productsList: allProducts?.map(p => ({
+        id: p.id,
+        name: p.name,
+        categories: p.categories
+      }))
+    });
+  }, [currentProduct, allProducts]);
+
   // Filter products by matching categories (excluding the current product)
-  const relatedProducts = allProducts.filter(
-    (product) =>
-      product.id !== currentProduct.id && // Exclude the current product
-      product.categories.some((category) =>
-        currentProduct.categories.includes(category) // Match categories
-      )
-  );
+  const relatedProducts = React.useMemo(() => {
+    if (!currentProduct?.categories || !allProducts?.length) {
+      console.log('RelatedProducts - Missing data for filtering:', {
+        hasCurrentProduct: !!currentProduct,
+        hasCategories: !!currentProduct?.categories,
+        hasAllProducts: !!allProducts?.length
+      });
+      return [];
+    }
+
+    const filtered = allProducts.filter(product => {
+      if (product.id === currentProduct.id) return false;
+      
+      const hasMatchingCategory = product.categories?.some(cat =>
+        currentProduct.categories.includes(cat)
+      );
+
+      // Debug log for category matching
+      console.log('Category matching for product:', {
+        productId: product.id,
+        productCategories: product.categories,
+        currentProductCategories: currentProduct.categories,
+        isMatching: hasMatchingCategory
+      });
+
+      return hasMatchingCategory;
+    });
+
+    console.log('RelatedProducts - Filtered results:', {
+      totalFiltered: filtered.length,
+      filteredProducts: filtered.map(p => ({
+        id: p.id,
+        name: p.name
+      }))
+    });
+
+    return filtered;
+  }, [currentProduct, allProducts]);
 
   // Scroll function for left and right buttons
   const handleScroll = (direction) => {

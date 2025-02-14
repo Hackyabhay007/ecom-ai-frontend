@@ -27,21 +27,44 @@ import { fetchSingleProduct } from "../../../../redux/slices/shopSlice";
 import { addToCart, clearMessage } from "../../../../redux/slices/cartSlice";
 import { toast } from 'react-hot-toast'; // Add this if you haven't already
 import { formatPriceToINR } from "utils/currencyUtils";
+import { fetchReviews } from "../../../../redux/slices/reviewSlice";
 
 const ProductView = ({ productId }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   
-  // Get data from Redux store
-  const { selectedProduct, selectedProductLoading, selectedProductError } = useSelector(
-    (state) => state.shop,
+  // Update selector to get products array from shop state
+  const { 
+    selectedProduct, 
+    selectedProductLoading, 
+    selectedProductError,
+    products: allProducts // This will get the products array from shop.products
+  } = useSelector(
+    (state) => ({
+      selectedProduct: state.shop.selectedProduct,
+      selectedProductLoading: state.shop.selectedProductLoading,
+      selectedProductError: state.shop.selectedProductError,
+      products: state.shop.products // Get all products from shop slice
+    }),
     (prev, next) => {
-      // Prevent unnecessary re-renders
       return prev.selectedProduct?.id === next.selectedProduct?.id &&
              prev.selectedProductLoading === next.selectedProductLoading &&
-             prev.selectedProductError === next.selectedProductError;
+             prev.selectedProductError === next.selectedProductError &&
+             prev.products === next.products;
     }
   );
+
+  // Add debug logging for products
+  useEffect(() => {
+    console.log('ProductView - Available Products:', {
+      count: allProducts?.length,
+      products: allProducts?.map(p => ({
+        id: p.id,
+        name: p.name,
+        categories: p.categories
+      }))
+    });
+  }, [allProducts]);
 
   // Local state
   const [quantity, setQuantity] = useState(1);
@@ -322,6 +345,33 @@ const ProductView = ({ productId }) => {
     return <div>Product not found</div>;
   }
 
+  // Add reviews selector
+  const reviewsState = useSelector((state) => state.reviews);
+
+  // Replace the ratings useEffect with this
+  useEffect(() => {
+    if (productId) {
+      dispatch(fetchReviews({ productId }))
+        .unwrap()
+        .then(() => {
+          console.log('Reviews fetched successfully:', reviewsState);
+          // The average rating will be automatically available in reviewsState.stats.average
+        })
+        .catch(error => {
+          console.error('Error fetching reviews:', error);
+        });
+    }
+  }, [productId, dispatch]);
+
+  // Get average rating from Redux state instead of local state
+  const averageRatingValue = reviewsState?.stats?.average || 0;
+
+  useEffect(() => {
+    setAverageRating(averageRatingValue);
+  }, [averageRatingValue]);
+  
+  const totalReviews = reviewsState?.reviews?.length || 0;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -337,6 +387,9 @@ const ProductView = ({ productId }) => {
           {/* Star Rating */}
           <div className="flex items-center mb-4">
             {renderStars(averageRating)}
+            <span className="ml-2 text-sm text-gray-500">
+              ({totalReviews} {totalReviews === 1 ? 'review' : 'reviews'})
+            </span>
           </div>
 
           
@@ -509,13 +562,17 @@ const ProductView = ({ productId }) => {
         </div>
       </div>
 
+      {console.log("This is the selectedProduct value of the ProductView page", selectedProduct)}
       {/* Additional Sections */}
-      <ProductDetailsInfo categories={category} />
+      <ProductDetailsInfo 
+        categories={category} 
+        sku={selectedProduct?.variants[0]?.sku || 'N/A'} // Add SKU prop here
+      />
       <>
-        <ProductDetails product={selectedProduct} />
+        {/* <ProductDetails product={selectedProduct} /> */}
         {/* <CustomerReview reviews={ratings} /> Changed from rating to ratings */}
       </>
-      {/* <RelatedProducts currentProduct={selectedProduct} allProducts={allProducts} /> */}
+      <RelatedProducts currentProduct={selectedProduct} allProducts={allProducts} />
       {/* <CustomerComment /> */}
 
       {/* Related Products */}
@@ -523,4 +580,6 @@ const ProductView = ({ productId }) => {
   );
 };
 
-export default React.memo(ProductView); // Add memoization
+
+
+export default React.memo(ProductView); // Add memoization to prevent unnecessary re-renders

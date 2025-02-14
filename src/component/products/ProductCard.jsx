@@ -416,7 +416,7 @@ const ProductCard = ({ product, layout }) => {
 
       {/* Added to Cart Notification */}
       {isCartAdded && (
-        <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 z-20 ">
+        <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 ">
           Added to Cart
         </div>
       )}

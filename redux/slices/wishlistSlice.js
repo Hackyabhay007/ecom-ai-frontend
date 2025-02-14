@@ -147,7 +147,8 @@ const initialState = {
   loading: false,
   error: null,
   message: null,
-  isOpen: false  // Add this for sidebar state
+  isOpen: false,  // Add this for sidebar state
+  deleteSuccess: false // Add this new state
 };
 
 const wishlistSlice = createSlice({
@@ -162,6 +163,9 @@ const wishlistSlice = createSlice({
     },
     toggleWishlistSidebar: (state) => {
       state.isOpen = !state.isOpen;
+    },
+    clearDeleteSuccess: (state) => {
+      state.deleteSuccess = false;
     }
   },
   extraReducers: (builder) => {
@@ -208,6 +212,7 @@ const wishlistSlice = createSlice({
         state.items = state.items.filter(item => item.product.id !== action.payload.productId);
         state.count = Math.max(0, state.count - 1);
         state.message = action.payload.message;
+        state.deleteSuccess = true; // Set to true on successful deletion
       })
       .addCase(removeFromWishlist.rejected, (state, action) => {
         state.loading = false;
@@ -219,7 +224,8 @@ const wishlistSlice = createSlice({
 export const { 
   clearWishlistError, 
   clearWishlistMessage, 
-  toggleWishlistSidebar  // Add this export
+  toggleWishlistSidebar,  // Add this export
+  clearDeleteSuccess // Export new action
 } = wishlistSlice.actions;
 
 // Selectors
@@ -229,5 +235,6 @@ export const selectWishlistLoading = (state) => state.wishlist.loading;
 export const selectWishlistError = (state) => state.wishlist.error;
 export const selectWishlistMessage = (state) => state.wishlist.message;
 export const selectWishlistSidebarOpen = (state) => state.wishlist.isOpen;
+export const selectDeleteSuccess = (state) => state.wishlist.deleteSuccess; // Add new selector
 
 export default wishlistSlice.reducer;

@@ -10,7 +10,10 @@ import {
   selectWishlistItems,
   selectWishlistLoading,
   selectWishlistCount,
-  selectWishlistError
+  selectWishlistError,
+  selectDeleteSuccess,
+  clearDeleteSuccess,
+  clearWishlistError, // Add this import
 } from "../../../redux/slices/wishlistSlice";
 
 const Wishlist = () => {
@@ -22,6 +25,7 @@ const Wishlist = () => {
   const isLoading = useSelector(selectWishlistLoading);
   const totalCount = useSelector(selectWishlistCount);
   const error = useSelector(selectWishlistError);
+  const deleteSuccess = useSelector(selectDeleteSuccess);
 
   console.log("Wishlist Items", wishlistItems);
   
@@ -36,6 +40,22 @@ const Wishlist = () => {
     dispatch(fetchAllWishlistItems());
   }, [dispatch]);
 
+  // Add effect to handle successful deletion and clear errors
+  useEffect(() => {
+    if (deleteSuccess) {
+      console.log('Deletion successful, refreshing wishlist items...');
+      dispatch(clearWishlistError()); // Clear any existing errors first
+      dispatch(fetchAllWishlistItems())
+        .unwrap()
+        .then(() => {
+          dispatch(clearDeleteSuccess());
+        })
+        .catch((error) => {
+          console.error('Error refreshing wishlist:', error);
+        });
+    }
+  }, [deleteSuccess, dispatch]);
+
   // Handle layout and filter changes
   const handleLayoutChange = (newLayout) => setLayout(newLayout);
   const handleFilterChange = (filterName, value) => {
@@ -44,16 +64,9 @@ const Wishlist = () => {
 
   const handleRemoveFromWishlist = async (wishlistId) => {
     console.log('Starting removal process for wishlist item:', wishlistId);
-    
     try {
-      console.log('Dispatching removeFromWishlist action...');
-      const resultAction = await dispatch(removeFromWishlist(wishlistId)).unwrap();
-      
-      console.log('Remove from wishlist success:', {
-        wishlistId: resultAction.wishlistId,
-        message: resultAction.message,
-        remainingItems: wishlistItems.filter(item => item.id !== wishlistId)
-      });
+      dispatch(clearWishlistError()); // Clear any previous errors
+      await dispatch(removeFromWishlist(wishlistId)).unwrap();
     } catch (error) {
       console.error('Remove from wishlist failed:', {
         wishlistId,
@@ -62,8 +75,8 @@ const Wishlist = () => {
     }
   };
 
-  // Show error state if any
-  if (error) {
+  // Only show error state if it's not during deletion
+  if (error && !deleteSuccess) {
     return (
       <div className="flex justify-center items-center min-h-screen text-red-500">
         Error: {error}
