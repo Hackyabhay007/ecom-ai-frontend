@@ -71,77 +71,52 @@ export const fetchSingleProduct = createAsyncThunk(
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
   async ({ searchQuery = '', filters = {}, signal }, { getState, rejectWithValue }) => {
-    try {
-      const state = getState();
-      const currentFilters = state.shop.lastAppliedFilters;
-      
-      // Compare new filters with last applied filters
-      if (currentFilters && JSON.stringify(currentFilters) === JSON.stringify(filters)) {
-        return null; // Skip API call if filters haven't changed
-      }
+    console.log('1. Starting fetchProductsBySearch with:', {
+      searchQuery,
+      filters
+    });
 
+    try {
+      // Build query parameters
       let queryParams = new URLSearchParams();
 
-      // Ensure limit is always set
-      const limit = filters.limit || 9;
-      queryParams.append('limit', String(limit));
-      
-      // Add page parameter with fallback
-      const page = filters.page || 1;
-      queryParams.append('page', String(page));
-
-      // Only add onSale from either searchQuery or filters, not both
-      const onSaleValue = typeof searchQuery === 'object' && searchQuery.onSale !== undefined 
-        ? searchQuery.onSale 
-        : filters.onSale;
-
-      // Add onSale parameter if it exists
-      if (onSaleValue !== undefined) {
-        queryParams.append('onSale', String(onSaleValue));
-      }
-
-      // Add regular search query if it exists and searchQuery is a string
+      // Change 'query' to 'search' parameter
       if (typeof searchQuery === 'string' && searchQuery) {
-        queryParams.append('query', searchQuery);
+        queryParams.append('search', searchQuery); // Changed from 'query' to 'search'
+        console.log('2. Added search parameter:', searchQuery);
       }
 
-      // Add other filter parameters (excluding onSale since we handled it above)
-      if (filters.page) queryParams.append('page', String(filters.page));
-      if (filters.limit) queryParams.append('limit', String(filters.limit));
-      if (filters.categoryId) queryParams.append('categoryId', filters.categoryId);
-      if (filters.sizes) queryParams.append('sizes', filters.sizes);
-      if (filters.color) queryParams.append('color', filters.color);
-      if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
-      if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+      // Only add other parameters if needed
+      // const limit = filters.limit || 9;
+      // queryParams.append('limit', String(limit));
+      // const page = filters.page || 1;
+      // queryParams.append('page', String(page));
 
       const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
-      console.log('Final URL being called:', finalUrl);
+      console.log('3. Final URL:', finalUrl);
 
       const response = await axios.get(finalUrl, {
         headers: {
           'Content-Type': 'application/json',
         },
-        signal, // Add signal for request cancellation
+        signal,
       });
 
-      console.log('And this is the Output after applying the Final URL :', response.data);
+      console.log('4. API Response:', response.data);
 
       if (!response.data.success) {
+        console.error('5. API reported failure:', response.data);
         return rejectWithValue('Failed to search products');
       }
 
-      // Ensure we're returning exactly what we got from the API
       return {
         products: response.data.data.products,
         filters: response.data.data.filters,
         meta: response.data.data.meta
       };
+
     } catch (error) {
-      if (axios.isCancel(error)) {
-        // Handle cancelled request
-        return rejectWithValue('Request cancelled');
-      }
-      console.error('Search error:', error);
+      console.error('6. Error caught:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to search products');
     }
   }
