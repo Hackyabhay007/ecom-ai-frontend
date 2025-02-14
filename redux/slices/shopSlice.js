@@ -71,10 +71,6 @@ export const fetchSingleProduct = createAsyncThunk(
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
   async ({ searchQuery = '', filters = {}, signal }, { getState, rejectWithValue }) => {
-    console.log('1. Starting fetchProductsBySearch with:', {
-      searchQuery,
-      filters
-    });
 
     try {
       // Build query parameters
@@ -83,7 +79,6 @@ export const fetchProductsBySearch = createAsyncThunk(
       // Change 'query' to 'search' parameter
       if (typeof searchQuery === 'string' && searchQuery) {
         queryParams.append('search', searchQuery); // Changed from 'query' to 'search'
-        console.log('2. Added search parameter:', searchQuery);
       }
 
       // Only add other parameters if needed
@@ -93,7 +88,6 @@ export const fetchProductsBySearch = createAsyncThunk(
       // queryParams.append('page', String(page));
 
       const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
-      console.log('3. Final URL:', finalUrl);
 
       const response = await axios.get(finalUrl, {
         headers: {
@@ -102,10 +96,7 @@ export const fetchProductsBySearch = createAsyncThunk(
         signal,
       });
 
-      console.log('4. API Response:', response.data);
-
       if (!response.data.success) {
-        console.error('5. API reported failure:', response.data);
         return rejectWithValue('Failed to search products');
       }
 
@@ -116,7 +107,6 @@ export const fetchProductsBySearch = createAsyncThunk(
       };
 
     } catch (error) {
-      console.error('6. Error caught:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to search products');
     }
   }

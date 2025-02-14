@@ -123,7 +123,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
 
         <div className="p-6 overflow-auto custom-scrollbar">
           {/* Product Info */}
-          <ProductDetailsInfo categories={categories} />
+          <ProductDetailsInfo categories={categories} sku={product?.variants[0]?.sku || 'N/A'}  />
         </div>
       </div>
 

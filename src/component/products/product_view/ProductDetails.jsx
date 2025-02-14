@@ -3,7 +3,7 @@ import Image from "next/image";
 
 const ProductDetails = ({ product }) => {
   return (
-    <div className="w-full px-5 py-20">
+    <div className="w-full px-5 py-20 bg-white">
       {/* Product Title */}
       <h2 className="text-xl md:text-2xl font-bold mb-4">{product?.title}</h2>
 

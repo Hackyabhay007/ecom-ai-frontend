@@ -13,7 +13,7 @@ export const fetchAllWishlistItems = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
-      
+
       if (!token) {
         return rejectWithValue('Authentication token not found');
       }
@@ -48,7 +48,7 @@ export const addToWishlist = createAsyncThunk(
   async ({ productId, variantId }, { rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
-      
+
       if (!token) {
         return rejectWithValue('Authentication required');
       }
@@ -95,7 +95,7 @@ export const removeFromWishlist = createAsyncThunk(
         wishlistId,
         token: token ? 'Present' : 'Missing'
       });
-      
+
       if (!token) {
         console.error('Authentication token missing');
         return rejectWithValue('Authentication required');
@@ -118,14 +118,15 @@ export const removeFromWishlist = createAsyncThunk(
       });
 
       console.log('Remove from wishlist - Response:', response.data);
+      console.log('This is the sucess fullyness satatus :', response.data.success);
 
-      if (!response.data.success) {
+      if (response?.data?.success == false) {
         console.error('Server returned success: false', response.data);
         return rejectWithValue(response.data.message || 'Failed to remove item from wishlist');
       }
 
       return {
-        productId,
+        wishlistId: wishlistId,
         message: response.data.message || 'Item removed from wishlist'
       };
     } catch (error) {
@@ -133,7 +134,7 @@ export const removeFromWishlist = createAsyncThunk(
         message: error.message,
         response: error.response?.data
       });
-      
+
       return rejectWithValue(
         error.response?.data?.message || 'Failed to remove item from wishlist'
       );
@@ -221,9 +222,9 @@ const wishlistSlice = createSlice({
   }
 });
 
-export const { 
-  clearWishlistError, 
-  clearWishlistMessage, 
+export const {
+  clearWishlistError,
+  clearWishlistMessage,
   toggleWishlistSidebar,  // Add this export
   clearDeleteSuccess // Export new action
 } = wishlistSlice.actions;

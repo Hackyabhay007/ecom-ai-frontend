@@ -5,6 +5,7 @@ import { addToCart } from "../../../../redux/slices/cartSlice"; // Update import
 import { updateCart } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useRegion } from "../../../contexts/RegionContext";
+import { size } from "lodash";
 
 const QuickView = ({ productId, initialData, onClose }) => {
   const dispatch = useDispatch();
@@ -42,25 +43,56 @@ const QuickView = ({ productId, initialData, onClose }) => {
     };
   }, []);
 
+  // Debug log for initialData
+  useEffect(() => {
+    console.log('Initial data variants:', initialData?.variants);
+  }, [initialData]);
+
+  // Updated useEffect for sizes and colors
+  useEffect(() => {
+    if (initialData?.variants) {
+      // Direct access to size and color properties
+      const sizesArray = [...new Set(initialData.variants.map(variant => variant.size))].filter(Boolean);
+      const colorsArray = [...new Set(initialData.variants.map(variant => variant.color))].filter(Boolean);
+
+      if (sizesArray.length > 0) {
+        setSizes(sizesArray);
+        setSelectedSize(sizesArray[0]); // Set first size as default
+      }
+
+      if (colorsArray.length > 0) {
+        setColors(colorsArray);
+        setSelectedColor(colorsArray[0]); // Set first color as default
+      }
+
+      // Set initial variant
+      if (initialData.variants[0]) {
+        setSelectedVariant(initialData.variants[0]);
+      }
+    }
+  }, [initialData]);
+
+  console.log(sizes  , "This is the size of the QuickView");
+  console.log(colors  , "This is the color of the QuickView");
   useEffect(() => {
     setLoading(true);
     const currentProduct = products.find(p => p.id === productId);
     if (currentProduct) {
-      const uniqueColors = [...new Set(currentProduct.variants
-        .map(variant => variant.options?.find(opt => opt.option_id === "opt_color")?.value)
-        .filter(Boolean))];
+      // const uniqueColors = [...new Set(currentProduct.variants
+      //   .map(variant => variant.options?.find(opt => opt.option_id === "opt_color")?.value)
+      //   .filter(Boolean))];
       
-      const uniqueSizes = [...new Set(currentProduct.variants
-        .map(variant => variant.options?.find(opt => opt.option_id === "opt_size")?.value)
-        .filter(Boolean))];
+      // const uniqueSizes = [...new Set(currentProduct.variants
+      //   .map(variant => variant.options?.find(opt => opt.option_id === "opt_size")?.value)
+      //   .filter(Boolean))];
 
       const productCategories = filters.categories.filter(cat => 
         currentProduct.categories?.includes(cat.id)
       );
 
       setProduct(currentProduct);
-      setColors(uniqueColors);
-      setSizes(uniqueSizes);
+      // setColors(uniqueColors);
+      // setSizes(uniqueSizes);
       setCategories(productCategories);
       
       // Set initial variant and price
@@ -222,7 +254,7 @@ const QuickView = ({ productId, initialData, onClose }) => {
           <div className="mb-4">
             <span className="text-md font-bold">Color: </span>
             <div className="flex my-2 gap-2">
-              {colors.map((color, index) => (
+              {colors?.map((color, index) => (
                 <div
                   key={index}
                   className={`w-6 h-6 rounded-full border-2 cursor-pointer ${
@@ -242,7 +274,7 @@ const QuickView = ({ productId, initialData, onClose }) => {
           <div className="mb-4">
             <span className="text-md font-bold">Size: </span>
             <div className="flex my-2 gap-4">
-              {sizes.map((size, index) => (
+              {sizes?.map((size, index) => (
                 <div
                   key={index}
                   className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${

@@ -16,11 +16,23 @@ import {
 const WishlistSidebar = () => {
   const dispatch = useDispatch();
   const deleteSuccess = useSelector(selectDeleteSuccess);
+
+
   
   // Get states from wishlistSlice
   const isOpen = useSelector(selectWishlistSidebarOpen);
   const wishlistItems = useSelector(selectWishlistItems) || [];
   const isLoading = useSelector(selectWishlistLoading);
+
+
+  useEffect(() => {
+    console.log("This is the delete Success value is called", deleteSuccess)
+    // if (deleteSuccess) {
+    //   console.log('Item successfully deleted, refreshing wishlist...');
+    //   dispatch(fetchAllWishlistItems());
+    //   dispatch(clearDeleteSuccess());
+    // }
+  }, [deleteSuccess]);
 
   // Fetch items when sidebar opens
   useEffect(() => {
