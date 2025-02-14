@@ -26,7 +26,7 @@ const Search = ({ onClose, isMobile }) => {
   // Handle search with debounce
   const debouncedSearch = useCallback(
     debounce(async (searchQuery) => {
-      if (searchQuery.length >= 2) { // Only search if query is 2 or more characters
+      if (searchQuery.length >= 1) { // Only search if query is 1 or more characters
         try {
           await dispatch(fetchProductsBySearch({
             searchQuery,
