@@ -3,7 +3,7 @@ import Image from "next/image";
 
 const ProductDetails = ({ product }) => {
   return (
-    <div className="w-full px-5 py-20 bg-white">
+    <div className="w-full h-screen bg-white px-5 py-20">
       {/* Product Title */}
       <h2 className="text-xl md:text-2xl font-bold mb-4">{product?.title}</h2>
 
@@ -50,7 +50,8 @@ const ProductDetails = ({ product }) => {
       </div> */}
 
       {/* Variants */}
-      
+      {console.log(product)}
+
         {product?.variants?.length > 0 && (
           <div className="mt-4 w-fit h-fit  ">
             <strong>Available Variants:</strong>
@@ -61,7 +62,7 @@ const ProductDetails = ({ product }) => {
                     key={index}
                     className="bg-white text-black hover:bg-black hover:text-white border-2 border-black duration-200 px-2 py-1 rounded-full cursor-pointer"
                   >
-                    {variant?.title}
+                    {variant?.size}
                   </div>
                 ))}
               

@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { createSelector } from '@reduxjs/toolkit'; // Add this import
 import { getAllCart } from "../../../redux/slices/cartSlice";
 import CartItem from "./CartItem";
 import CartRelatedProducts from "./CartRelatedProducts";
@@ -7,10 +8,27 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { formatPriceToINR } from "utils/currencyUtils";
 
+// Create memoized selector outside component
+const selectInterestedProducts = createSelector(
+  [(state) => state.interestedProducts],
+  (interestedProducts) => interestedProducts?.items || []
+);
+
+const selectCartState = createSelector(
+  [(state) => state.cart],
+  (cart) => ({
+    items: cart.items || [],
+    totalAmount: cart.totalAmount || 0,
+    loading: cart.loading
+  })
+);
+
 const Cart = () => {
   const dispatch = useDispatch();
-  const { items, totalAmount, loading } = useSelector((state) => state.cart);
-  const interestedProducts = useSelector((state) => state.interestedProducts?.items || []);
+  
+  // Use memoized selectors
+  const { items, totalAmount, loading } = useSelector(selectCartState);
+  const interestedProducts = useSelector(selectInterestedProducts);
   const router = useRouter();
 
   useEffect(() => {

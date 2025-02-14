@@ -6,6 +6,9 @@ import { formatPriceToINR } from "../../../utils/currencyUtils";
 
 const CartRelatedProducts = ({ items, totalAmount }) => {
   const dispatch = useDispatch();
+
+  console.log("This is the items value from the CartRelatedProducts.jsx", items);
+  console.log("This is the totalAmount value from the CartRelatedProducts.jsx", totalAmount);
   
   // Get unique products from cart items to avoid suggesting items already in cart
   const cartProductIds = items.map(item => item.productId);

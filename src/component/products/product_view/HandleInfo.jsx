@@ -147,7 +147,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
           <i class="ri-close-line bg-white p-2 rounded-full "></i>
         </button>
 
-        <div className="p-6 overflow-auto custom-scrollbar">
+        <div className=" overflow-auto custom-scrollbar">
           {/* Product Details */}
           <ProductDetails product={product} />
         </div>
