@@ -8,7 +8,7 @@ import {
 } from "../../../redux/slices/wishlistSlice";
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
-import { addToCart, updateCart } from "@/lib/data/cart";
+import { addToCart } from "../../../redux/slices/cartSlice"; // Fixed import path
 import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
 import { formatPriceToINR } from "utils/currencyUtils";
 
@@ -167,27 +167,28 @@ const ProductCard = ({ product, layout }) => {
 
   const handleAddToCart = async (event) => {
     event.stopPropagation();
-
-    // Get the first variant's options
+    
     const firstVariant = product.variants[0];
-    const defaultColor =
-      firstVariant?.options?.find((opt) => opt.option_id === "opt_color")
-        ?.value || null;
-    const defaultSize =
-      firstVariant?.options?.find((opt) => opt.option_id === "opt_size")
-        ?.value || null;
+    
+    if (!firstVariant) {
+      console.error('No variant available for product:', product.id);
+      return;
+    }
 
     try {
-      await addToCart(
-        {
-          variantId: firstVariant.id,
-          quantity: 1,
-          region,
-          Updater: updateCart,
-        },
-        process.env.NEXT_PUBLIC_REVALIDATE_SECRET
-      );
+      // Create the action payload object
+      const payload = {
+        productId: product.id,
+        variantId: firstVariant.id,
+        quantity: 1
+      };
 
+      console.log('Adding to cart:', payload);
+
+      // Dispatch the action and await the result
+      await dispatch(addToCart(payload)).unwrap();
+
+      // Show success state
       setIsCartAdded(true);
       setTimeout(() => setIsCartAdded(false), 3000);
     } catch (error) {

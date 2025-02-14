@@ -9,11 +9,16 @@ import { getCookie } from "../../../../utils/cookieUtils";
 const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdded }) => {
   const [selectedStars, setSelectedStars] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [reviewError, setReviewError] = useState(""); // Add this for error handling
   const dispatch = useDispatch();
 
   // Fix the selector to properly access customer state
   const customer = useSelector((state) => state.auth?.customer) || {};
   const { status, error } = useSelector((state) => state.reviews);
+
+  useEffect(()=>{
+    console.log("Customer Comment Page error", error);
+  }, [error]);
 
   useEffect(() => {
     dispatch(retrieveCustomer());
@@ -51,14 +56,15 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setReviewError(""); // Clear any previous errors
     
     if (!selectedStars) {
-      console.error('Please select a rating');
+      setReviewError("Please select a rating");
       return;
     }
 
     if (wordCount < 10) {
-      console.error('Please write at least 10 words');
+      setReviewError("Please write at least 10 words");
       return;
     }
 
@@ -93,8 +99,8 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
         setIsPopupOpen(false);
       }
     } catch (err) {
-      console.error('Failed to add review:', err.message);
-      // You might want to show this error to the user
+      console.error('Failed to add review:', err);
+      setReviewError(err.message || "Failed to submit review. Please try again.");
     }
   };
 
@@ -144,11 +150,13 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
           <p className="text-sm mt-2 text-gray-500">Word count: {wordCount} / 10</p> {/* Changed word count target */}
 
           {/* Error Message */}
-          {error && <p className="text-sm text-red-500">Error: {error}</p>}
+          {reviewError && (
+            <p className="text-sm text-red-500 mt-2">{reviewError}</p>
+          )}
 
           {/* Submit Button - update minimum word requirement */}
           <button
-            className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto"
+            className="border-black border py-2 px-4 rounded-lg mt-4 w-full sm:w-auto cursor-pointer"
             disabled={wordCount < 10 || status === "loading"} // Changed minimum word requirement
             onClick={(event) => handleSubmit(event)}
           >

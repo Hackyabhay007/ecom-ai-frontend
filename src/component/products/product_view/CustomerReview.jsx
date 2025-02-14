@@ -156,7 +156,7 @@ const CustomerReview = ({ productImage, productId }) => {
       </div>
 
       {/* Customer Reviews */}
-      <div className="mt-8 space-y-2 flex flex-col-reverse">
+      <div className="mt-8 space-y-2 flex flex-col-reverse gap-3">
         {localReviews && localReviews.length > 0 ? (
           localReviews.map((review) => (
             <div
