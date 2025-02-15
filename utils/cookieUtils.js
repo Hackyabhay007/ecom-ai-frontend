@@ -8,6 +8,8 @@ export const getCookie = (name) => {
     return Cookies.get(name);
 };
 
+// console.log("This is the cookie", Cookies.get('auth_token'));
+
 export const removeCookie = (name) => {
     Cookies.remove(name);
 };

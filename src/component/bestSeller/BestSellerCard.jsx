@@ -1,96 +1,86 @@
-import React, { useEffect, useState, useMemo } from "react";
-import Image from "next/image";
-import { useRegion } from "../../contexts/RegionContext";
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import Image from 'next/image';
+import { fetchSingleProduct } from '../../../redux/slices/shopSlice';
+import { formatPriceToINR } from 'utils/currencyUtils';
+import Link from 'next/link';
 
-function BestSellerCard({ id, image, rating, price, prevPrice, discount, title }) {
-  const { region } = useRegion();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [variantPrice, setVariantPrice] = useState(null);
+const BestSellerCard = ({ id }) => {
+  const dispatch = useDispatch();
+  const { selectedProduct, selectedProductLoading, selectedProductError } = useSelector((state) => {
+    return state.shop;
+  });
 
   useEffect(() => {
-    if (!region || !id) return;
+    if (id) {
+      dispatch(fetchSingleProduct(id))
+        .unwrap()
+        .then(result => console.log('Fetch result:', result))
+        .catch(error => console.error('Fetch error:', error));
+    }
+  }, [dispatch, id]);
 
-    setLoading(true);
-    const queryParams = new URLSearchParams({
-      fields: `*variants.calculated_price`,
-      region_id: region.id,
+  useEffect(() => {
+    console.log('State Update:', {
+      selectedProduct,
+      selectedProductLoading,
+      selectedProductError
     });
+  }, [selectedProduct, selectedProductLoading, selectedProductError]);
 
-    fetch(`${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/${id}?${queryParams.toString()}`, {
-      credentials: "include",
-      headers: {
-        "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",
-      },
-    })
-      .then((res) => res.json())
-      .then(({ product: dataProduct }) => {
-        setProduct(dataProduct);
-
-        // Find the variant with size 'M'
-        const targetVariant = dataProduct.variants.find((variant) =>
-          variant.options.some(
-            (option) => option.value.toLowerCase() === "m" // Check if size is 'M'
-          )
-        );
-
-        if (targetVariant) {
-          setVariantPrice(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: region.currency_code,
-            }).format(targetVariant.calculated_price?.calculated_amount)
-          );
-        } else {
-          setVariantPrice("N/A"); // Handle case where no variant matches
-        }
-
-        setLoading(false);
-      });
-  }, [id, region]);
-
-  if (loading) {
-    return (
-      <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col animate-pulse">
-        <div className="w-full h-96 bg-gray-200"></div>
-        <div className="flex flex-col p-4">
-          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-          <div className="flex gap-2">
-            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-          </div>
-        </div>
-      </div>
-    );
+  if (selectedProductLoading) {
+    console.log('Rendering loading state');
+    return <div className="animate-pulse">Loading...</div>;
   }
 
+  if (selectedProductError) {
+    console.error('Rendering error state:', selectedProductError);
+    return <div>Error loading product</div>;
+  }
+
+  if (!selectedProduct) {
+    console.log('No product data available');
+    return null;
+  }
+
+  console.log('Rendering product:', selectedProduct);
+  const mainVariant = selectedProduct.variants[0];
+
+  console.log("This is the iamge nad the id ", id, mainVariant.images[0].url);
+  // console.log('Main variant:', mainVariant);
+
+  const mainImage =  mainVariant?.images[0] || selectedProduct.images[0];
+  console.log('Main image:', mainImage);
+
   return (
-    <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col">
-      <Image
-        src={image}
-        alt={title}
-        width={384}
-        height={384}
-        className="w-full h-96 object-cover mb-4"
-      />
-      <div className="flex flex-col p-4">
-        <h2 className="font-bold">{title || "Clothing for men"}</h2>
-        <span className="text-yellow-600 font-semibold mr-2">{rating} ★</span>
-        <div className="flex flex-wrap gap-5 items-center">
-          <span className="font-bold text-lg">
-            {variantPrice !== "N/A" ? variantPrice : "Size M not available"}
-          </span>
-          {prevPrice && <span className="text-sub-color line-through">₹{prevPrice}</span>}
-          {discount && (
-            <span className="text-white bg-theme-blue rounded-full px-2 text-sm">
-              - {discount}% off
-            </span>
-          )}
+    <div className="relative group text-cream cursor-pointer">
+      <Link href={`/shop/product/${id}`}>
+        <div className="relative w-full h-96 overflow-hidden rounded-lg">
+          <Image
+            src={mainImage?.url || '/images/placeholder.jpg'}
+            alt={mainImage?.alt || selectedProduct.name}
+            layout="fill"
+            objectFit="cover"
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
-      </div>
+
+        <div className="mt-4">
+          <h3 className="text-lg font-medium">{selectedProduct.name}</h3>
+          <div className="mt-2 space-y-1">
+            <p className="text-sm text-gray-300">{selectedProduct.category?.name}</p>
+            <p className="text-lg font-semibold">{formatPriceToINR(mainVariant?.price)}</p>
+            {mainVariant?.isOnSale && mainVariant?.salePrice && (
+              <div className="flex items-center gap-2">
+                <span className="line-through text-gray-400">{formatPriceToINR(mainVariant.price)}</span>
+                <span className="text-red-500">{formatPriceToINR(mainVariant.salePrice)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </Link>
     </div>
   );
-}
+};
 
 export default BestSellerCard;

@@ -19,6 +19,8 @@ import shopReducer from './slices/shopSlice';
 import reviewReducer from './slices/reviewSlice';
 import wishlistReducer from './slices/wishlistSlice';
 import productReducer from './slices/productSlice';
+import categoryReducer from './slices/categorySlice';
+import collectionReducer from './slices/collectionSlice';
 
 // Persist configuration
 const persistConfig = {
@@ -42,6 +44,8 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   wishlist: wishlistReducer, // Add this line
   products: productReducer,
+  categories: categoryReducer,
+  collection: collectionReducer,
 });
 
 // Persist the combined reducer

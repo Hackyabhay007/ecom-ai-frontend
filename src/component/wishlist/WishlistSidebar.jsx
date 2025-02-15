@@ -12,6 +12,7 @@ import {
   selectDeleteSuccess,
   clearDeleteSuccess
 } from "../../../redux/slices/wishlistSlice";
+import { formatPriceToINR } from "utils/currencyUtils";
 
 const WishlistSidebar = () => {
   const dispatch = useDispatch();
@@ -117,10 +118,10 @@ const WishlistSidebar = () => {
                 <div className="flex-1 ml-4">
                   <h3 className="font-medium">{item.product?.name}</h3>
                   <p className="text-sm text-gray-500">
-                    ₹{item.variant?.price || 0}
+                    {formatPriceToINR(item.variant?.price || 0)}
                   </p>
                 </div>
-                {console.log("This is the item of the Wishlist SIde", item)}
+                {/* {console.log("This is the item of the Wishlist SIde", item)} */}
                 <button
                   onClick={() => handleRemoveItem(item?.id)}
                   className="text-red-500 hover:text-red-700"

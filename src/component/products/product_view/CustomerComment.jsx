@@ -21,6 +21,10 @@ const CustomerComment = ({ productImage, setIsPopupOpen, productId, onReviewAdde
   const customer = useSelector((state) => state.auth?.user); // Fix selector
   const { status, error } = useSelector((state) => state.reviews);
 
+  useEffect(()=>{
+    
+  })
+
   // Check if user has already reviewed
   useEffect(() => {
     const checkExistingReview = async () => {

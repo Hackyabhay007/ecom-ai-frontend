@@ -27,8 +27,9 @@ const CartItem = ({ item }) => {
 
   // Get image from product or variant
   const getImageUrl = () => {
-    const variant = item.product.variants?.find(v => v.id === item.variantId);
-    return variant?.imageUrl || item.product?.imageUrl || '/placeholder-image.jpg';
+    console.log('Item:', item);
+    const variant = item.product.variants[0]?.images[0]?.url;
+    return variant || '/placeholder-image.jpg';
   };
 
   // Handle quantity changes

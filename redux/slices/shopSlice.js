@@ -14,7 +14,9 @@ export const fetchProducts = createAsyncThunk(
         ...(filters.color && { color: filters.color }),
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-        ...(filters.saleOnly && { saleOnly: filters.saleOnly }), // Add this line
+        ...(filters.saleOnly && { saleOnly: filters.saleOnly }),
+        // Add support for fetching by productIds
+        ...(filters.ids && { ids: filters.ids.join(',') }),
       });
 
       const response = await axios.get(
@@ -45,22 +47,32 @@ export const fetchProducts = createAsyncThunk(
 export const fetchSingleProduct = createAsyncThunk(
   'shop/fetchSingleProduct',
   async (productId, { rejectWithValue }) => {
+    console.log('fetchSingleProduct - Started with productId:', productId);
     try {
-      const response = await axios.get(
-        createApiUrl(`/products/${productId}`),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const url = createApiUrl(`/products/${productId}`);
+      console.log('Fetching from URL:', url);
+
+      const response = await axios.get(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('API Response:', response.data);
 
       if (!response.data.success) {
+        console.error('API returned success: false');
         return rejectWithValue('Failed to fetch product details');
       }
 
+      console.log('Processed product data:', response.data.data.product);
       return response.data.data.product;
     } catch (error) {
+      console.error('fetchSingleProduct error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch product details');
     }
   }
@@ -72,6 +84,7 @@ export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
   async ({ searchQuery = '', filters = {}, signal }, { getState, rejectWithValue }) => {
 
+    console.log('Fetching products by search:', { searchQuery, filters });
     try {
       // Build query parameters
       let queryParams = new URLSearchParams();
@@ -82,10 +95,10 @@ export const fetchProductsBySearch = createAsyncThunk(
       }
 
       // Only add other parameters if needed
-      // const limit = filters.limit || 9;
-      // queryParams.append('limit', String(limit));
-      // const page = filters.page || 1;
-      // queryParams.append('page', String(page));
+      const limit = filters.limit || 10;
+      queryParams.append('limit', String(limit));
+      const page = filters.page || 1;
+      queryParams.append('page', String(page));
 
       const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
 
@@ -112,6 +125,46 @@ export const fetchProductsBySearch = createAsyncThunk(
   }
 );
 
+// // Add new thunk for fetching related products
+// export const fetchRelatedProducts = createAsyncThunk(
+//   'shop/fetchRelatedProducts',
+//   async ({ categoryId, currentProductId, page = 1, limit = 10 }, { rejectWithValue }) => {
+//     try {
+//       console.log('Fetching related products:', { categoryId, currentProductId, page, limit });
+      
+//       const response = await axios.get(
+//         createApiUrl(`/products/related`),
+//         {
+//           params: {
+//             categoryId,
+//             excludeProductId: currentProductId,
+//             page,
+//             limit
+//           },
+//           headers: {
+//             'Content-Type': 'application/json',
+//           },
+//         }
+//       );
+
+//       if (!response.data.success) {
+//         return rejectWithValue('Failed to fetch related products');
+//       }
+
+//       return {
+//         products: response.data.data.products,
+//         meta: {
+//           currentPage: page,
+//           totalPages: Math.ceil(response.data.data.count / limit),
+//           total: response.data.data.count,
+//           limit
+//         }
+//       };
+//     } catch (error) {
+//       return rejectWithValue(error.response?.data?.message || 'Failed to fetch related products');
+//     }
+//   }
+// );
 
 const initialState = {
   products: [],
@@ -138,6 +191,15 @@ const initialState = {
   selectedProductLoading: false,
   selectedProductError: null,
   isFiltered: false, // Add this to track if filters are applied
+  // relatedProducts: [],
+  // relatedProductsMeta: {
+  //   currentPage: 1,
+  //   totalPages: 1,
+  //   total: 0,
+  //   limit: 10
+  // },
+  // relatedProductsLoading: false,
+  // relatedProductsError: null,
 };
 
 const shopSlice = createSlice({
@@ -198,14 +260,17 @@ const shopSlice = createSlice({
       })
       // Add cases for fetchSingleProduct
       .addCase(fetchSingleProduct.pending, (state) => {
+        console.log('fetchSingleProduct: PENDING');
         state.selectedProductLoading = true;
         state.selectedProductError = null;
       })
       .addCase(fetchSingleProduct.fulfilled, (state, action) => {
+        console.log('fetchSingleProduct: FULFILLED', action.payload);
         state.selectedProductLoading = false;
         state.selectedProduct = action.payload;
       })
       .addCase(fetchSingleProduct.rejected, (state, action) => {
+        console.log('fetchSingleProduct: REJECTED', action.payload);
         state.selectedProductLoading = false;
         state.selectedProductError = action.payload;
       })
@@ -239,18 +304,35 @@ const shopSlice = createSlice({
         state.searchLoading = false;
         state.searchError = action.payload;
         state.products = []; // Clear products on error
-      });
+      })
+      // .addCase(fetchRelatedProducts.pending, (state) => {
+      //   state.relatedProductsLoading = true;
+      //   state.relatedProductsError = null;
+      // })
+      // .addCase(fetchRelatedProducts.fulfilled, (state, action) => {
+      //   state.relatedProductsLoading = false;
+      //   state.relatedProducts = action.payload.products;
+      //   state.relatedProductsMeta = action.payload.meta;
+      // })
+      // .addCase(fetchRelatedProducts.rejected, (state, action) => {
+      //   state.relatedProductsLoading = false;
+      //   state.relatedProductsError = action.payload;
+      // });
   }
 });
 
 export const { setFilters, clearFilters, setPriceRange } = shopSlice.actions;
 
-// Add this selector at the bottom of the file
+// Update the selectMatchingProducts selector
 export const selectMatchingProducts = (state, productIds) => {
-  const allProducts = state.shop.products;
-  return productIds && allProducts
-    ? allProducts.filter(product => productIds.includes(product.id))
-    : [];
+  if (!productIds || !Array.isArray(productIds) || !state.shop.products) {
+    return [];
+  }
+  return state.shop.products.filter(product => productIds.includes(product.id));
 };
+
+export const selectRelatedProducts = (state) => state.shop.relatedProducts;
+export const selectRelatedProductsMeta = (state) => state.shop.relatedProductsMeta;
+export const selectRelatedProductsLoading = (state) => state.shop.relatedProductsLoading;
 
 export default shopSlice.reducer;

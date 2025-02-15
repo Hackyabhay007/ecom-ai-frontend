@@ -28,6 +28,7 @@ export const fetchAllWishlistItems = createAsyncThunk(
         return rejectWithValue('Failed to fetch wishlist items');
       }
 
+      console.log( "This is the response from the fetchAllWishlistItems", response.data.data.wishlist);
       return {
         items: response?.data?.data?.wishlist,
         count: response?.data?.data?.count,

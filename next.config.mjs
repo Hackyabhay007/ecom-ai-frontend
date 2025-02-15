@@ -20,7 +20,13 @@ const nextConfig = {
         hostname: 'localhost',
         port: '9000',
         pathname: '/uploads/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.shutterstock.com',
+        port: '',
+        pathname: '/image-photo/**',
+      },
     ],
   },
 };

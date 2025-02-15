@@ -1,52 +1,74 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import Image from "next/image";
-import axios from "axios";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { createApiUrl } from '../../utils/apiConfig';
 
-// Async action to fetch collection data
+// Define initial state
+const initialState = {
+  collections: [],
+  loading: false,
+  error: null,
+  meta: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 1
+  }
+};
+
+// Create fetch collections thunk
 export const fetchcollections = createAsyncThunk(
-  "collections/fetchcollections",
-  async () => {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/collections`,
-      {
-        params: {
-          fields: "*metadata",
-        },
-        headers: {
-          "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-        },
+  'collections/fetchCollections',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        createApiUrl('/collections'),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      console.log('Collections API Response:', response.data);
+
+      if (!response.data.success) {
+        return rejectWithValue('Failed to fetch collections');
       }
-    ); // Replace with your API endpoint
-    // console.log(response.data, " this is get rescome from collection");
-    return response.data.collections; // Assume the API returns an array of collections
+
+      return response.data.data;
+    } catch (error) {
+      console.error('Collection fetch error:', error);
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch collections');
+    }
   }
 );
-// console.log("");
-// fetchcollections();
 
-const collectionsectionSlice = createSlice({
-  name: "collections",
-  initialState: {
-    collections: [], // Default state
-    status: "idle",
-    error: null,
-  },
+// Create the slice
+const collectionSlice = createSlice({
+  name: 'collection',
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchcollections.pending, (state) => {
-        state.status = "loading";
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchcollections.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        // console.log(action.payload);
-        state.collections = action.payload;
+        state.loading = false;
+        state.collections = action.payload.collections;
+        state.meta = action.payload.meta || state.meta;
       })
       .addCase(fetchcollections.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export default collectionsectionSlice.reducer;
+// Export selectors
+export const selectCollections = (state) => state.collection.collections;
+export const selectCollectionLoading = (state) => state.collection.loading;
+export const selectCollectionError = (state) => state.collection.error;
+
+export default collectionSlice.reducer;

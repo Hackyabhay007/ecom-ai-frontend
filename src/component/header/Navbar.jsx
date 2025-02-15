@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
 import Link from "next/link"
 // Update this import
-import { 
+import {
   toggleWishlistSidebar,
-  selectWishlistCount 
+  selectWishlistCount
 } from "../../../redux/slices/wishlistSlice"
 import Search from "../search/Search"
 import NavCategory from "./NavCategory"
@@ -19,7 +19,8 @@ import { useCart } from "@/contexts/CartContext"
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const [activeLink, setActiveLink] = useState("")
   const { cart } = useCart();
 
@@ -30,16 +31,23 @@ function Navbar() {
   // Add wishlist count selector
   const wishlistCount = useSelector(selectWishlistCount);
 
+  const {items} = useSelector(state => state.cart);
+
+  useEffect(() => { 
+    setCartCount(items.length);
+  }, [items]);
+  // const cartCount = 0;
+
   // const { currentCustomer } = useSelector(state => state.customer)
 
   const totalItems = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
 
-  console.log(cart , "cart from navbar")
+  console.log(cart, "cart from navbar")
 
   const menuItemVariants = {
-    hidden: { 
+    hidden: {
       opacity: 0,
-      y: -5 
+      y: -5
     },
     visible: {
       opacity: 1,
@@ -155,12 +163,11 @@ function Navbar() {
 
   if (isMobile) {
     return (
-      <nav className={`bg-white fixed w-full p-4 shadow-md text-black ${
-        isMenuOpen ? "z-50" : "z-40"
-      }`}>
+      <nav className={`bg-white fixed w-full p-4 shadow-md text-black ${isMenuOpen ? "z-50" : "z-40"
+        }`}>
         <div className="flex items-center justify-between">
           <Link href="/">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex justify-center items-center relative w-28 h-10"
@@ -194,11 +201,10 @@ function Navbar() {
               variants={iconVariants}
               whileHover="hover"
               whileTap="tap"
-              className={`text-xl cursor-pointer transition-all duration-300 ease-in-out ${
-                isMenuOpen
+              className={`text-xl cursor-pointer transition-all duration-300 ease-in-out ${isMenuOpen
                   ? "ri-close-line rotate-180"
                   : "ri-pause-large-line rotate-90"
-              }`}
+                }`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             />
           </div>
@@ -220,7 +226,7 @@ function Navbar() {
               className="fixed top-19 right-0 h-screen w-full bg-white shadow-lg z-50"
             >
               <div className="mt-2 py-4 h-full">
-                <motion.ul 
+                <motion.ul
                   className="space-y-0"
                   variants={menuItemVariants}
                 >
@@ -238,14 +244,14 @@ function Navbar() {
   }
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
       className="bg-white text-black flex items-center justify-around p-4 py-6 shadow-md"
     >
       <Link href="/">
-        <motion.div 
+        <motion.div
           whileHover={{ scale: 1.05 }}
           className="flex justify-center items-center relative w-28 h-10"
         >
@@ -274,17 +280,16 @@ function Navbar() {
             initial="hidden"
             animate="visible"
             whileHover="hover"
-            className={`cursor-pointer uppercase text-sm hover:text-theme-blue relative ${
-              activeLink === `/${item.toLowerCase()}` ? "text-theme-blue font-semibold" : ""
-            }`}
+            className={`cursor-pointer uppercase text-sm hover:text-theme-blue relative ${activeLink === `/${item.toLowerCase()}` ? "text-theme-blue font-semibold" : ""
+              }`}
             onClick={() => navigateTo(`${item === "Home" ? "/" : `/${item.toLowerCase()}`}`)}
           >
             {item}
             <motion.div
               className="absolute bottom-0 left-0 w-full h-0.5 bg-theme-blue origin-left"
               initial={{ scaleX: 0 }}
-              animate={{ scaleX: activeLink === `${item === "Home" ? "/" : `/${item.toLowerCase()}`  }` ? 1 : 0 }}
-              
+              animate={{ scaleX: activeLink === `${item === "Home" ? "/" : `/${item.toLowerCase()}`}` ? 1 : 0 }}
+
               transition={{ duration: 0.3 }}
             />
           </motion.div>
@@ -323,9 +328,15 @@ function Navbar() {
             <motion.i
               variants={iconVariants}
               whileHover="hover"
-              whileTap="tap" 
-              className="ri-shopping-bag-line text-xl cursor-pointer hover:text-black"
+              whileTap="tap"
+              className="ri-shopping-bag-line relative text-xl cursor-pointer hover:text-black"
             />
+
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-white text-black border border-theme-blue p-1 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                {cartCount}
+              </span>
+            )}
           </Link>
           <AnimatePresence>
             {totalItems > 0 && (

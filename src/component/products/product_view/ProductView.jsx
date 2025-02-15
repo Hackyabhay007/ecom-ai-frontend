@@ -352,7 +352,7 @@ const ProductView = ({ productId }) => {
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="w-full">
-          {console.log('Images being passed to carousel:', productImages)}
+          {/* {console.log('Images being passed to carousel:', productImages)} */}
           <ImageCarousel images={productImages} />
         </div>
         <div>

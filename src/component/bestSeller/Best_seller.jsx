@@ -4,39 +4,41 @@ import BestSellerCard from './BestSellerCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBestSeller_Section } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
 import Link from "next/link";
+import { fetchProducts, selectMatchingProducts } from '../../../redux/slices/shopSlice';
+import { set } from 'lodash';
 
 
 
-const dummyData = [
-  {
-    image: '/images/bestseller/best1.png',
-    rating: '4.5',
-    price: '19.99',
-    prevPrice: '39.99',
-    discount: '20'
-  },
-  {
-    image: '/images/bestseller/best2.png',
-    rating: '4.0',
-    price: '24.99',
-    prevPrice: '49.99',
-    discount: '50'
-  },
-  {
-    image: '/images/bestseller/best3.png',
-    rating: '4.7',
-    price: '29.99',
-    prevPrice: '59.99',
-    discount: '45'
-  },
-  {
-    image: '/images/bestseller/best4.png',
-    rating: '4.3',
-    price: '21.99',
-    prevPrice: '44.99',
-    discount: '20'
-  }
-];
+// const dummyData = [
+//   {
+//     image: '/images/bestseller/best1.png',
+//     rating: '4.5',
+//     price: '19.99',
+//     prevPrice: '39.99',
+//     discount: '20'
+//   },
+//   {
+//     image: '/images/bestseller/best2.png',
+//     rating: '4.0',
+//     price: '24.99',
+//     prevPrice: '49.99',
+//     discount: '50'
+//   },
+//   {
+//     image: '/images/bestseller/best3.png',
+//     rating: '4.7',
+//     price: '29.99',
+//     prevPrice: '59.99',
+//     discount: '45'
+//   },
+//   {
+//     image: '/images/bestseller/best4.png',
+//     rating: '4.3',
+//     price: '21.99',
+//     prevPrice: '44.99',
+//     discount: '20'
+//   }
+// ];
 
 function BestSeller() {
   // const {
@@ -45,6 +47,7 @@ function BestSeller() {
   //   error,
   // } = useSelector((state) => state.productonhomesection);
   const [pageroutedeatils, setPageroutedeatils] = useState([]);
+  const [productsArray, setProductsArray] = useState([]);
   const [bestSellerInfo, setBestSellerInfo] = useState({
     title: "",
     description: "",
@@ -53,22 +56,43 @@ function BestSeller() {
   });
 
   const dispatch = useDispatch();
-  const { bestSellerSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+  const { bestSellerSection, loading, error } = useSelector((state) => state?.homePage); // Correct 
+  // selector
+  // const matchingProducts = useSelector((state) => 
+  //   selectMatchingProducts(state, bestSellerSection?.section_data?.productIds)
+  // );
+
+  // console.log("Best Seller Section Data:", bestSellerSection);
 
   useEffect(() => {
     dispatch(fetchBestSeller_Section());
   }, [dispatch]);
 
   useEffect(() => {
+    if (bestSellerSection?.section_data?.productIds?.length > 0) {
+      dispatch(fetchProducts({
+        filters: {
+          ids: bestSellerSection.section_data.productIds
+        }
+      }));
+    }
+  }, [dispatch, bestSellerSection?.section_data?.productIds]);
+
+  useEffect(() => {
     // console.log("This is the Best Seller data of the Best_Seller.jsx page", bestSellerSection);
     if(bestSellerSection?.section_data?.title){
-
+      // console.log("Best Seller Section Data:", bestSellerSection);
       setBestSellerInfo({
         title: bestSellerSection?.section_data?.title || "",
         description: bestSellerSection?.section_data?.description || "",
         buttonText: bestSellerSection?.section_data?.cta_button?.text || "",
         buttonLink: bestSellerSection?.section_data?.cta_button?.link || ""
       });
+
+      console.log("Best Seller Section Data:", bestSellerSection);
+      const bestSellerProducts = bestSellerSection?.section_data?.products || [];
+      console.log("Best Seller Products:", bestSellerProducts);
+      setProductsArray(bestSellerProducts);
     }
 
   }, [bestSellerSection]);
@@ -134,7 +158,7 @@ function BestSeller() {
   // Ensure the data is converted into an array
   const productArray = Array.isArray(best_product) ? best_product : [];
 
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="h-fit p-8 animate-pulse">
         <div className="flex flex-col md:flex-row">
@@ -215,20 +239,15 @@ function BestSeller() {
             style={{ scrollSnapType: "x mandatory" }}
           >
             <div className="flex space-x-4 w-full" style={{ minWidth: "100%" }}>
-              {productArray.map((item, index) => (
+            {console.log("This is the productArray of the Best_Seller.jsx component falkldfsjlfsjldldsljfdsljadsfl;jlsfdajl;sfdljfl;", productsArray)}
+              {productsArray.map((product) => (
                 <div
-                  key={index}
+                  key={product.id}
                   className="flex-none w-full h-full md:w-2/3 lg:w-1/2 md:px-4"
                   style={{ scrollSnapAlign: "start" }}
                 >
                   <BestSellerCard
-                    id={item.id}
-                    image={item.thumbnail}
-                    rating={item?.rating || 0}
-                    price={item.price}
-                    prevPrice={item.prevPrice}
-                    discount={item.discount}
-                    title={item.title}
+                    id={product.product_id}
                   />
                 </div>
               ))}

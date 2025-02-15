@@ -13,7 +13,7 @@ const NavCategory = () => {
   const categoryRefs = {
     woman: useRef(null),
     man: useRef(null),
-    kids: useRef(null),
+    // kids: useRef(null),
   };
 
   const route = useRouter();
@@ -144,7 +144,7 @@ const NavCategory = () => {
         animate="visible"
         className="flex px-5 text-xl md:text-base text-black md:px-0 bg-light-BG md:bg-white flex-col space-y-8 md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around pt-10 pb-5 md:py-0 md:pb-0 md:border-none z-50"
       >
-        {["men", "woman", "kids"].map((category, index) => (
+        {["men", "woman"].map((category, index) => (
           <motion.div
             key={category}
             ref={categoryRefs[category]}

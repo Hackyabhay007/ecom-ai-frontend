@@ -12,14 +12,23 @@ const CustomerReview = ({ productImage, productId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 10;
   const [localReviews, setLocalReviews] = useState([]); // Add local reviews state
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     if (productId) {
-      dispatch(fetchReviews({ 
-        productId, 
-        page: currentPage, 
-        limit: reviewsPerPage 
-      }));
+      console.log('Fetching reviews for page:', currentPage);
+      const fetchReviewsData = async () => {
+        try {
+          await dispatch(fetchReviews({
+            productId,
+            page: currentPage,
+            limit: ITEMS_PER_PAGE
+          })).unwrap();
+        } catch (error) {
+          console.error('Error fetching reviews:', error);
+        }
+      };
+      fetchReviewsData();
     }
   }, [dispatch, productId, currentPage]);
 
@@ -29,6 +38,16 @@ const CustomerReview = ({ productImage, productId }) => {
       setLocalReviews(reviews);
     }
   }, [reviews]);
+
+  // Add debug logging for meta data
+  useEffect(() => {
+    console.log('Reviews Meta Data:', {
+      totalPages: meta?.totalPages,
+      currentPage,
+      totalReviews: meta?.total,
+      reviews: reviews?.length
+    });
+  }, [meta, currentPage, reviews]);
 
   // Use stats from Redux store instead of calculating
   const totalRatings = stats.total;
@@ -80,10 +99,33 @@ const CustomerReview = ({ productImage, productId }) => {
     return <div className="mt-8 bg-[#F7F7F7] p-6 rounded-lg">Loading reviews...</div>;
   }
 
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handlePageChange = async (newPage) => {
+    console.log('Changing to page:', newPage);
+    try {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      console.error('Error changing page:', error);
+    }
   };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const nextPage = () => {
+    if (currentPage < (meta?.totalPages || 1)) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Calculate page numbers for pagination
+  const pageNumbers = [];
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(meta?.totalPages || 0, currentPage + 2); i++) {
+    pageNumbers.push(i);
+  }
 
   return (
     <div className="mt-8 bg-[#F7F7F7] p-6 rounded-lg">
@@ -145,9 +187,12 @@ const CustomerReview = ({ productImage, productId }) => {
         </button>
       </div>
 
-      {/* Customer Reviews with Pagination */}
+      {console.log("This is the review value of the Customer Review.jsx compoent ", reviews)}
+      {/* Customer Reviews with Updated Pagination */}
       <div className="mt-8 space-y-2 flex flex-col gap-3">
-        {reviews && reviews.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-4">Loading reviews...</div>
+        ) : reviews && reviews.length > 0 ? (
           <>
             <div className="space-y-4">
               {reviews.map((review) => (
@@ -167,9 +212,9 @@ const CustomerReview = ({ productImage, productId }) => {
                       <div className="text-yellow-600">
                         {renderStars(review.rating)}
                       </div>
-                      <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
+                      <h3 className="font-semibold text-lg mt-2">{review?.title}</h3>
                     </div>
-                    <p className="text-sub-color mt-2">{review.description}</p>
+                    <p className="text-sub-color mt-2">{review?.message}</p>
                     <p className="text-sm font-bold mt-2">{review.user_name}</p>
                     <p className="text-sm text-sub-color mt-2">
                       {formatLocalDate(review.created_at || Date.now())}
@@ -179,50 +224,45 @@ const CustomerReview = ({ productImage, productId }) => {
               ))}
             </div>
             
-            {/* Pagination Controls */}
-            {meta.totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-6 pb-4">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === 1
-                      ? 'bg-gray-200 text-gray-500'
-                      : 'bg-black text-white hover:bg-gray-800'
-                  }`}
-                >
-                  Previous
-                </button>
-                
-                <div className="flex items-center gap-2">
-                  {[...Array(meta.totalPages)].map((_, index) => (
-                    <button
-                      key={index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                      className={`w-8 h-8 rounded-full ${
-                        currentPage === index + 1
-                          ? 'bg-black text-white'
-                          : 'bg-white text-black border border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
+            {/* Updated Pagination Controls - Fixed Visibility */}
+            <div className="text-sm md:text-base flex justify-center mt-4">
+              <button
+                onClick={prevPage}
+                disabled={currentPage === 1 || loading}
+                className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none ${
+                  (currentPage === 1 || loading) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Previous
+              </button>
 
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === meta.totalPages}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === meta.totalPages
-                      ? 'bg-gray-200 text-gray-500'
-                      : 'bg-black text-white hover:bg-gray-800'
-                  }`}
-                >
-                  Next
-                </button>
+              <div className="flex items-center mx-2">
+                {[...Array(meta?.totalPages || 1)].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handlePageChange(index + 1)}
+                    disabled={loading}
+                    className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none mx-1 ${
+                      currentPage === index + 1
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-gray-200"
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
               </div>
-            )}
+
+              <button
+                onClick={nextPage}
+                disabled={currentPage >= (meta?.totalPages || 1) || loading}
+                className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none ${
+                  (currentPage >= (meta?.totalPages || 1) || loading) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Next
+              </button>
+            </div>
           </>
         ) : (
           <div className="text-center py-4">No reviews yet. Be the first to review!</div>

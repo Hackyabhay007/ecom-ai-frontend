@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -32,7 +32,21 @@ const Wishlist = () => {
   const deleteSuccess = useSelector(selectDeleteSuccess);
   const meta = useSelector(selectWishlistMeta);
 
-  console.log("Wishlist Items", wishlistItems);
+  // console.log("Wishlist Items", wishlistItems);
+
+  useEffect(()=>{
+    const result = dispatch(fetchAllWishlistItems());
+    console.log("This is the result", result);
+  }, [])
+  // console.log(const resdispatch(fetchAllWishlistItems()));
+  // let result = dispatch(fetchAllWishlistItems());
+  // console.log("This is the result", result);
+
+  const {items} = useSelector(state => state.wishlist);
+
+  // useEffect(() => { 
+  //   console.log("This is the Wishlist Items", [...items]);
+  // }, [items]);
 
   const [layout, setLayout] = useState(3);
   const [filters, setFilters] = useState({
@@ -40,30 +54,36 @@ const Wishlist = () => {
     sort: "best-selling",
   });
 
-  // Fetch wishlist items on component mount
+  // Updated useEffect to handle pagination changes
   useEffect(() => {
-    dispatch(fetchAllWishlistItems({
-      page: currentPage,
-      limit: ITEMS_PER_PAGE
-    }));
-  }, [dispatch, currentPage]);
+    console.log('Fetching wishlist items for page:', currentPage);
+    const fetchItems = async () => {
+      try {
+        await dispatch(fetchAllWishlistItems({
+          page: currentPage,
+          limit: ITEMS_PER_PAGE
+        })).unwrap();
 
-  // Add effect to handle successful deletion and clear errors
+        console.log('Fetched wishlist items for page:', currentPage, fetchItems);
+      } catch (error) {
+        console.error('Error fetching wishlist items:', error);
+      }
+    };
+    fetchItems();
+    console.log('Fetching wishlist items for page:', currentPage);
+  }, [dispatch, currentPage]); // Depend only on page changes and dispatch
+
+  // Separate useEffect for handling delete success
   useEffect(() => {
     if (deleteSuccess) {
-      console.log('Deletion successful, refreshing wishlist items...');
-      dispatch(clearWishlistError()); // Clear any existing errors first
+      console.log('Deletion successful, refreshing current page...');
+      dispatch(clearWishlistError());
+      dispatch(clearDeleteSuccess());
+      // After deletion, fetch the current page again
       dispatch(fetchAllWishlistItems({
         page: currentPage,
         limit: ITEMS_PER_PAGE
-      }))
-        .unwrap()
-        .then(() => {
-          dispatch(clearDeleteSuccess());
-        })
-        .catch((error) => {
-          console.error('Error refreshing wishlist:', error);
-        });
+      }));
     }
   }, [deleteSuccess, dispatch, currentPage]);
 
@@ -121,32 +141,35 @@ const Wishlist = () => {
     }
   });
 
-
-  // Pagination handler
-
-    // Handle pagination
-    const prevPage = () => {
-      if (currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    };
-  
-    const nextPage = () => {
-      if (currentPage < meta.totalPages) {
-        setCurrentPage(currentPage + 1);
-      }
-    };
-  
-    // Calculate page numbers
-    const pageNumbers = [];
-    for (let i = Math.max(1, currentPage - 2); i <= Math.min(meta.totalPages, currentPage + 2); i++) {
-      pageNumbers.push(i);
+  // Updated pagination handlers with proper async handling
+  const handlePageChange = async (newPage) => {
+    console.log('Changing to page:', newPage);
+    try {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // The useEffect will handle the actual data fetching
+    } catch (error) {
+      console.error('Error changing page:', error);
     }
-  // const handlePageChange = (newPage) => {
-  //   setCurrentPage(newPage);
-  //   // Scroll to top when page changes
-  //   window.scrollTo({ top: 0, behavior: 'smooth' });
-  // };
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const nextPage = () => {
+    if (currentPage < (meta?.totalPages || 1)) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Calculate page numbers
+  const pageNumbers = [];
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(meta.totalPages, currentPage + 2); i++) {
+    pageNumbers.push(i);
+  }
 
   return (
     <div className="wishlist_container mb-10 pt-16 md:pt-0">
@@ -162,65 +185,73 @@ const Wishlist = () => {
           {totalCount} Product{totalCount !== 1 && "s"} in Wishlist
         </span>
 
-        {/* Products grid */}
+        {/* Products grid - Updated to show loading state during page changes */}
         <div
           className={`grid gap-4 mb-8`}
           style={{
             gridTemplateColumns: `repeat(${layout}, minmax(0, 1fr))`,
           }}
         >
-          {sortedWishlist.map((item) => (
-            <div
-              key={item?.id}
-              className="rounded-lg text-center relative text-cream cursor-pointer group"
-            >
+          {isLoading ? (
+            <div className="col-span-full text-center py-4">Loading...</div>
+          ) : sortedWishlist.length > 0 ? (
+            sortedWishlist.map((item) => (
               <div
-                onClick={() => router.push(`/shop/product/${item.product.id}`)}
-                className="relative w-full h-32 md:h-96"
+                key={item?.id}
+                className="rounded-lg text-center relative text-cream cursor-pointer group"
               >
-                <Image
-                  src={item.product.primaryImage.url}
-                  alt={item.product.name}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-xl"
-                />
-
-                {/* Updated Remove Button - Positioned absolutely */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveFromWishlist(item.id);
-                  }}
-                  className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-red-50 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  title="Remove from wishlist"
+                <div
+                  onClick={() => router.push(`/shop/product/${item.product.id}`)}
+                  className="relative w-full h-32 md:h-96"
                 >
-                  <i className="ri-close-line text-xl text-red-500"></i>
-                </button>
-              </div>
+                  <Image
+                    src={item.product.primaryImage.url}
+                    alt={item.product.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-xl"
+                  />
 
-              <div className="mt-4 px-2">
-                <h3 className="mb-1 font-medium text-xs md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
-                  {item.product.name}
-                </h3>
+                  {/* Updated Remove Button - Positioned absolutely */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFromWishlist(item.id);
+                    }}
+                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-red-50 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    title="Remove from wishlist"
+                  >
+                    <i className="ri-close-line text-xl text-red-500"></i>
+                  </button>
+                </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="md:text-lg text-xs">
-                    {formatPriceToINR(item.variant.price)}
-                  </span>
+                <div className="mt-4 px-2">
+                  <h3 className="mb-1 font-medium text-xs md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
+                    {item.product.name}
+                  </h3>
+
+                  <div className="flex items-center justify-between">
+                    <span className="md:text-lg text-xs">
+                      {formatPriceToINR(item.variant.price)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="col-span-full text-center py-4">No items in wishlist</div>
+          )}
         </div>
 
-        {/* Pagination Controls */}
-        {sortedWishlist?.length > 0 && (
+        {/* Updated Pagination Controls */}
+        {meta?.totalPages > 1 && (
           <div className="text-sm md:text-base flex justify-center mt-4">
             <button
               onClick={prevPage}
-              disabled={currentPage === 1}
-              className="md:px-4 py-2 px-3 border md:rounded-sm rounded-none"
+              disabled={currentPage === 1 || isLoading}
+              className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none ${
+                (currentPage === 1 || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               Previous
             </button>
@@ -229,11 +260,13 @@ const Wishlist = () => {
               {pageNumbers.map((page) => (
                 <button
                   key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none mx-1 ${currentPage === page
+                  onClick={() => handlePageChange(page)}
+                  disabled={isLoading}
+                  className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none mx-1 ${
+                    currentPage === page
                       ? "bg-black text-white"
                       : "bg-white text-black hover:bg-gray-200"
-                    }`}
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {page}
                 </button>
@@ -242,8 +275,10 @@ const Wishlist = () => {
 
             <button
               onClick={nextPage}
-              disabled={currentPage >= meta.totalPages}
-              className="md:px-4 py-2 px-3 border md:rounded-sm rounded-none"
+              disabled={currentPage >= (meta?.totalPages || 1) || isLoading}
+              className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none ${
+                (currentPage >= (meta?.totalPages || 1) || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               Next
             </button>

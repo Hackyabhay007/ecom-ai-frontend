@@ -131,6 +131,7 @@ const Review = () => {
             className="w-1/3 px-5 border-2 border-theme-blue rounded-lg"
             style={{ height: 'auto' }} // Ensuring consistent height across all cards
           >
+            {/* {console.log("This is the Review of the Review.jsx component ",review)} */}
             <div className="relative mb-4">
               <Image
                 src={review?.profile_picture}

@@ -5,21 +5,25 @@ import { fetchcollections } from "../../../redux/slices/collectionSlice";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-const index = ({ activeCategory, setActiveCategory }) => {
+const CollectionComponent = ({ activeCategory, setActiveCategory }) => {
   const dispatch = useDispatch();
-  const {
-    collections: data,
-    status,
-    error,
-  } = useSelector((state) => state.collection);
+  // Fix the selector to handle undefined state
+  const collectionState = useSelector((state) => state.collection) || {};
+  const { collections = [], loading = false, error = null } = collectionState;
 
   useEffect(() => {
     dispatch(fetchcollections());
   }, [dispatch]);
 
-  // console.log(data);
-
-  // console.log(data, status);
+  // Debug log
+  useEffect(() => {
+    console.log('Collection State:', {
+      collections,
+      loading,
+      error,
+      activeCategory
+    });
+  }, [collections, loading, error, activeCategory]);
 
   const router = useRouter();
 
@@ -32,6 +36,22 @@ const index = ({ activeCategory, setActiveCategory }) => {
   const scrollRight = () => {
     scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 text-white bg-zinc-900">
+        <h2 className="text-2xl font-bold mb-6">Loading collections...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-white bg-zinc-900">
+        <h2 className="text-2xl font-bold mb-6">Error loading collections</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 text-white bg-zinc-900 z-[9999]">
@@ -61,7 +81,7 @@ const index = ({ activeCategory, setActiveCategory }) => {
           className="flex space-x-4 overflow-x-auto scrollbar-custom2 p-2"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {(data || [])
+          {(collections || [])
             .filter(
               (i) =>
                 typeof i.handle === "string" &&
@@ -100,4 +120,4 @@ const index = ({ activeCategory, setActiveCategory }) => {
   );
 };
 
-export default index;
+export default CollectionComponent;

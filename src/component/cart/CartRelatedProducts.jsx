@@ -91,9 +91,10 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
           className="rounded-lg text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform h-fit hover:shadow-lg"
           onClick={() => window.location.href = `/shop/${product.id}`}
         >
+          {console.log(product)}
           <div className="relative w-full h-48">
             <Image
-              src={product.thumbnail}
+              src={product.variants[0]?.images[0]?.url || product.thumbnail}
               alt={product.title}
               layout="fill"
               objectFit="cover"
