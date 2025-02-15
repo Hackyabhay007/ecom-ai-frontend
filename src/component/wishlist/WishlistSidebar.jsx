@@ -13,18 +13,17 @@ import {
   clearDeleteSuccess
 } from "../../../redux/slices/wishlistSlice";
 import { formatPriceToINR } from "utils/currencyUtils";
+import { getCookie } from "../../../utils/cookieUtils";
 
 const WishlistSidebar = () => {
   const dispatch = useDispatch();
   const deleteSuccess = useSelector(selectDeleteSuccess);
-
-
-  
-  // Get states from wishlistSlice
   const isOpen = useSelector(selectWishlistSidebarOpen);
+  const authToken = getCookie('auth_token');
+
+  // Get states from wishlistSlice
   const wishlistItems = useSelector(selectWishlistItems) || [];
   const isLoading = useSelector(selectWishlistLoading);
-
 
   useEffect(() => {
     console.log("This is the delete Success value is called", deleteSuccess)
@@ -65,6 +64,44 @@ const WishlistSidebar = () => {
       console.error('Failed to remove item:', error);
     }
   };
+
+  // Early return if no auth token
+  if (!authToken) {
+    return (
+      <>
+        {isOpen && (
+          <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${
+            isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => dispatch(toggleWishlistSidebar())}>
+          </div>
+        )}
+        <div className={`fixed top-11 md:top-0 right-0 md:w-1/3 w-full my-10 md:my-0 h-[80%] md:h-full bg-white p-5 shadow-2xl z-50 rounded-3xl transform ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } transition-transform duration-300 ease-in-out flex flex-col`}>
+          <div className="flex justify-between p-4 border-b">
+            <h2 className="text-lg font-bold text-theme-blue">Wishlist</h2>
+            <button
+              className="hover:bg-black bg-gray-700 text-white px-2 rounded-full"
+              onClick={() => dispatch(toggleWishlistSidebar())}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+            <i className="ri-user-lock-line text-4xl text-gray-400 mb-4"></i>
+            <p className="text-gray-600 mb-4">Please login to view your wishlist</p>
+            <Link href="/auth/login">
+              <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+                onClick={() => dispatch(toggleWishlistSidebar())}>
+                Login
+              </button>
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

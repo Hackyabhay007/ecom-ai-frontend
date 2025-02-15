@@ -11,7 +11,16 @@ export const fetchAllWishlistItems = createAsyncThunk(
       const token = Cookies.get('auth_token');
 
       if (!token) {
-        return rejectWithValue('Authentication token not found');
+        // Return empty data structure instead of rejecting
+        return {
+          items: [],
+          count: 0,
+          meta: {
+            currentPage: 1,
+            totalPages: 0,
+            limit
+          }
+        };
       }
 
       const response = await axios.get(
@@ -48,13 +57,12 @@ export const fetchAllWishlistItems = createAsyncThunk(
 export const addToWishlist = createAsyncThunk(
   'wishlist/addToWishlist',
   async ({ productId, variantId }, { rejectWithValue }) => {
+    const token = Cookies.get('auth_token');
+    if (!token) {
+      return rejectWithValue('Authentication required');
+    }
+
     try {
-      const token = Cookies.get('auth_token');
-
-      if (!token) {
-        return rejectWithValue('Authentication required');
-      }
-
       const response = await axios.post(
         createApiUrl('/wishlist/add'),
         {
@@ -157,7 +165,8 @@ const initialState = {
     currentPage: 1,
     totalPages: 1,
     limit: 10
-  }
+  },
+  isAuthenticated: false  // Add new state property
 };
 
 const wishlistSlice = createSlice({
@@ -175,6 +184,16 @@ const wishlistSlice = createSlice({
     },
     clearDeleteSuccess: (state) => {
       state.deleteSuccess = false;
+    },
+    setAuthentication: (state, action) => {
+      state.isAuthenticated = action.payload;
+      if (!action.payload) {
+        // Clear wishlist data when logged out
+        state.items = [];
+        state.count = 0;
+        state.meta.currentPage = 1;
+        state.meta.totalPages = 0;
+      }
     }
   },
   extraReducers: (builder) => {
@@ -186,10 +205,21 @@ const wishlistSlice = createSlice({
       })
       .addCase(fetchAllWishlistItems.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.items;
-        state.count = action.payload.count;
-        state.meta = action.payload.meta;
         state.error = null;
+        state.isAuthenticated = !!Cookies.get('auth_token');
+        if (!state.isAuthenticated) {
+          state.items = [];
+          state.count = 0;
+          state.meta = {
+            currentPage: 1,
+            totalPages: 0,
+            limit: 10
+          };
+        } else {
+          state.items = action.payload.items;
+          state.count = action.payload.count;
+          state.meta = action.payload.meta;
+        }
       })
       .addCase(fetchAllWishlistItems.rejected, (state, action) => {
         state.loading = false;
@@ -236,7 +266,8 @@ export const {
   clearWishlistError,
   clearWishlistMessage,
   toggleWishlistSidebar,  // Add this export
-  clearDeleteSuccess // Export new action
+  clearDeleteSuccess, // Export new action
+  setAuthentication
 } = wishlistSlice.actions;
 
 // Selectors
@@ -248,5 +279,6 @@ export const selectWishlistMessage = (state) => state.wishlist.message;
 export const selectWishlistSidebarOpen = (state) => state.wishlist.isOpen;
 export const selectDeleteSuccess = (state) => state.wishlist.deleteSuccess; // Add new selector
 export const selectWishlistMeta = (state) => state.wishlist.meta;
+export const selectIsAuthenticated = (state) => state.wishlist.isAuthenticated;
 
 export default wishlistSlice.reducer;

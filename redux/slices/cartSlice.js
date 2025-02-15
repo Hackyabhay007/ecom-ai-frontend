@@ -48,7 +48,7 @@ export const addToCart = createAsyncThunk(
         productId,
         variantId,
         quantity,
-        ...(guestId && { guestId })
+        guestId
       });
 
       const response = await axios.post(
@@ -57,12 +57,12 @@ export const addToCart = createAsyncThunk(
           productId,
           variantId,
           quantity,
-          ...(guestId && { guestId })
+          guestId
         },
         { headers }
       );
 
-      console.log('5. API Response:', response.data);
+      console.log('5. API Response:', response);
 
       if (!response.data.success) {
         console.log('6. API reported failure');
@@ -88,23 +88,34 @@ export const getAllCart = createAsyncThunk(
       const state = getState();
       const guestId = !token ? state.cart.guestId : null;
 
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` })
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
       };
 
-      const url = guestId 
-        ? createApiUrl(`/cart?guest=${guestId}`)
-        : createApiUrl('/cart');
+      const url = createApiUrl('/cart');
+      
+      // Debug logging for non-authenticated requests
+      if (!token) {
+        console.log('Non-authenticated cart request:', {
+          finalUrl: url,
+          headers: config.headers,
+          guestId: guestId || 'none',
+          requestBody: { guest: guestId || 'none' }
+        });
+      }
 
-      const response = await axios.get(url, { headers });
+      const response = await axios.get(url, config);
 
       if (!response.data.success) {
-        return rejectWithValue('Failed to fetch cart items');
+        throw new Error(response.data.message || 'Failed to fetch cart');
       }
 
       return response.data.data.cart;
     } catch (error) {
+      console.error('Cart fetch error:', error);
       return rejectWithValue(
         error.response?.data?.message || 'Failed to fetch cart items'
       );
@@ -112,14 +123,12 @@ export const getAllCart = createAsyncThunk(
   }
 );
 
-
-
 export const updateCart = createAsyncThunk(
   'cart/updateCart',
   async ({ itemId, updateData }, { rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
-      const guestId = !token ? getGuestId() : null;
+      const guestId = !token ? state?.cart?.guestId : null;
 
       const headers = {
         'Content-Type': 'application/json',

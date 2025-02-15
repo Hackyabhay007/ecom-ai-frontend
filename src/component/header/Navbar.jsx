@@ -7,7 +7,8 @@ import Link from "next/link"
 // Update this import
 import {
   toggleWishlistSidebar,
-  selectWishlistCount
+  selectWishlistCount,
+  selectWishlistItems
 } from "../../../redux/slices/wishlistSlice"
 import Search from "../search/Search"
 import NavCategory from "./NavCategory"
@@ -23,24 +24,47 @@ function Navbar() {
   const [cartCount, setCartCount] = useState(0);
   const [activeLink, setActiveLink] = useState("")
   const { cart } = useCart();
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [cartItemsCount, setCartItemsCount] = useState(0);
 
   const currentCustomer = "";
 
   const router = useRouter()
   const dispatch = useDispatch();
   // Add wishlist count selector
-  const wishlistCount = useSelector(selectWishlistCount);
+  // const wishlistCount = useSelector(selectWishlistCount);
 
   const {items} = useSelector(state => state.cart);
+  const { items: cartItems } = useSelector(state => state.cart);
+
+  const {items: totalItems} = useSelector(state => state.wishlist) || 0;
 
   useEffect(() => { 
     setCartCount(items.length);
   }, [items]);
+
+  useEffect(() => {
+    if (totalItems) {
+      setWishlistCount(totalItems.length);
+    }
+  }, [totalItems]);
+
+  useEffect(() => {
+    // Count from Redux cart
+    const reduxCartCount = cartItems?.length || 0;
+    
+    // Count from Cart Context
+    const contextCartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    
+    // Use whichever is greater (in case one hasn't updated yet)
+    setCartItemsCount(Math.max(reduxCartCount, contextCartCount));
+  }, [cartItems, cart?.items]);
+
   // const cartCount = 0;
 
   // const { currentCustomer } = useSelector(state => state.customer)
 
-  const totalItems = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+
 
   console.log(cart, "cart from navbar")
 
@@ -163,7 +187,7 @@ function Navbar() {
 
   if (isMobile) {
     return (
-      <nav className={`bg-white fixed w-full p-4 shadow-md text-black ${isMenuOpen ? "z-50" : "z-40"
+      <nav className={`fixed w-full p-4 shadow-md text-black ${isMenuOpen ? "z-50" : "z-40"
         }`}>
         <div className="flex items-center justify-between">
           <Link href="/">
@@ -223,7 +247,7 @@ function Navbar() {
               initial="closed"
               animate="open"
               exit="closed"
-              className="fixed top-19 right-0 h-screen w-full bg-white shadow-lg z-50"
+              className="fixed top-19 right-0 h-screen w-full shadow-lg z-50"
             >
               <div className="mt-2 py-4 h-full">
                 <motion.ul
@@ -339,14 +363,14 @@ function Navbar() {
             )}
           </Link>
           <AnimatePresence>
-            {totalItems > 0 && (
+            {wishlistCount > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
                 className="absolute  -top-1 -right-2 bg-[rgb(255,255,255)] text-black border border-theme-blue p-1 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full"
               >
-                <span className="">{totalItems}</span>
+                <span className="">{wishlistCount}</span>
               </motion.span>
             )}
           </AnimatePresence>

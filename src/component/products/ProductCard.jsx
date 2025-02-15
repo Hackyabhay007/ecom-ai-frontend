@@ -9,9 +9,11 @@ import {
 } from "../../../redux/slices/wishlistSlice"; // Fix the path
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
-import { addToCart } from "../../../redux/slices/cartSlice"; // Fixed import path
+import { addToCart, initializeGuestId } from "../../../redux/slices/cartSlice"; // Fixed import path
 import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
 import { formatPriceToINR } from "utils/currencyUtils";
+import { toast } from 'react-hot-toast';
+import { getCookie } from '../../../utils/cookieUtils';
 
 // import "./Hoverimagechnage.css"
 
@@ -127,6 +129,18 @@ const ProductCard = ({ product, layout }) => {
   // Updated handleAddToWishlist function
   const handleAddToWishlist = async (event) => {
     event.stopPropagation();
+    
+    // Check for authentication
+    const authToken = getCookie('auth_token');
+    if (!authToken) {
+      toast.error('Please login to add items to your wishlist', {
+        duration: 3000,
+        position: 'top-center',
+        icon: '🔒',
+      });
+      return;
+    }
+
     setWishlistLoading(true);
     
     try {
@@ -146,6 +160,7 @@ const ProductCard = ({ product, layout }) => {
           console.log('Remove result:', result);
           if (result) {
             setIsInWishlist(false);
+            toast.success('Removed from wishlist');
           }
         } else {
           console.error('Could not find wishlist item ID for product:', product.id);
@@ -159,10 +174,12 @@ const ProductCard = ({ product, layout }) => {
         console.log('Add result:', result);
         if (result) {
           setIsInWishlist(true);
+          toast.success('Added to wishlist');
         }
       }
     } catch (error) {
       console.error('Wishlist operation failed:', error);
+      toast.error('Failed to update wishlist');
     } finally {
       setWishlistLoading(false);
     }
@@ -187,28 +204,34 @@ const ProductCard = ({ product, layout }) => {
     const firstVariant = product.variants[0];
     
     if (!firstVariant) {
-      console.error('No variant available for product:', product.id);
+      toast.error('No variant available for this product');
       return;
     }
 
     try {
-      // Create the action payload object
+      // Initialize guest ID if user is not authenticated
+      // const authToken = getCookie('auth_token');
+      // if (!authToken) {
+      //   dispatch(initializeGuestId());
+      // }
+
+      // Create the action payload
       const payload = {
         productId: product.id,
         variantId: firstVariant.id,
         quantity: 1
       };
 
-      console.log('Adding to cart:', payload);
-
-      // Dispatch the action and await the result
-      await dispatch(addToCart(payload)).unwrap();
-
-      // Show success state
-      setIsCartAdded(true);
-      setTimeout(() => setIsCartAdded(false), 3000);
+      const result = await dispatch(addToCart(payload)).unwrap();
+      
+      if (result) {
+        setIsCartAdded(true);
+        toast.success('Added to cart successfully');
+        setTimeout(() => setIsCartAdded(false), 2000);
+      }
     } catch (error) {
       console.error("Error adding to cart:", error);
+      toast.error(error.message || 'Failed to add item to cart');
     }
   };
 

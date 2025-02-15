@@ -142,7 +142,7 @@ const NavCategory = () => {
       <motion.div 
         initial="hidden"
         animate="visible"
-        className="flex px-5 text-xl md:text-base text-black md:px-0 bg-light-BG md:bg-white flex-col space-y-8 md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around pt-10 pb-5 md:py-0 md:pb-0 md:border-none z-50"
+        className="flex px-5 text-xl md:text-base text-black md:px-0  flex-col space-y-8 md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around pt-10 pb-5 md:py-0 md:pb-0 md:border-none z-50"
       >
         {["men", "woman"].map((category, index) => (
           <motion.div

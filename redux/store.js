@@ -36,7 +36,7 @@ const persistConfig = {
 // Combine reducers
 const rootReducer = combineReducers({
   cart: cartReducer,
-  wishlist: wishReducer, // Add wishlist to the combined reducers
+  // wishlist: wishReducer, // Add wishlist to the combined reducers
   homePage: homePageReducer,
   auth: authReducer, // Add this line
   shop: shopReducer,

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
-import { addToCart } from "../../../redux/slices/cartSlice";
+import { addToCart, getAllCart } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
 import { fetchProductsByIds, selectVisitedProducts } from "../../../redux/slices/productSlice";
 import { selectMatchingProducts } from "../../../redux/slices/shopSlice";
@@ -56,13 +56,19 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
     console.log("Display Products:", displayProducts);
   }, [matchedProducts, suggestedProducts, displayProducts]);
 
-  const handleAddToCart = async (product, variantId) => {
+  const handleAddToCart = async (product, variantId, e) => {
+    e.stopPropagation(); // Prevent navigation
     try {
+      // Add to cart
       await dispatch(addToCart({
         productId: product.id,
         variantId: variantId,
         quantity: 1
       })).unwrap();
+
+      // Fetch updated cart data immediately after adding
+      await dispatch(getAllCart()).unwrap();
+      
     } catch (error) {
       console.error('Failed to add item to cart:', error);
     }
@@ -85,7 +91,7 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
         </h2>
       </div>
 
-      {displayProducts.map((product) => (
+      {displayProducts?.map((product) => (
         <div
           key={product.id}
           className="rounded-lg text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform h-fit hover:shadow-lg"
@@ -115,10 +121,7 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
 
             <button
               className="mt-2 w-full text-black border hover:text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-gray-800"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart(product, product.selectedVariant);
-              }}
+              onClick={(e) => handleAddToCart(product, product.selectedVariant, e)}
               disabled={cartProductIds.includes(product.id)}
             >
               <i className="ri-shopping-cart-line text-center"></i>

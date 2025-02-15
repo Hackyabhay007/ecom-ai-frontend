@@ -233,19 +233,6 @@ const ProductView = ({ productId }) => {
     );
   };
 
-  const { message } = useSelector((state) => state.cart);
-
-  useEffect(() => {
-    if (message) {
-      toast.success(message);
-      setIsAdded(true);
-      dispatch(clearMessage());
-      setTimeout(() => {
-        setIsAdded(false);
-      }, 3000);
-    }
-  }, [message, dispatch]);
-
   const handleAddToCart = async () => {
     if (!selectedSize) {
       setWarning("Please select size.");
@@ -258,18 +245,29 @@ const ProductView = ({ productId }) => {
     );
 
     if (!variantToAdd) {
-      setWarning("Selected variant not available");
+      toast.error("Selected variant not available");
       return;
     }
 
     try {
-      const result = await dispatch(addToCart({
+      // Create the action payload
+      const payload = {
         productId: selectedProduct.id,
         variantId: variantToAdd.id,
         quantity: quantity
-      })).unwrap();
+      };
+
+      const result = await dispatch(addToCart(payload)).unwrap();
+      
+      if (result) {
+        setIsAdded(true);
+        toast.success('Added to cart successfully');
+        setTimeout(() => setIsAdded(false), 2000);
+      }
     } catch (error) {
-      toast.error(error || "Failed to add item to cart");
+      console.error("Error adding to cart:", error);
+      toast.error(error.message || 'Failed to add item to cart');
+      setIsAdded(false);
     }
   };
 
