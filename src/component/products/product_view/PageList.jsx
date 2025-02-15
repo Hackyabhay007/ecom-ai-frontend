@@ -29,6 +29,9 @@ const MemoizedProductCard = memo(({ product, layout }) => (
 ));
 
 const ProductList = ({ layout, currentSort }) => {
+  const [productsArray, setProductsArray] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(10);
   const dispatch = useDispatch();
   const { 
     products, 
@@ -37,13 +40,13 @@ const ProductList = ({ layout, currentSort }) => {
     appliedFilters,
     meta,
     isFiltered
-  } = useSelector(state => state.shop, (prev, next) => {
-    // Custom equality check to prevent unnecessary re-renders
-    return JSON.stringify(prev) === JSON.stringify(next);
-  });
+  } = useSelector(state => state.shop);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(9);
+  useEffect(() => {
+    setProductsArray(products);
+    console.log("This is the Products of the PageList", products);
+  }, [products]);
+
   
   // Add request cancellation reference
   const abortControllerRef = useRef(null);

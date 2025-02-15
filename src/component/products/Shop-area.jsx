@@ -22,6 +22,8 @@ const ShopArea = () => {
     filters: storeFilters, 
     meta 
   } = useSelector((state) => state.shop);
+
+  console.log("This is the Products of the ShopArea", products);
   const { region } = useRegion();
   const router = useRouter();
   const { cat_id, size, color, min_price, max_price } = router.query;
@@ -221,11 +223,11 @@ const ShopArea = () => {
             <LineLoader />
           ) : (
             <ProductList
-              products={products} // Use products directly from store
+              // products={products} // Use products directly from store
               layout={layout}
-              loading={loading}
-              onLayoutChange={setLayout} // Add this prop
-              currentSort={sortBy} // Add this prop
+              // loading={loading}
+              // onLayoutChange={setLayout} // Add this prop
+              // currentSort={sortBy} // Add this prop
             />
           )}
         </div>
