@@ -53,7 +53,7 @@ const BestSellerCard = ({ id }) => {
   console.log('Main image:', mainImage);
 
   return (
-    <div className="relative group text-cream cursor-pointer">
+    <div className="relative group text-cream cursor-pointer border">
       <Link href={`/shop/product/${id}`}>
         <div className="relative w-full h-96 overflow-hidden rounded-lg">
           <Image
