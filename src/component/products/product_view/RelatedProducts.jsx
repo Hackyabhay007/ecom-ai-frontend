@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../../../../redux/slices/shopSlice";
+import { fetchProductsBySearch } from "../../../../redux/slices/shopSlice";
 import Image from "next/image";
 import { formatPriceToINR } from "utils/currencyUtils";
 
@@ -17,9 +17,9 @@ const RelatedProducts = ({ currentProduct }) => {
   // Fetch related products on mount
   useEffect(() => {
     if (currentProduct?.categoryId) {
-      dispatch(fetchProducts({
+      dispatch(fetchProductsBySearch({
         filters: {
-          categoryId: currentProduct.categoryId,
+          categories: currentProduct.categoryId,
           limit: 10
         }
       }));
@@ -122,11 +122,13 @@ const RelatedProducts = ({ currentProduct }) => {
                 />
               </div>
 
+              {console.log("price of the Related Product", product)}
               <div className="mt-4 px-2">
                 <h3 className="mb-1 text-sm md:text-md text-cream text-left">
                   {product.name}
                 </h3>
                 <div className="flex flex-wrap mb-5 gap-3 items-center justify-start">
+ 
                   <span className="text-sm">
                     {formatPriceToINR(product.variants[0]?.price)}
                   </span>

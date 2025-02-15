@@ -138,7 +138,7 @@ const Cart = () => {
         <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:px-4 mb-5 md:mb-10">
           {authToken ? "Products you may like" : "Sign in to save your cart"}
         </h2>
-        <CartRelatedProducts items={items} totalAmount={totalAmount} />
+        <CartRelatedProducts items={items} />
       </div>
 
       {/* Right Component - Cart Items and Summary */}

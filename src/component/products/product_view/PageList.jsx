@@ -90,7 +90,7 @@ const ProductList = ({ layout, currentSort }) => {
     return () => cleanup();
   }, [fetchProducts]);
 
-  console.log("This is the Products of the PageList", products)
+  // console.log("This is the Products of the PageList", products)
 
   // Handle pagination
   const prevPage = () => {

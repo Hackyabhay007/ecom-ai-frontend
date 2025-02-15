@@ -95,7 +95,9 @@ export const getAllCart = createAsyncThunk(
         }
       };
 
-      const url = createApiUrl('/cart');
+      const urlString = token ? `/cart` : `/cart?guestId=${guestId}`;
+
+      const url = createApiUrl(urlString);
       
       // Debug logging for non-authenticated requests
       if (!token) {
@@ -125,33 +127,46 @@ export const getAllCart = createAsyncThunk(
 
 export const updateCart = createAsyncThunk(
   'cart/updateCart',
-  async ({ itemId, updateData }, { rejectWithValue }) => {
+  async ({ itemId, updateData }, { getState, rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
-      const guestId = !token ? state?.cart?.guestId : null;
+      const state = getState();
+      const guestId = !token ? state.cart.guestId : null;
 
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` })
+      console.log('Update cart request:', {
+        itemId,
+        updateData,
+        hasToken: !!token,
+        guestId
+      });
+
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
       };
+
+      const requestBody = {
+        ...updateData,
+        ...(guestId && { guestId })
+      };
+
+      console.log('Update cart request body:', requestBody, config);
 
       const response = await axios.put(
         createApiUrl(`/cart/items/${itemId}`),
-        {
-          ...updateData,
-          ...(guestId && { guestId })
-        },
-        { headers }
+        requestBody,
+        config
       );
 
-      console.log(response);
-
       if (!response.data.success) {
-        return rejectWithValue('Failed to update cart item');
+        throw new Error(response.data.message || 'Failed to update cart item');
       }
 
       return response.data.data.cart;
     } catch (error) {
+      console.error('Cart update error:', error);
       return rejectWithValue(
         error.response?.data?.message || 'Failed to update cart item'
       );

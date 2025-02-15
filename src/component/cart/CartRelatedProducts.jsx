@@ -1,15 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import { addToCart, getAllCart } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
-import { fetchProductsByIds, selectVisitedProducts } from "../../../redux/slices/productSlice";
-import { selectMatchingProducts } from "../../../redux/slices/shopSlice";
+import { 
+  fetchProductsBySearch,
+  selectMatchingProducts  // Add this import
+} from "../../../redux/slices/shopSlice";
 
-const CartRelatedProducts = ({ items, totalAmount }) => {
+const CartRelatedProducts = ({items}) => {
+  const [cartRelatedArray, setCartRelatedArray] = useState([]);
   const dispatch = useDispatch();
-  const { visitedProducts } = useSelector(state => state.auth);
+  const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const cartItems = useSelector(state => state.cart.items);
+  const searchResults = useSelector(state => state.shop.products);
+  const searchLoading = useSelector(state => state.shop.searchLoading);
   const allProducts = useSelector(state => state.shop.products);
+  const {products} = useSelector(state => state.shop);
+
+
   
   // Move formatProductData function definition to the top
   const formatProductData = (product) => ({
@@ -22,39 +31,34 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
   });
 
   // Get product IDs from visited products
-  const visitedProductIds = visitedProducts?.map(item => item.productId) || [];
+
+  const firstCartItemId = cartItems[0]?.product?.categoryId;
+
+  useEffect(()=>{
+    if(firstCartItemId){
+      dispatch(fetchProductsBySearch({
+        filters: {
+          categories: firstCartItemId,
+          limit: 10
+        }
+      }))
+    }
+  }, [cartItems]);
+
+  useEffect(() => {
+    if(products.length > 0){
+      setCartRelatedArray(products);
+    }
+  }, [products]);
   
   // Get matched products from visited products
   const matchedProducts = useSelector(state => 
-    selectMatchingProducts(state, visitedProductIds)
+    selectMatchingProducts(state)
   );
 
   // Get cart product IDs
   const cartProductIds = items.map(item => item.productId);
 
-  // Create suggested products from all products excluding cart items
-  const suggestedProducts = allProducts
-    .filter(product => 
-      product?.variants?.length > 0 && 
-      !cartProductIds.includes(product.id)
-    )
-    .map(formatProductData)
-    .slice(0, 5);
-
-  // Determine which products to display
-  const displayProducts = matchedProducts.length > 0
-    ? matchedProducts
-        .filter(product => !cartProductIds.includes(product.id))
-        .map(formatProductData)
-        .slice(0, 5)
-    : suggestedProducts;
-
-  // Debug logging
-  useEffect(() => {
-    console.log("Matched Products:", matchedProducts);
-    console.log("Suggested Products:", suggestedProducts);
-    console.log("Display Products:", displayProducts);
-  }, [matchedProducts, suggestedProducts, displayProducts]);
 
   const handleAddToCart = async (product, variantId, e) => {
     e.stopPropagation(); // Prevent navigation
@@ -80,58 +84,106 @@ const CartRelatedProducts = ({ items, totalAmount }) => {
     return <div>Loading related products...</div>;
   }
 
+  // Fetch suggested products based on first cart item's category
+  useEffect(() => {
+    const fetchSuggestedProducts = async () => {
+      if (cartItems && cartItems.length > 0) {
+        const firstItemCategoryId = cartItems[0]?.product?.categoryId;
+        
+        if (firstItemCategoryId) { 
+          try {
+            await dispatch(fetchProductsBySearch({
+              filters: {
+                categories: firstItemCategoryId,
+                limit: 10
+              }
+            })).unwrap();
+          } catch (error) {
+            console.error('Error fetching suggested products:', error);
+          }
+        }
+      }
+    };
+
+    fetchSuggestedProducts();
+  }, [dispatch, cartItems]);
+
+
+  
+  // Determine which products to display
+  const displayProducts = suggestedProducts.length > 0
+    ? suggestedProducts
+    : cartRelatedArray;
+
+
+
+  // Update suggested products when search results change
+  useEffect(() => {
+    if (searchResults) {
+      // Filter out products that are already in cart
+      const cartProductIds = cartItems.map(item => item.product.id);
+      const filteredProducts = searchResults.filter(product => 
+        !cartProductIds.includes(product.id)
+      ).slice(0, 5);
+
+      setSuggestedProducts(filteredProducts);
+    }
+  }, [searchResults, cartItems]);
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 px-1 md:px-8">
       {/* Display Header based on which products are shown */}
       <div className="col-span-2 mb-4">
         <h2 className="text-xl font-semibold">
-          {matchedProducts.length > 0 
-            ? "Products You've Viewed"
-            : "Suggested Products"}
+          {cartItems.length > 0 ? "Similar Products" : "Suggested Products"}
         </h2>
       </div>
 
-      {displayProducts?.map((product) => (
-        <div
-          key={product.id}
-          className="rounded-lg text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform h-fit hover:shadow-lg"
-          onClick={() => window.location.href = `/shop/${product.id}`}
-        >
-          {console.log(product)}
-          <div className="relative w-full h-48">
-            <Image
-              src={product.variants[0]?.images[0]?.url || product.thumbnail}
-              alt={product.title}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-t-lg object-top h-fit"
-            />
-          </div>
-
-          <div className="p-2 md:p-4">
-            <h3 className="font-medium text-sm md:text-md text-black text-center overflow-hidden text-ellipsis whitespace-nowrap">
-              {product.title}
-            </h3>
-
-            <div className="flex flex-wrap mb-3 gap-2 items-center justify-center">
-              <span className="text-black md:text-sm text-xs">
-                {formatPriceToINR(product.price)}
-              </span>
+      {searchLoading ? (
+        <div className="col-span-2 text-center">Loading suggestions...</div>
+      ) : (
+        displayProducts?.map((product) => (
+          <div
+            key={product.id}
+            className="rounded-lg text-center relative cursor-pointer bg-white shadow-md overflow-hidden transition-transform transform h-fit hover:shadow-lg"
+            onClick={() => window.location.href = `/shop/${product.id}`}
+          >
+            {console.log(product)}
+            <div className="relative w-full h-48">
+              <Image
+                src={product.variants[0]?.images[0]?.url || product.thumbnail}
+                alt={product.title}
+                layout="fill"
+                objectFit="cover"
+                className="rounded-t-lg object-top h-fit"
+              />
             </div>
 
-            <button
-              className="mt-2 w-full text-black border hover:text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-gray-800"
-              onClick={(e) => handleAddToCart(product, product.selectedVariant, e)}
-              disabled={cartProductIds.includes(product.id)}
-            >
-              <i className="ri-shopping-cart-line text-center"></i>
-              <span className="md:block hidden">
-                {cartProductIds.includes(product.id) ? 'In Cart' : 'Add to Cart'}
-              </span>
-            </button>
+            <div className="p-2 md:p-4">
+              <h3 className="font-medium text-sm md:text-md text-black text-center overflow-hidden text-ellipsis whitespace-nowrap">
+                {product.title}
+              </h3>
+
+              <div className="flex flex-wrap mb-3 gap-2 items-center justify-center">
+                <span className="text-black md:text-sm text-xs">
+                  {formatPriceToINR(product.variants[0]?.price)}
+                </span>
+              </div>
+
+              <button
+                className="mt-2 w-full text-black border hover:text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-gray-800"
+                onClick={(e) => handleAddToCart(product, product.selectedVariant, e)}
+                disabled={cartProductIds.includes(product.id)}
+              >
+                <i className="ri-shopping-cart-line text-center"></i>
+                <span className="md:block hidden">
+                  {cartProductIds.includes(product.id) ? 'In Cart' : 'Add to Cart'}
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
   );
 };

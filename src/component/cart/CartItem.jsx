@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
-import { updateCart, getAllCart } from "../../../redux/slices/cartSlice";
+import { updateCart, getAllCart, selectGuestId } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
 import Cookies from 'js-cookie';
 
@@ -9,6 +9,8 @@ const CartItem = ({ item }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(item?.quantity || 1);
   const { items, loading } = useSelector(state => state.cart);
+  const guestId = useSelector(selectGuestId);
+  const authToken = Cookies.get('auth_token');
   
   // Find updated item from redux store
   const updatedItem = items.find(cartItem => cartItem.id === item.id);
@@ -25,20 +27,30 @@ const CartItem = ({ item }) => {
     if (newQuantity < 1) return;
     
     try {
-      // First update the cart item
+      console.log('Starting quantity update:', {
+        itemId: item.id,
+        newQuantity,
+        guestId,
+        hasToken: !!authToken
+      });
+
       await dispatch(updateCart({
         itemId: item.id,
-        updateData: { quantity: newQuantity }
+        updateData: { 
+          quantity: newQuantity,
+          ...((!authToken && guestId) && { guestId })
+        }
       })).unwrap();
 
-      // Then fetch the updated cart state
-      await dispatch(getAllCart()).unwrap();
+      // Only fetch updated cart after successful update
+      await dispatch(getAllCart());
       
     } catch (error) {
-      console.error('Failed to update quantity:', error);
-      setQuantity(item.quantity); // Reset to original quantity on error
+      console.error('Quantity update failed:', error);
+      // Revert to previous quantity
+      setQuantity(item.quantity);
     }
-  }, [dispatch, item.id]);
+  }, [dispatch, item.id, item.quantity, guestId, authToken]);
 
   if (!item?.product) return null;
 
