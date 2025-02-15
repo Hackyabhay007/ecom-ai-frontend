@@ -3,14 +3,10 @@ import axios from 'axios';
 import { createApiUrl } from '../../utils/apiConfig';
 import Cookies from 'js-cookie';
 
-
-
-
-
-// Fetch all wishlist items
+// Update fetchAllWishlistItems to handle pagination
 export const fetchAllWishlistItems = createAsyncThunk(
   'wishlist/fetchAllWishlistItems',
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
 
@@ -18,12 +14,15 @@ export const fetchAllWishlistItems = createAsyncThunk(
         return rejectWithValue('Authentication token not found');
       }
 
-      const response = await axios.get(createApiUrl('/wishlist'), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await axios.get(
+        createApiUrl(`/wishlist?page=${page}&limit=${limit}`), 
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
       if (!response.data.success) {
         return rejectWithValue('Failed to fetch wishlist items');
@@ -31,16 +30,18 @@ export const fetchAllWishlistItems = createAsyncThunk(
 
       return {
         items: response?.data?.data?.wishlist,
-        count: response?.data?.data?.count
+        count: response?.data?.data?.count,
+        meta: {
+          currentPage: page,
+          totalPages: Math.ceil(response?.data?.data?.count / limit),
+          limit
+        }
       };
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Error fetching wishlist items'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Error fetching wishlist items');
     }
   }
 );
-
 
 // Add to wishlist
 export const addToWishlist = createAsyncThunk(
@@ -142,6 +143,7 @@ export const removeFromWishlist = createAsyncThunk(
   }
 );
 
+// Update initial state to include pagination meta
 const initialState = {
   items: [],
   count: 0,
@@ -149,7 +151,12 @@ const initialState = {
   error: null,
   message: null,
   isOpen: false,  // Add this for sidebar state
-  deleteSuccess: false // Add this new state
+  deleteSuccess: false, // Add this new state
+  meta: {
+    currentPage: 1,
+    totalPages: 1,
+    limit: 10
+  }
 };
 
 const wishlistSlice = createSlice({
@@ -180,6 +187,7 @@ const wishlistSlice = createSlice({
         state.loading = false;
         state.items = action.payload.items;
         state.count = action.payload.count;
+        state.meta = action.payload.meta;
         state.error = null;
       })
       .addCase(fetchAllWishlistItems.rejected, (state, action) => {
@@ -238,5 +246,6 @@ export const selectWishlistError = (state) => state.wishlist.error;
 export const selectWishlistMessage = (state) => state.wishlist.message;
 export const selectWishlistSidebarOpen = (state) => state.wishlist.isOpen;
 export const selectDeleteSuccess = (state) => state.wishlist.deleteSuccess; // Add new selector
+export const selectWishlistMeta = (state) => state.wishlist.meta;
 
 export default wishlistSlice.reducer;

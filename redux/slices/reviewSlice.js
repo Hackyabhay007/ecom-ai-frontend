@@ -31,18 +31,14 @@ export const fetchReviews = createAsyncThunk(
 export const postReview = createAsyncThunk(
   'reviews/postReview',
   async (reviewData, { rejectWithValue }) => {
-    console.log('1. Starting review submission with data:', reviewData);
     
     try {
       const authToken = getCookie('auth_token');
-      console.log('2. Auth token retrieved:', authToken ? 'Present' : 'Missing');
       
       if (!authToken) {
-        console.log('3. No auth token found - rejecting');
         return rejectWithValue('Please login to submit a review');
       }
 
-      console.log('4. Sending POST request to review API');
       const response = await axios.post(
         createApiUrl('/reviews'),
         reviewData,
