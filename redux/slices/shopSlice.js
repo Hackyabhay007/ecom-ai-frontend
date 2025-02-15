@@ -82,31 +82,34 @@ export const fetchSingleProduct = createAsyncThunk(
 // Add new fetchProductsBySearch thunk
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
-  async ({ searchQuery = '', filters = {}, signal }, { getState, rejectWithValue }) => {
-
+  async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
     console.log('Fetching products by search:', { searchQuery, filters });
+    
     try {
-      // Build query parameters
       let queryParams = new URLSearchParams();
 
-      // Change 'query' to 'search' parameter
-      if (typeof searchQuery === 'string' && searchQuery) {
-        queryParams.append('search', searchQuery); // Changed from 'query' to 'search'
+      if (typeof searchQuery === 'string' && searchQuery.length > 0) {
+        // If searchQuery exists, use it as the search parameter
+        queryParams.append('search', searchQuery);
+      } else if (filters.query && filters.queryValue) {
+        // If no search query but has filter query parameters
+        queryParams.append(filters.query, filters.queryValue);
       }
 
-      // Only add other parameters if needed
-      const limit = filters.limit || 10;
-      queryParams.append('limit', String(limit));
-      const page = filters.page || 1;
-      queryParams.append('page', String(page));
+      // Add any additional filter parameters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (key !== 'query' && key !== 'queryValue' && value !== undefined) {
+          queryParams.append(key, value);
+        }
+      });
 
       const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
+      console.log('Final search URL:', finalUrl);
 
       const response = await axios.get(finalUrl, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        signal,
+        }
       });
 
       if (!response.data.success) {
@@ -124,47 +127,6 @@ export const fetchProductsBySearch = createAsyncThunk(
     }
   }
 );
-
-// // Add new thunk for fetching related products
-// export const fetchRelatedProducts = createAsyncThunk(
-//   'shop/fetchRelatedProducts',
-//   async ({ categoryId, currentProductId, page = 1, limit = 10 }, { rejectWithValue }) => {
-//     try {
-//       console.log('Fetching related products:', { categoryId, currentProductId, page, limit });
-      
-//       const response = await axios.get(
-//         createApiUrl(`/products/related`),
-//         {
-//           params: {
-//             categoryId,
-//             excludeProductId: currentProductId,
-//             page,
-//             limit
-//           },
-//           headers: {
-//             'Content-Type': 'application/json',
-//           },
-//         }
-//       );
-
-//       if (!response.data.success) {
-//         return rejectWithValue('Failed to fetch related products');
-//       }
-
-//       return {
-//         products: response.data.data.products,
-//         meta: {
-//           currentPage: page,
-//           totalPages: Math.ceil(response.data.data.count / limit),
-//           total: response.data.data.count,
-//           limit
-//         }
-//       };
-//     } catch (error) {
-//       return rejectWithValue(error.response?.data?.message || 'Failed to fetch related products');
-//     }
-//   }
-// );
 
 const initialState = {
   products: [],
@@ -275,20 +237,20 @@ const shopSlice = createSlice({
         state.selectedProductError = action.payload;
       })
 
-       // Add cases for fetchProductsBySearch
-       .addCase(fetchProductsBySearch.pending, (state) => {
+      // Add cases for fetchProductsBySearch
+      .addCase(fetchProductsBySearch.pending, (state) => {
         state.searchLoading = true;
         state.searchError = null;
         // Don't clear products here to prevent flashing
       })
       .addCase(fetchProductsBySearch.fulfilled, (state, action) => {
         if (action.payload === null) return; // Skip state update if no new data
-        
+
         state.searchLoading = false;
         state.searchError = null;
         state.products = action.payload.products;
         state.meta = action.payload.meta;
-        
+
         // Preserve applied filters while updating available ones
         state.filters = {
           ...state.filters,
@@ -305,19 +267,19 @@ const shopSlice = createSlice({
         state.searchError = action.payload;
         state.products = []; // Clear products on error
       })
-      // .addCase(fetchRelatedProducts.pending, (state) => {
-      //   state.relatedProductsLoading = true;
-      //   state.relatedProductsError = null;
-      // })
-      // .addCase(fetchRelatedProducts.fulfilled, (state, action) => {
-      //   state.relatedProductsLoading = false;
-      //   state.relatedProducts = action.payload.products;
-      //   state.relatedProductsMeta = action.payload.meta;
-      // })
-      // .addCase(fetchRelatedProducts.rejected, (state, action) => {
-      //   state.relatedProductsLoading = false;
-      //   state.relatedProductsError = action.payload;
-      // });
+    // .addCase(fetchRelatedProducts.pending, (state) => {
+    //   state.relatedProductsLoading = true;
+    //   state.relatedProductsError = null;
+    // })
+    // .addCase(fetchRelatedProducts.fulfilled, (state, action) => {
+    //   state.relatedProductsLoading = false;
+    //   state.relatedProducts = action.payload.products;
+    //   state.relatedProductsMeta = action.payload.meta;
+    // })
+    // .addCase(fetchRelatedProducts.rejected, (state, action) => {
+    //   state.relatedProductsLoading = false;
+    //   state.relatedProductsError = action.payload;
+    // });
   }
 });
 

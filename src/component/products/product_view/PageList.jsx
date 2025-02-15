@@ -14,7 +14,7 @@ const ShimmerProductCard = memo(() => (
   </div>
 ));
 
-// Memoize ProductCard wrapper
+// Memoize ProductCard wrapper 
 const MemoizedProductCard = memo(({ product, layout }) => (
   <div className="transition-opacity duration-300 animate-fadeIn">
     <ProductCard 

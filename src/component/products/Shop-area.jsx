@@ -161,7 +161,7 @@ const ShopArea = () => {
     
     // Dispatch search with onSale parameter
     dispatch(fetchProductsBySearch({
-      searchQuery: { onSale: isChecked },
+      searchQuery: "",
       filters: {
         ...appliedFilters,
         onSale: isChecked
