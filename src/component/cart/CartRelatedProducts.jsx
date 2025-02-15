@@ -121,7 +121,7 @@ const CartRelatedProducts = ({items}) => {
   useEffect(() => {
     if (searchResults) {
       // Filter out products that are already in cart
-      const cartProductIds = cartItems.map(item => item.product.id);
+      const cartProductIds = cartItems.map(item => item?.product?.id);
       const filteredProducts = searchResults.filter(product => 
         !cartProductIds.includes(product.id)
       ).slice(0, 5);
