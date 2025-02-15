@@ -1,61 +1,50 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Image from 'next/image';
+import Link from 'next/link';
 import { fetchSingleProduct } from '../../../redux/slices/shopSlice';
 import { formatPriceToINR } from 'utils/currencyUtils';
-import Link from 'next/link';
 
 const BestSellerCard = ({ id }) => {
   const dispatch = useDispatch();
-  const { selectedProduct, selectedProductLoading, selectedProductError } = useSelector((state) => {
-    return state.shop;
-  });
+  const { selectedProduct, selectedProductLoading, selectedProductError } = useSelector((state) => state.shop);
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchSingleProduct(id))
-        .unwrap()
-        .then(result => console.log('Fetch result:', result))
-        .catch(error => console.error('Fetch error:', error));
+      dispatch(fetchSingleProduct(id));
     }
   }, [dispatch, id]);
 
-  useEffect(() => {
-    console.log('State Update:', {
-      selectedProduct,
-      selectedProductLoading,
-      selectedProductError
-    });
-  }, [selectedProduct, selectedProductLoading, selectedProductError]);
-
   if (selectedProductLoading) {
-    console.log('Rendering loading state');
-    return <div className="animate-pulse">Loading...</div>;
+    return (
+      <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col animate-pulse">
+        <div className="w-full h-96 bg-gray-200"></div>
+        <div className="flex flex-col p-4">
+          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+          <div className="flex gap-2">
+            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  if (selectedProductError) {
-    console.error('Rendering error state:', selectedProductError);
-    return <div>Error loading product</div>;
-  }
-
-  if (!selectedProduct) {
-    console.log('No product data available');
+  if (selectedProductError || !selectedProduct) {
     return null;
   }
 
-  console.log('Rendering product:', selectedProduct);
   const mainVariant = selectedProduct.variants[0];
-
-  console.log("This is the iamge nad the id ", id, mainVariant.images[0].url);
-  // console.log('Main variant:', mainVariant);
-
-  const mainImage =  mainVariant?.images[0] || selectedProduct.images[0];
-  console.log('Main image:', mainImage);
+  const mainImage = mainVariant?.images[0];
+  const isOnSale = mainVariant?.isOnSale;
+  const discount = isOnSale ? 
+    Math.round(((mainVariant.price - mainVariant.salePrice) / mainVariant.price) * 100) : 0;
 
   return (
-    <div className="relative group text-cream cursor-pointer border">
-      <Link href={`/shop/product/${id}`}>
-        <div className="relative w-full h-96 overflow-hidden rounded-lg">
+    <Link href={`/shop/product/${id}`}>
+      <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col group">
+        <div className="relative w-full h-96">
           <Image
             src={mainImage?.url || '/images/placeholder.jpg'}
             alt={mainImage?.alt || selectedProduct.name}
@@ -63,23 +52,38 @@ const BestSellerCard = ({ id }) => {
             objectFit="cover"
             className="transition-transform duration-300 group-hover:scale-105"
           />
+          {discount > 0 && (
+            <div className="absolute top-2 right-2 bg-theme-blue text-white rounded-full px-3 py-1 text-sm">
+              -{discount}% off
+            </div>
+          )}
         </div>
+        
+        <div className="flex flex-col p-4">
+          <h2 className="font-bold text-lg mb-2">{selectedProduct.name}</h2>
+          
+          <div className="flex items-center mb-2">
+            {selectedProduct.rating && (
+              <span className="text-yellow-600 font-semibold mr-2">
+                {selectedProduct.rating} ★
+              </span>
+            )}
+            <span className="text-gray-500">{selectedProduct.category?.name}</span>
+          </div>
 
-        <div className="mt-4">
-          <h3 className="text-lg font-medium">{selectedProduct.name}</h3>
-          <div className="mt-2 space-y-1">
-            <p className="text-sm text-gray-300">{selectedProduct.category?.name}</p>
-            <p className="text-lg font-semibold">{formatPriceToINR(mainVariant?.price)}</p>
-            {mainVariant?.isOnSale && mainVariant?.salePrice && (
-              <div className="flex items-center gap-2">
-                <span className="line-through text-gray-400">{formatPriceToINR(mainVariant.price)}</span>
-                <span className="text-red-500">{formatPriceToINR(mainVariant.salePrice)}</span>
-              </div>
+          <div className="flex flex-wrap gap-3 items-center">
+            <span className="font-bold text-lg">
+              {formatPriceToINR(mainVariant?.price)}
+            </span>
+            {isOnSale && (
+              <span className="text-sub-color line-through">
+                {formatPriceToINR(mainVariant.salePrice)}
+              </span>
             )}
           </div>
         </div>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 };
 
