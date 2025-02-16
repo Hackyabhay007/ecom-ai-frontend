@@ -178,7 +178,7 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
             Filter
           </h2>
 
-          {/* Product Type Filter */}
+          {/* Product Type Filter - Updated without count */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">
               Product Type
@@ -202,7 +202,6 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
                     }}
                   >
                     <span className="capitalize">{item.name}</span>
-                    <span>({item.product_count || 0})</span>
                   </li>
                 ))}
               </ul>
@@ -340,49 +339,6 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
             <hr className="my-4" />
           </div>
 
-          {/* Brand Filter Section */}
-          <div className="mb-4">
-            <h3 className="text-md font-semibold text-black mb-2">Brand</h3>
-            <div className="flex flex-col gap-2">
-              {storeLoading ? (
-                <p>Loading brands...</p>
-              ) : storeError ? (
-                <p>Error: {storeError}</p>
-              ) : availableCollections.length === 0 ? (
-                <p>No brands available</p>
-              ) : (
-                availableCollections.map((brand) => (
-                  <label key={brand.id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={filters.brand?.includes(brand.name)}
-                      onChange={() => {
-                        const newBrandFilter = filters.brand?.includes(brand.name)
-                          ? filters.brand.filter((b) => b !== brand.name)
-                          : [...(filters.brand || []), brand.name];
-                        handleFilterChange("brand", newBrandFilter);
-                      }}
-                    />
-                    {brand.title}
-                  </label>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Add Sale Only toggle */}
-          <div className="flex items-center gap-2 mb-4">
-            <input
-              type="checkbox"
-              id="saleOnly"
-              checked={showSaleOnly}
-              onChange={handleSaleToggle}
-              className="form-checkbox h-4 w-4"
-            />
-            <label htmlFor="saleOnly" className="text-sm font-medium text-black">
-              Show Sale Items Only
-            </label>
-          </div>
         </div>
       </div>
     </div>

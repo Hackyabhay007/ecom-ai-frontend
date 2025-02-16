@@ -1,73 +1,56 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchProductsBySearch } from "../../../redux/slices/shopSlice";
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { fetchProducts } from '../../../redux/slices/shopSlice';
 
-const GridLayout = ({
-  currentLayout,
-  onLayoutChange,
-  showSaleOnly,
-  onSaleToggle,
-  onSortChange,
-  currentSort
-}) => {
+const GridLayout = ({ onLayoutChange, currentLayout, onSortChange, currentSort }) => {
   const dispatch = useDispatch();
-  // const { appliedFilters } = useSelector(state => state.shop);
 
-  // const handleSaleToggle = (e) => {
-
-  // };
+  const handleSaleToggle = (e) => {
+    const isChecked = e.target.checked;
+    dispatch(fetchProducts({
+      page: 1,
+      filters: {
+        onSale: isChecked
+      }
+    }));
+  };
 
   return (
-    <div className="flex justify-between flex-wrap gap-4 items-center mb-4">
-      {/* Left Controls: Sale Checkbox and Layout Switch */}
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+      {/* Layout controls */}
       <div className="flex items-center gap-4">
-        {/* Layout Toggle */}
-        <div className="flex gap-2"> 
-          <button
-            onClick={() => onLayoutChange("grid")}
-            className={`px-2 rotate-90 border py-1 text-lg rounded-sm ${
-              currentLayout === "grid" ? "bg-black text-white" : "bg-gray-100"
-            }`}
-          >
-            <i className="ri-menu-fill  "></i>
-          </button>
-          <button
-            onClick={() => onLayoutChange("list")}
-            className={`px-2 py-1 border text-lg rounded-sm ${
-              currentLayout === "list" ? "bg-black text-white" : "bg-gray-100"
-            }`}
-          >
-            <i className="ri-menu-fill font-semibold"></i>
-          </button>
-        </div>
-
-        {/* Sale Product Filter */}
+        {/* Grid/List view toggles */}
+        <button onClick={() => onLayoutChange('grid')}
+          className={`p-2 ${currentLayout === 'grid' ? 'text-black' : 'text-gray-400'}`}>
+          <i className="ri-grid-fill text-xl"></i>
+        </button>
+        <button onClick={() => onLayoutChange('list')}
+          className={`p-2 ${currentLayout === 'list' ? 'text-black' : 'text-gray-400'}`}>
+          <i className="ri-list-check text-xl"></i>
+        </button>
+        
+        {/* Sale items toggle */}
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={showSaleOnly}
-            onChange={onSaleToggle}
-            className="w-5 h-5 accent-white rounded-none"
+            onChange={handleSaleToggle}
+            className="form-checkbox h-4 w-4"
           />
-          <span className="text-black text-sm ">Sale Product </span>
+          <span className="text-sm font-medium">Sale Items</span>
         </label>
       </div>
 
-      {/* Right Controls: Sort Dropdown */}
-      <div>
-        <select
-          onChange={(e) => onSortChange(e.target.value)}
-          value={currentSort}
-          className="pr-8 px-4 border rounded-none"
-        >
-          <option value="default">Sort By: Best Selling</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-          <option value="discount">Best Discount</option>
-          <option value="newest">Newest First</option>
-        </select>
-      </div>
-      
+      {/* Sort dropdown */}
+      <select
+        onChange={(e) => onSortChange(e.target.value)}
+        value={currentSort}
+        className="border rounded-md p-2"
+      >
+        <option value="default">Default sorting</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="latest">Latest</option>
+      </select>
     </div>
   );
 };

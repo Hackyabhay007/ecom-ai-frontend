@@ -27,7 +27,7 @@ export const fetchProducts = createAsyncThunk(
         ...(filters.size && { sizes: filters.size }),
         ...(filters.brands && { brands: filters.brands }),
         ...(filters.inStock !== undefined && { inStock: filters.inStock }),
-        ...(filters.onSale !== undefined && { onSale: filters.onSale })
+        ...(filters.onSale && { onSale: String(filters.onSale) })
       });
 
       const response = await axios.get(
