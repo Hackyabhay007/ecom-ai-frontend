@@ -16,15 +16,20 @@ const CartRelatedProducts = ({items}) => {
   const cartItems = useSelector(state => state.cart.items);
   const [addingToCart, setAddingToCart] = useState({});
 
-  // Get category from first cart item
-  const firstCartItemCategory = useMemo(() => {
-    return cartItems[0]?.product?.categoryId;
-  }, [cartItems[0]?.product?.categoryId]);
+  // Get categories from cart items in priority order
+  const cartItemCategories = useMemo(() => {
+    return [...new Set(cartItems
+      .filter(item => item?.product?.categoryId)
+      .map(item => item.product.categoryId)
+    )];
+  }, [cartItems]);
 
   // Load and prepare products
   useEffect(() => {
     const loadProducts = async () => {
+      if (!cartItemCategories.length) return;
       setIsLoading(true);
+
       try {
         // Get recently viewed products from cookies
         const viewedProducts = getViewedProducts();
@@ -36,25 +41,35 @@ const CartRelatedProducts = ({items}) => {
         ).slice(0, 3);
 
         if (availableViewedProducts.length >= 3) {
-          // If we have enough viewed products, use them
           setDisplayProducts(availableViewedProducts);
-        } else {
-          // Otherwise, fetch category products to fill the gap
-          if (firstCartItemCategory) {
-            await dispatch(fetchProductsBySearch({
-              filters: {
-                categories: firstCartItemCategory,
-                limit: 4
-              }
-            }));
-            
-            const categoryProducts = products
-              .filter(product => !cartProductIds.has(product.id))
-              .slice(0, 4 - availableViewedProducts.length);
+          return;
+        }
 
-            setDisplayProducts([...availableViewedProducts, ...categoryProducts]);
+        // Try each category in order until we have enough products
+        let allProducts = [...availableViewedProducts];
+        
+        for (const categoryId of cartItemCategories) {
+          if (allProducts.length >= 4) break;
+
+          const { payload } = await dispatch(fetchProductsBySearch({
+            filters: {
+              categories: categoryId,
+              limit: 8 // Fetch extra to account for filtering
+            }
+          }));
+
+          if (payload?.products) {
+            const categoryProducts = payload.products
+              .filter(product => 
+                !cartProductIds.has(product.id) && 
+                !allProducts.some(p => p.id === product.id)
+              );
+            
+            allProducts = [...allProducts, ...categoryProducts];
           }
         }
+
+        setDisplayProducts(allProducts.slice(0, 4));
       } catch (error) {
         console.error('Error loading related products:', error);
       } finally {
@@ -63,7 +78,12 @@ const CartRelatedProducts = ({items}) => {
     };
 
     loadProducts();
-  }, [firstCartItemCategory, cartItems]);
+  }, [cartItemCategories, cartItems, dispatch]);
+
+  // Don't render anything if no products to display
+  if (!isLoading && displayProducts.length === 0) {
+    return null;
+  }
 
   const handleProductClick = (productId) => {
     router.push(`/shop/${productId}`);

@@ -147,23 +147,18 @@ const Cart = () => {
 
   return (
     <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
-      {/* Left Component - Related Products - Updated layout */}
-      <div className="md:w-1/2 p-5 border-r overflow-y-auto scrollbar-custom">
-        <h2 className="text-lg font-semibold text-theme-blue mb-4">
-          {authToken ? "You May Also Like" : "Sign in to save your cart"}
-        </h2>
-        <div className="pr-2">
-          {isInitialized && (
-            <CartRelatedProducts 
-              items={persistentCartData.items} 
-              key={router.asPath} // Add key to force preserve state
-            />
-          )}
+      {/* Left Component - Related Products - Only show if initialized */}
+      {isInitialized && persistentCartData.items.length > 0 && (
+        <div className="md:w-1/2 p-5 border-r overflow-y-auto scrollbar-custom">
+          <CartRelatedProducts 
+            items={persistentCartData.items} 
+            key={router.asPath}
+          />
         </div>
-      </div>
+      )}
 
-      {/* Right Component - Cart Items and Summary */}
-      <div className="md:w-1/2 flex flex-col">
+      {/* Right Component - Make it full width if no related products */}
+      <div className={`${isInitialized && persistentCartData.items.length > 0 ? 'md:w-1/2' : 'w-full'} flex flex-col`}>
         <div className="p-6 flex-1 overflow-y-scroll scrollbar-custom">
           {renderCartContent()}
         </div>
@@ -200,7 +195,4 @@ const Cart = () => {
   );
 };
 
-// Memoize cart component with custom comparison
-export default React.memo(Cart, (prevProps, nextProps) => {
-  return prevProps.router?.asPath === nextProps.router?.asPath;
-});
+export default React.memo(Cart);
