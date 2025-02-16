@@ -8,6 +8,13 @@ export const fetchProducts = createAsyncThunk(
     try {
       const state = getState();
       
+      // Include stored category ID if it exists
+      const storedCategoryId = sessionStorage.getItem('selectedCategoryId');
+      const finalFilters = {
+        ...filters,
+        ...(storedCategoryId && !filters.categoryId && { categoryId: storedCategoryId })
+      };
+
       // Skip if filters haven't changed
       if (JSON.stringify(state.shop.appliedFilters) === JSON.stringify(filters) &&
           state.shop.products.length > 0) {
@@ -18,16 +25,16 @@ export const fetchProducts = createAsyncThunk(
       const queryParams = new URLSearchParams({
         page: String(page),
         limit: '10',
-        ...(filters.search && { search: filters.search }),
-        ...(filters.categoryId && { categories: filters.categoryId }),
-        ...(filters.collections && { collections: filters.collections }),
-        ...(filters.minPrice && { minPrice: filters.minPrice }),
-        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-        ...(filters.color && { colors: filters.color }),
-        ...(filters.size && { sizes: filters.size }),
-        ...(filters.brands && { brands: filters.brands }),
-        ...(filters.inStock !== undefined && { inStock: filters.inStock }),
-        ...(filters.onSale && { onSale: String(filters.onSale) })
+        ...(finalFilters.search && { search: finalFilters.search }),
+        ...(finalFilters.categoryId && { categories: finalFilters.categoryId }),
+        ...(finalFilters.collections && { collections: finalFilters.collections }),
+        ...(finalFilters.minPrice && { minPrice: finalFilters.minPrice }),
+        ...(finalFilters.maxPrice && { maxPrice: finalFilters.maxPrice }),
+        ...(finalFilters.color && { colors: finalFilters.color }),
+        ...(finalFilters.size && { sizes: finalFilters.size }),
+        ...(finalFilters.brands && { brands: finalFilters.brands }),
+        ...(finalFilters.inStock !== undefined && { inStock: finalFilters.inStock }),
+        ...(finalFilters.onSale && { onSale: String(finalFilters.onSale) })
       });
 
       const response = await axios.get(
@@ -95,18 +102,24 @@ export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
   async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
     try {
-      const queryParams = new URLSearchParams({
-        ...(searchQuery && { search: searchQuery }),
-        ...(filters.categories && { categories: filters.categories }),
-        ...(filters.collections && { collections: filters.collections }),
-        ...(filters.minPrice && { minPrice: filters.minPrice }),
-        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-        ...(filters.colors && { colors: filters.colors }),
-        ...(filters.sizes && { sizes: filters.sizes }),
-        ...(filters.brands && { brands: filters.brands }),
-        ...(filters.inStock !== undefined && { inStock: filters.inStock }),
-        ...(filters.onSale !== undefined && { onSale: filters.onSale })
-      });
+      // Format query parameters
+      const queryParams = new URLSearchParams();
+      
+      if (searchQuery) {
+        queryParams.append('search', searchQuery);
+      }
+
+      // Handle category ID specifically
+      if (filters.categoryId) {
+        queryParams.append('categories', filters.categoryId);
+      }
+
+      // Add other filters
+      if (filters.colors) queryParams.append('colors', filters.colors);
+      if (filters.sizes) queryParams.append('sizes', filters.sizes);
+      if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+      if (filters.onSale !== undefined) queryParams.append('onSale', filters.onSale);
 
       const response = await axios.get(
         createApiUrl(`/products/search?${queryParams.toString()}`),
@@ -176,13 +189,20 @@ const shopSlice = createSlice({
   initialState,
   reducers: {
     setFilters: (state, action) => {
-      // Merge new filters with existing ones instead of replacing
       state.appliedFilters = {
         ...state.appliedFilters,
         ...action.payload
       };
       state.isFiltered = true;
       state.lastAppliedFilters = { ...state.appliedFilters };
+      
+      // Store both category and collection info
+      if (action.payload.categoryId) {
+        state.selectedCategoryId = action.payload.categoryId;
+      }
+      if (action.payload.collections) {
+        state.selectedCollectionId = action.payload.collections;
+      }
     },
     clearFilters: (state) => {
       state.appliedFilters = {};
@@ -215,8 +235,9 @@ const shopSlice = createSlice({
         
         state.loading = false;
         state.products = action.payload.products;
-        // Update filters from API response
+        // Preserve applied filters while updating available ones
         state.filters = {
+          ...state.filters,
           priceRange: action.payload.filters.priceRange,
           colors: action.payload.filters.colors || [],
           sizes: action.payload.filters.sizes || [],
@@ -224,6 +245,10 @@ const shopSlice = createSlice({
           collections: action.payload.filters.collections || []
         };
         state.meta = action.payload.meta;
+        // Ensure we keep the applied filters
+        if (state.lastAppliedFilters) {
+          state.appliedFilters = state.lastAppliedFilters;
+        }
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;

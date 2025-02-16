@@ -10,6 +10,8 @@ import WishlistSidebar from "@/component/wishlist/WishlistSidebar";
 import Script from "next/script"; // Import the Script component
 import "@fontsource/instrument-sans";
 import { Toaster } from 'react-hot-toast';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 function MyApp({ Component, pageProps }) {
   return (

@@ -63,33 +63,46 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
     const currentQuery = { ...Route.query };
     const updatedQuery = { ...currentQuery, ...newParams };
     
+    // If this is a category selection, add the category name
+    if (newParams.cat_id) {
+      const selectedCategory = availableCategories.find(cat => cat.id.toString() === newParams.cat_id.toString());
+      if (selectedCategory) {
+        updatedQuery.cat_name = selectedCategory.name;
+      }
+    }
+
     // Clean up undefined values
     Object.keys(updatedQuery).forEach(key => 
       updatedQuery[key] == null && delete updatedQuery[key]
     );
 
-    // Format filters according to API spec
     const searchFilters = {
       ...appliedFilters,
-      categories: newParams.cat_id || currentQuery.cat_id,
-      sizes: newParams.size || currentQuery.size,
-      colors: newParams.color || currentQuery.color,
-      minPrice: newParams.min_price || currentQuery.min_price,
-      maxPrice: newParams.max_price || currentQuery.max_price,
-      onSale: showSaleOnly
+      categoryId: updatedQuery.cat_id,
+      sizes: updatedQuery.size,
+      colors: updatedQuery.color,
+      minPrice: updatedQuery.min_price,
+      maxPrice: updatedQuery.max_price
     };
 
-    // Update URL
+    // Store category in session storage
+    if (searchFilters.categoryId) {
+      sessionStorage.setItem('selectedCategoryId', searchFilters.categoryId);
+      sessionStorage.setItem('selectedCategoryName', updatedQuery.cat_name);
+    }
+
+    // Update Redux store first
+    dispatch(setFilters(searchFilters));
+    
+    // Then update URL
     Route.push({
       pathname: "/shop",
       query: updatedQuery
     }, undefined, { shallow: true });
 
-    // Dispatch search with complete filters
-    dispatch(fetchProductsBySearch({ 
-      filters: searchFilters
-    }));
-  }, [appliedFilters, Route, dispatch, showSaleOnly]);
+    // Finally, fetch products
+    dispatch(fetchProductsBySearch({ filters: searchFilters }));
+  }, [appliedFilters, Route, dispatch, availableCategories]);
 
   const {
     cat_id,
@@ -144,6 +157,30 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
     };
   }, [isMobileFilterOpen]);
 
+  const renderCategories = () => (
+    <ul>
+      {availableCategories.map((item) => (
+        <li
+          key={item.id}
+          className={`flex py-1 text-sm cursor-pointer ${
+            item.id.toString() === cat_id || 
+            item.name === cat_name
+              ? "text-blue-600 font-medium"
+              : "text-black hover:text-blue-600"
+          }`}
+          onClick={() => {
+            updateQueryParams({ 
+              cat_id: item.id.toString(),
+              cat_name: item.name 
+            });
+          }}
+        >
+          <span className="capitalize">{item.name}</span>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <div>
       <button
@@ -190,21 +227,7 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
             ) : availableCategories.length === 0 ? (
               <p>No categories available</p>
             ) : (
-              <ul>
-                {availableCategories.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`flex py-1 justify-between text-sm cursor-pointer ${
-                      cat_name === item.name ? "text-theme-blue" : "text-black"
-                    }`}
-                    onClick={() => {
-                      updateQueryParams({ cat_id: item.id });
-                    }}
-                  >
-                    <span className="capitalize">{item.name}</span>
-                  </li>
-                ))}
-              </ul>
+              renderCategories()
             )}
             <hr className="my-4" />
           </div>

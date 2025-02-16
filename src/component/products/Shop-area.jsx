@@ -35,15 +35,19 @@ const ShopArea = () => {
   const [layout, setLayout] = useState("grid");
   const [showSaleOnly, setShowSaleOnly] = useState(false);
   const [sortBy, setSortBy] = useState("default");
+  const [selectedCategoryId, setSelectedCategoryId] = useState(cat_id || null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState(router.query.collection_id || null);
 
   // Get categories from store filters
   const categories = storeFilters?.categories || [];
 
   // Modify the useEffect for fetching products to prevent double fetching
   useEffect(() => {
-    // Only fetch if we have actual filter changes
+    if (!router.isReady) return;
+
     const filters = {
-      ...(cat_id && { categoryId: cat_id }),
+      ...(selectedCategoryId && { categoryId: selectedCategoryId }),
+      ...(selectedCollectionId && { collections: selectedCollectionId }),
       ...(size && { size }),
       ...(color && { color }),
       ...(min_price && { minPrice: min_price }),
@@ -51,13 +55,31 @@ const ShopArea = () => {
       ...(showSaleOnly && { saleOnly: showSaleOnly })
     };
 
-    // Check if filters actually changed before dispatching
-    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(appliedFilters);
+    // Store current filters in session storage
+    sessionStorage.setItem('lastAppliedFilters', JSON.stringify(filters));
     
-    if (filtersChanged) {
+    // Dispatch only if we have valid filters
+    if (Object.keys(filters).length > 0) {
       dispatch(fetchProducts({ page: 1, filters }));
     }
-  }, [dispatch, cat_id, size, color, min_price, max_price, showSaleOnly]);
+  }, [router.isReady, selectedCategoryId, selectedCollectionId, size, color, min_price, max_price, showSaleOnly]);
+
+  // Add effect to restore filters on mount
+  useEffect(() => {
+    const savedFilters = sessionStorage.getItem('lastAppliedFilters');
+    if (savedFilters) {
+      const parsedFilters = JSON.parse(savedFilters);
+      if (parsedFilters.categoryId && !cat_id) {
+        router.push({
+          pathname: '/shop',
+          query: {
+            ...router.query,
+            cat_id: parsedFilters.categoryId
+          }
+        }, undefined, { shallow: true });
+      }
+    }
+  }, []);
 
    const { appliedFilters } = useSelector(state => state.shop);
 
@@ -90,8 +112,22 @@ const ShopArea = () => {
   };
 
   const handleCategorySelect = (category) => {
-    dispatch(setFilters({ ...storeFilters, category }));
-    setHeading(category.charAt(0).toUpperCase() + category.slice(1));
+    setSelectedCategoryId(category.id);
+    setHeading(category.name.charAt(0).toUpperCase() + category.name.slice(1));
+    
+    // Update URL with category info
+    router.push({
+      pathname: '/shop',
+      query: {
+        ...router.query,
+        cat_id: category.id,
+        cat_name: category.name
+      }
+    }, undefined, { shallow: true });
+  };
+
+  const handleCollectionSelect = (collectionId) => {
+    setSelectedCollectionId(collectionId);
   };
 
   // Scroll to top when products update
@@ -183,9 +219,7 @@ const ShopArea = () => {
 
       <Breadcrumb
         heading={heading}
-        subCategory={selectedCategory}
-        onCategorySelect={handleCategorySelect}
-        categories={categories}
+        onCollectionSelect={handleCollectionSelect}
       />
 
       <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">

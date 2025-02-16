@@ -1,0 +1,19 @@
+/* Add these styles to your global CSS */
+.collections-slider {
+  padding: 1rem 0;
+}
+
+.collections-slider .swiper-button-next,
+.collections-slider .swiper-button-prev {
+  color: black;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.collections-slider .swiper-button-next:after,
+.collections-slider .swiper-button-prev:after {
+  font-size: 18px;
+}
