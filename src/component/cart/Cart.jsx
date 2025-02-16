@@ -152,9 +152,13 @@ const Cart = () => {
   };
 
   return (
-    <div className={`flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px] ${!hasRelatedProducts ? 'justify-center' : ''}`}>
+    <div className={`
+      flex mb-20 mt-8 md:mt-16 py-8 md:py-0 md:mb-0 
+      flex-col-reverse md:flex-row h-fit md:h-[550px] 
+      ${!hasRelatedProducts ? 'justify-center' : ''}
+    `}>
       {/* Related Products Section */}
-      {isInitialized && persistentCartData.items.length > 0 && (
+      {isInitialized && persistentCartData.items.length > 0 && hasRelatedProducts && (
         <div className="md:w-1/2 p-4 md:p-6 border-r overflow-y-auto scrollbar-custom bg-gray-50">
           <div className="max-w-md mx-auto">
             <CartRelatedProducts 
@@ -166,10 +170,10 @@ const Cart = () => {
         </div>
       )}
 
-      {/* Cart Section */}
+      {/* Cart Section - Wider when no related products */}
       <div className={`
         flex flex-col bg-white
-        ${hasRelatedProducts ? 'md:w-1/2' : 'md:w-3/4 mx-auto'} 
+        ${hasRelatedProducts ? 'md:w-1/2' : 'md:w-[85%] md:max-w-4xl'} 
         transition-all duration-300
       `}>
         <div className="p-6 flex-1 overflow-y-scroll scrollbar-custom">
