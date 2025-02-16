@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createOrder } from "@/redux/slices/orderSlice";
 import CheckoutDetails from "./CheckoutDetails";
 import DisplayDetails from "./DisplayDetails";
 import YourOrder from "./YourOrder";
@@ -9,6 +11,8 @@ import { useCart } from "@/contexts/CartContext";
 import { useRegion } from "@/contexts/RegionContext";
 
 function CheckoutContainer() {
+  const dispatch = useDispatch();
+  const { items, totalAmount } = useSelector(state => state.cart);
   const router = useRouter();
   const { query } = router; // Extract query from the router
   const [step, setStep] = useState(1); // Current step
@@ -51,9 +55,20 @@ function CheckoutContainer() {
     router.push({ query: { ...query, step: 1 } }); // Update URL with new step
   };
 
-  const handleOrder = () => {
-    setStep(3); // Move to YourOrder step
-    router.push({ query: { ...query, step: 3 } }); // Update URL with new step
+  const handleOrder = async () => {
+    try {
+      await dispatch(createOrder({
+        items,
+        totalAmount,
+        shippingAddress: formData,
+        // Add other order details as needed
+      })).unwrap();
+      setStep(3);
+      router.push({ query: { ...query, step: 3 } });
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      alert('Failed to create order. Please try again.');
+    }
   };
 
   const handlePayment = () => {
@@ -61,10 +76,16 @@ function CheckoutContainer() {
     router.push({ query: { ...query, step: 4 } }); // Update URL with new step
   };
 
-  const handlePaymentComplete = () => {
-    alert("Payment Successful! Thank you for your order.");
-    setStep(1); // Reset to first step after completion
-    router.push({ query: { ...query, step: 1 } }); // Update URL to reset step
+  const handlePaymentComplete = async () => {
+    try {
+      // Add any necessary payment completion logic here
+      // For example, clear cart, save order details, etc.
+      alert('Payment Successful! Thank you for your order.');
+      router.push('/order-confirmation'); // Redirect to order confirmation page
+    } catch (error) {
+      console.error('Error completing payment:', error);
+      alert('Error processing payment. Please try again.');
+    }
   };
 
   return (
@@ -91,7 +112,9 @@ function CheckoutContainer() {
         />
       )}
       {step === 4 && (
-        <PaymentCheckout onPaymentComplete={handlePaymentComplete} />
+        <PaymentCheckout 
+          onPaymentComplete={handlePaymentComplete}
+        />
       )}
     </div>
   );

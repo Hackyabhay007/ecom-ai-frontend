@@ -1,43 +1,12 @@
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import Shipping from "./Shippingoption";
-import axios from "axios";
-function YourOrder({ order: initialOrder, onEdit, onPayment }) {
-  const [order, setOrder] = useState(initialOrder?.items);
-  const [shippingmethods, setshippingmethods] = useState([]);
+import React from "react";
+import { useSelector } from "react-redux";
 
-  // console.log(order);
+function YourOrder({ onEdit, onPayment }) {
+  const { items, totalAmount } = useSelector(state => state.cart);
 
-  const fetchShippingOptions = async (cart_id) => {
-    try {
-      await axios
-        .get(
-          `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/shipping-options`,
-          {
-            headers: {
-              "x-publishable-api-key":
-                process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
-            },
-            params: {
-              cart_id: cart_id,
-            },
-          }
-        )
-        .then((res) => {
-          
-          setshippingmethods(res.data.shipping_options);
-        })
-        .catch((err) =>  console.error(err));
-
-      // console.log(response.data); // Handle the response
-    } catch (error) {
-      console.error("Error fetching shipping options:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (initialOrder) fetchShippingOptions(initialOrder.id);
-  }, [initialOrder]);
+  if (!items || items.length === 0) {
+    return <div>No items in cart</div>;
+  }
 
   return (
     <div>
@@ -68,62 +37,57 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
               </tr>
             </thead>
             <tbody>
-              {order && Array.isArray(order) && order.length > 0 ? (
-                order.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b-2 border-dashed border-gray-600 min-h-8"
-                  >
-                    <td className="py-4 pl-2 md:pl-0 flex flex-col items-start md:flex-row md:items-center">
-                      <img
-                        src={item.thumbnail}
-                        alt="Product"
-                        className="h-14 md:h-20 w-auto "
-                      />
-                      <div className="md:ml-4">
-                        <h3 className="font-medium flex flex-wrap">
-                          {item.product_title}
-                        </h3>
-                        {/* <p className="text-sm text-gray-500">{item.color}</p> */}
-                        <p className="text-sm text-gray-500">
-                          Properties: {item.variant_title.toLowerCase()}
-                        </p>
-                      </div>
-                    </td>
+              {items.map((item) => (
+                <tr
+                  key={item.id}
+                  className="border-b-2 border-dashed border-gray-600 min-h-8"
+                >
+                  <td className="py-4 pl-2 md:pl-0 flex flex-col items-start md:flex-row md:items-center">
+                    <img
+                      src={item.thumbnail}
+                      alt="Product"
+                      className="h-14 md:h-20 w-auto "
+                    />
+                    <div className="md:ml-4">
+                      <h3 className="font-medium flex flex-wrap">
+                        {item.product_title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Properties: {item.variant_title.toLowerCase()}
+                      </p>
+                    </div>
+                  </td>
 
-                    <td className="text-center">
-                      <span className="text-theme-blue font-semibold">
-                        {item.quantity}
-                      </span>
-                    </td>
+                  <td className="text-center">
+                    <span className="text-theme-blue font-semibold">
+                      {item.quantity}
+                    </span>
+                  </td>
 
-                    <td className="text-center">
-                      <span className="text-red-500 font-semibold">
-                        {item.adjustments[0]?.amount
-                          ? (
-                              (item.adjustments[0]?.amount / item.unit_price) *
-                              100
-                            ).toFixed(2) + "%"
-                          : "0%"}
-                      </span>
+                  <td className="text-center">
+                    <span className="text-red-500 font-semibold">
+                      {item.adjustments[0]?.amount
+                        ? (
+                            (item.adjustments[0]?.amount / item.unit_price) *
+                            100
+                          ).toFixed(2) + "%"
+                        : "0%"}
+                    </span>
 
-                      <div className="line-through text-gray-500">
-                        {item.unit_price || ""}
-                      </div>
-                    </td>
-                    <td className="text-right">
-                      <span className="text-gray-900 font-bold">
-                        ₹
-                        {item.adjustments[0]
-                          ? item.unit_price - item.adjustments[0]?.amount
-                          : item.unit_price}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <p>No items to display.</p>
-              )}
+                    <div className="line-through text-gray-500">
+                      {item.unit_price || ""}
+                    </div>
+                  </td>
+                  <td className="text-right">
+                    <span className="text-gray-900 font-bold">
+                      ₹
+                      {item.adjustments[0]
+                        ? item.unit_price - item.adjustments[0]?.amount
+                        : item.unit_price}
+                    </span>
+                  </td>
+                </tr>
+              ))}
               <div className="px-2 md:px-10">
                 <table className=" w-full text-left text-theme-blue ">
                   <tbody>
@@ -133,7 +97,7 @@ function YourOrder({ order: initialOrder, onEdit, onPayment }) {
                         Total
                       </td>
                       <td className="text-right font-bold text-black">
-                        ₹{initialOrder.subtotal}
+                        ₹{totalAmount}
                       </td>
                     </tr>
                   </tbody>

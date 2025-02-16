@@ -1,117 +1,49 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { getAuthHeaders } from "@/lib/data/cookies";
-// Async thunk to fetch orders by customer ID
-export const fetchOrdersByCustomerId = createAsyncThunk(
-  "orders/fetchOrdersByCustomerId",
-  async (customerId, { rejectWithValue }) => {
-    const headers = await getAuthHeaders();
+import { createApiUrl } from "../../utils/apiConfig";
 
+// Create async thunks for order operations
+export const createOrder = createAsyncThunk(
+  'orders/createOrder',
+  async (orderData, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/orders?fields=customer_id,created_at,item_subtotal,display_id`,
-        {
-          params: {
-            order: "-created_at",
-          },
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-            ...headers,
-          },
-        }
-      );
-
-      // console.log(response.data.orders);
-      // Filter orders by customer_id
-      const filteredOrders = response.data.orders.filter(
-        (order) => order.customer_id === customerId
-      );
-
-      return filteredOrders;
+      const response = await axios.post(createApiUrl('/orders'), orderData);
+      return response.data;
     } catch (error) {
-        return rejectWithValue({
-          type: "error",
-          message: error.response?.data?.message || error.message.toString(),
-        });
+      return rejectWithValue(error.response?.data || 'Failed to create order');
     }
   }
 );
 
-export const getordercountofuser = createAsyncThunk(
-  "orders/fetchOrdersByCustomerId",
-  async (customerId, { rejectWithValue }) => {
-    const headers = await getAuthHeaders();
-
+export const processPayment = createAsyncThunk(
+  'orders/processPayment',
+  async ({ orderId, paymentMethod, paymentData }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/orders?fields=customer_id,created_at,item_subtotal,display_id`,
-        {
-          params: {
-            limit : 100,
-            order: "-created_at",
-          },
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-            ...headers,
-          },
-        }
-      );
-
-      // console.log(response.data.orders);
-      // Filter orders by customer_id
-      const filteredOrders = response.data.orders.filter(
-        (order) => order.customer_id === customerId
-      );
-
-      return filteredOrders.length > 10 ? 11 : filteredOrders.length;
+      const response = await axios.post(createApiUrl(`/orders/${orderId}/payment`), {
+        paymentMethod,
+        ...paymentData
+      });
+      return response.data;
     } catch (error) {
-        return rejectWithValue({
-          type: "error",
-          message: error.response?.data?.message || error.message.toString(),
-        });
+      return rejectWithValue(error.response?.data || 'Payment failed');
     }
   }
 );
 
-export const Cencelorder = createAsyncThunk(
-  "orders/fetchOrdersByCustomerId",
-  async (orderId, { rejectWithValue }) => {
-    const headers = await getAuthHeaders();
-
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/customers/cancel-order/${orderId}`,
-        {
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-            ...headers,
-          },
-        }
-      );
-
-      // console.log(response.data);
-      // Filter orders by customer_id
-
-      return filteredOrders;
-    } catch (error) {
-      //   return rejectWithValue({
-      //     type: "error",
-      //     message: error.response?.data?.message || error.message.toString(),
-      //   });
-      // console.log(error);
-    }
-  }
-);
-
-// Create the slice
 const ordersSlice = createSlice({
   name: "orders",
   initialState: {
+    currentOrder: null,
     orders: [],
     loading: false,
     error: null,
+    paymentStatus: null
   },
   reducers: {
+    clearCurrentOrder: (state) => {
+      state.currentOrder = null;
+      state.paymentStatus = null;
+    },
     clearOrders: (state) => {
       state.orders = [];
       state.loading = false;
@@ -120,23 +52,40 @@ const ordersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchOrdersByCustomerId.pending, (state) => {
+      .addCase(createOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchOrdersByCustomerId.fulfilled, (state, action) => {
+      .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload;
+        state.currentOrder = action.payload;
+        state.error = null;
       })
-      .addCase(fetchOrdersByCustomerId.rejected, (state, action) => {
+      .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(processPayment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.paymentStatus = 'processing';
+      })
+      .addCase(processPayment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.paymentStatus = 'success';
+        state.currentOrder = {
+          ...state.currentOrder,
+          paymentStatus: 'paid',
+          ...action.payload
+        };
+      })
+      .addCase(processPayment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.paymentStatus = 'failed';
       });
-  },
+  }
 });
 
-// Export the actions
-export const { clearOrders } = ordersSlice.actions;
-
-// Export the reducer
+export const { clearCurrentOrder, clearOrders } = ordersSlice.actions;
 export default ordersSlice.reducer;

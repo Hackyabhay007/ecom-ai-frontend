@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { setAddresses } from "@/lib/data/cart";
 import { useRegion } from "@/contexts/RegionContext";
 import { useCart } from "@/contexts/CartContext";
-import { retrieveCustomer } from "@/redux/slices/authSlice";
+import { userInfo } from "@/redux/slices/authSlice"; // Change this import
 import { useDispatch, useSelector } from "react-redux";
 
 function CheckoutDetails({ onContinue }) {
   const { cart, updateCart } = useCart();
   const { region } = useRegion();
-  const { currentCustomer: user } = useSelector((state) => state.customer);
+  const { user } = useSelector((state) => state.auth); // Change this selector
   const dispatch = useDispatch();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -30,19 +30,19 @@ function CheckoutDetails({ onContinue }) {
 
   const [formErrors, setFormErrors] = useState({});
 
-  // First, fetch the customer data
+  // First, fetch the user data
   useEffect(() => {
-    const loadCustomerData = async () => {
+    const loadUserData = async () => {
       try {
-        await dispatch(retrieveCustomer());
+        await dispatch(userInfo());
       } catch (error) {
-        console.error("Error loading customer data:", error);
+        console.error("Error loading user data:", error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    loadCustomerData();
+    loadUserData();
   }, [dispatch]);
 
   console.log(user)
@@ -50,23 +50,21 @@ function CheckoutDetails({ onContinue }) {
   // Update form data when cart or user changes
   useEffect(() => {
     if (!isLoading) {
-      const userAddress = user?.addresses?.[0]; // Assuming we want the first address
+      const userAddress = user?.addresses?.[0]; // Get first address if exists
       
       setFormData({
         firstName: cart?.shipping_address?.first_name || 
-                  (userAddress?.first_name) || 
                   user?.first_name || 
                   "",
         lastName: cart?.shipping_address?.last_name || 
-                 (userAddress?.last_name) || 
                  user?.last_name || 
                  "",
         address: cart?.shipping_address?.address_1 || 
                 userAddress?.address_1 || 
                 "",
         landmark: cart?.shipping_address?.address_2 || 
-                  userAddress?.address_2 || 
-                  "",
+                 userAddress?.address_2 || 
+                 "",
         state: cart?.shipping_address?.province || 
                userAddress?.province || 
                "",
@@ -74,7 +72,6 @@ function CheckoutDetails({ onContinue }) {
                 userAddress?.postal_code || 
                 "",
         phoneNumber: cart?.shipping_address?.phone || 
-                    userAddress?.phone || 
                     user?.phone || 
                     "",
         email: cart?.email || user?.email || "",
