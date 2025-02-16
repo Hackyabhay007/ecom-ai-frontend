@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import ProductCard from "../ProductCard";
-import { fetchProductsBySearch, setPage } from "../../../../redux/slices/shopSlice"; // Add setPage import
+import { fetchProductsBySearch, setPage, clearFilters } from "../../../../redux/slices/shopSlice"; // Add setPage importsetPage and clearFilters import
 
 // Memoize ShimmerProductCard component
 const ShimmerProductCard = memo(() => (
@@ -27,6 +27,23 @@ const MemoizedProductCard = memo(({ product, layout }) => (
     />
   </div>
 ));
+
+const NoProductsFound = ({ onClearAllFilters }) => (
+  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4">
+    <div className="text-center mb-8">
+      <i className="ri-shopping-bag-line text-6xl text-gray-300 mb-4"></i>
+      <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Products Found</h3>
+      <p className="text-gray-600 mb-6">We couldn't find any products matching your current filters.</p>
+      <button
+        onClick={onClearAllFilters}
+        className="inline-flex items-center px-6 py-3 bg-theme-blue text-white rounded-md hover:bg-blue-700 transition-colors duration-300"
+      >
+        <i className="ri-filter-off-line mr-2"></i>
+        Clear All Filters
+      </button>
+    </div>
+  </div>
+);
 
 const ProductList = ({ layout, currentSort }) => {
   const dispatch = useDispatch();
@@ -120,7 +137,7 @@ const ProductList = ({ layout, currentSort }) => {
             <MemoizedProductCard key={product.id} product={product} layout={layout} />
           ))
         ) : (
-          <p className="text-center col-span-full">No products found.</p>
+          <NoProductsFound onClearAllFilters={() => dispatch(clearFilters())} />
         )}
       </div>
 
