@@ -441,45 +441,48 @@ const ProductCard = ({ product, layout }) => {
           {/* Remove the old sale badge code */}
           {/* Remove or comment out the existing (discountes > 0 || diffInDays <= 3) span */}
 
-          {/* Heart Icon */}
-          <div
-            className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-            onClick={handleAddToWishlist}
-          >
-            {wishlistLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
-            ) : (
-              <i
-                className={`text-xl ${
-                  isInWishlist
+      
+                <div
+                className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                onClick={handleAddToWishlist}
+                >
+                {wishlistLoading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                ) : (
+                  <i
+                  className={`text-xl ${
+                    isInWishlist
                     ? "text-black ri-heart-fill"
                     : "text-black ri-heart-line"
-                }`}
-              ></i>
-            )}
-          </div>
+                  }`}
+                  ></i>
+                )}
+                </div>
 
-          {/* Shopping Bag Icon */}
-          <button
-            className="z-20 absolute bottom-4 right-[10%] md:right-[20%] flex items-center justify-center w-auto h-9 md:w-auto md:h-9 bg-white text-black hover:bg-black hover:text-white rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 px-4"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAddToCart(e);
-              setAddedToCart(true);
-              setTimeout(() => setAddedToCart(false), 2000);
-            }}
-          >
-            {addedToCart ? 'Added ✓' : 'Add to Cart'}
-          </button>
+                {/* Shopping Bag Icon */}
+                <button
+                className="z-20 absolute bottom-4 right-[2%] md:right-[10%] flex items-center justify-center w-10 h-10 md:w-auto md:h-9 bg-white text-black hover:bg-black hover:text-white rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 md:px-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(e);
+                  setAddedToCart(true);
+                  setTimeout(() => setAddedToCart(false), 2000);
+                }}
+                >
+                <span className="hidden md:inline">
+                  {addedToCart ? 'Added ✓' : 'Add to Cart'}
+                </span>
+                <i className="ri-shopping-cart-line md:hidden text-xl"></i>
+                </button>
 
-          {/* Quick View Button (For Non-List Layout - Image Hover) */}
+                {/* Quick View Button (For Non-List Layout - Image Hover) */}
           {layout !== "list" && (
             <div
               className="z-20  absolute bottom-4 left-[30%] md:left-1/4 transform -translate-x-1/2  translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500"
               onClick={handleQuickView}
             >
               <button className="md:px-4 px-2 py-2 bg-white text-black rounded-full text-xs md:text-sm hover:bg-black hover:text-white transition-all duration-150 ease-in-out">
-                Quick View
+                Quick View 
               </button>
             </div>
           )}
