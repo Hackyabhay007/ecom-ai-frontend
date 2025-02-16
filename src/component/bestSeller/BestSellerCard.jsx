@@ -12,6 +12,8 @@ const BestSellerCard = ({ id }) => {
   useEffect(() => {
     if (id) {
       dispatch(fetchSingleProduct(id));
+      console.log("got products here ",id);
+      
     }
   }, [dispatch, id]);
 
