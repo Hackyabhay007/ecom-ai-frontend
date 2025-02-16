@@ -100,23 +100,30 @@ export const fetchSingleProduct = createAsyncThunk(
 // Update fetchProductsBySearch to use the same parameter format
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
-  async ({ searchQuery = '', filters = {} }, { rejectWithValue, getState }) => {
+  async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
     try {
-      const queryParams = new URLSearchParams({
-        page: String(filters.page || 1),
-        limit: String(filters.limit || 10),
-        ...(searchQuery && { search: searchQuery }),
-        ...(filters.categoryId && { categories: filters.categoryId }),
-        ...(filters.collections && { collections: filters.collections }),
-        ...(filters.minPrice && { minPrice: filters.minPrice }),
-        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-        ...(filters.colors && { colors: filters.colors }),
-        ...(filters.sizes && { sizes: filters.sizes }),
-        ...(filters.brands && { brands: filters.brands }),
-        ...(filters.inStock !== undefined && { inStock: filters.inStock }),
-        ...(filters.onSale !== undefined && { onSale: filters.onSale }),
-        ...(filters.sort && { sort: filters.sort }) // Add sort parameter
-      });
+      // Create query params
+      const queryParams = new URLSearchParams();
+      
+      // Add basic params
+      queryParams.append('page', String(filters.page || 1));
+      queryParams.append('limit', String(filters.limit || 10));
+      
+      // Add other filters conditionally
+      if (searchQuery) queryParams.append('search', searchQuery);
+      if (filters.categoryId) queryParams.append('categories', filters.categoryId);
+      if (filters.collections) queryParams.append('collections', filters.collections);
+      if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+      if (filters.colors) queryParams.append('colors', filters.colors);
+      if (filters.sizes) queryParams.append('sizes', filters.sizes);
+      if (filters.brands) queryParams.append('brands', filters.brands);
+      if (filters.sort) queryParams.append('sort', filters.sort);
+      
+      // Handle onSale explicitly
+      if (filters.onSale === "true") {
+        queryParams.append('onSale', 'true');
+      }
 
       const response = await axios.get(
         createApiUrl(`/products/search?${queryParams.toString()}`),
@@ -228,16 +235,15 @@ const shopSlice = createSlice({
       state.appliedFilters = {};
       state.isFiltered = false;
       state.lastAppliedFilters = null;
-      // Reset onSale filter specifically
+      state.currentSort = 'default';
       state.filters = {
         ...state.filters,
         priceRange: initialState.filters.priceRange,
         onSale: undefined
       };
-      state.currentSort = 'default';
-      if (state.originalProducts.length) {
-        state.products = [...state.originalProducts];
-      }
+      // Ensure we clear the onSale filter completely
+      delete state.appliedFilters.onSale;
+      delete state.filters.onSale;
     },
     setPriceRange: (state, action) => {
       // Preserve other filters when updating price range
@@ -328,6 +334,11 @@ const shopSlice = createSlice({
           collections: action.payload.filters.collections || state.filters.collections,
           brands: action.payload.filters.brands || state.filters.brands,
         };
+
+        // Preserve onSale filter state
+        if (state.appliedFilters.onSale !== undefined) {
+          state.filters.onSale = state.appliedFilters.onSale;
+        }
       })
       .addCase(fetchProductsBySearch.rejected, (state, action) => {
         state.searchLoading = false;

@@ -74,8 +74,15 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const handleSaleToggle = useCallback(() => {
     const newSaleValue = !showSaleOnly;
     setShowSaleOnly(newSaleValue);
-    updateQueryParams({ onSale: newSaleValue || null });
-  }, [showSaleOnly]);
+    
+    // Dispatch search with onSale parameter
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...appliedFilters,
+        onSale: newSaleValue ? "true" : undefined // Send as string "true" or remove parameter
+      }
+    }));
+  }, [showSaleOnly, appliedFilters, dispatch]);
 
   // Update query params
   const updateQueryParams = useCallback((newParams) => {
