@@ -21,7 +21,7 @@ const NavCategory = () => {
   const categories = [
     { name: 'Men', path: '/shop?gender=men', key: 'men' },
     { name: 'Women', path: '/shop?gender=women', key: 'women' },
-    { name: 'Kids', path: '/shop?gender=kids', key: 'kids' }
+    // { name: 'Kids', path: '/shop?gender=kids', key: 'kids' }
   ];
 
   const menuItemVariants = {
