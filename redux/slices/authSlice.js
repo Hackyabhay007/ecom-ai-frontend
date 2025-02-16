@@ -154,6 +154,28 @@ export const updateVisitedProducts = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const token = Cookies.get('auth_token');
+      if (!token) return rejectWithValue('No auth token found');
+
+      const response = await axios.put(createApiUrl('/auth/profile/full'), formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      return response.data.user;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to update profile';
+      return rejectWithValue({ message, required: error.response?.data?.required });
+    }
+  }
+);
+
 
 // Create auth slice
 const initialState = {
@@ -248,6 +270,19 @@ const authSlice = createSlice({
       })
       .addCase(updateVisitedProducts.fulfilled, (state, action) => {
         state.visitedProducts = action.payload;
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
