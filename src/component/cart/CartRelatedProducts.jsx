@@ -123,56 +123,74 @@ const CartRelatedProducts = ({items, onProductsLoad}) => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         {[...Array(4)].map((_, index) => (
-          <div key={index} className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
+          <div key={index} className="animate-pulse rounded-lg overflow-hidden">
+            <div className="bg-gray-200 h-32 md:h-40"></div>
+            <div className="p-2 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
         ))}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {displayProducts.map((product) => (
-        <div
-          key={product.id}
-          onClick={() => handleProductClick(product.id)}
-          className="rounded-lg relative cursor-pointer bg-white shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
-        >
-          {/* Product Image */}
-          <div className="relative w-full pt-[100%]">
-            <Image
-              src={product.variants[0]?.images[0]?.url || '/placeholder-image.jpg'}
-              alt={product.title}
-              layout="fill"
-              objectFit="cover"
-              className="absolute top-0 left-0"
-            />
-          </div>
+    <div className="space-y-4">
+      <h3 className="text-theme-blue font-medium text-sm md:text-base mb-3">
+        Similar Products You Might Like
+      </h3>
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
+        {displayProducts.map((product) => (
+          <div
+            key={product.id}
+            onClick={() => handleProductClick(product.id)}
+            className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100"
+          >
+            {/* Image with aspect ratio container */}
+            <div className="relative pt-[100%] overflow-hidden bg-gray-50">
+              <Image
+                src={product.variants[0]?.images[0]?.url || '/placeholder-image.jpg'}
+                alt={product.title}
+                layout="fill"
+                objectFit="cover"
+                className="absolute top-0 left-0 hover:scale-105 transition-transform duration-300"
+              />
+            </div>
 
-          {/* Product Info */}
-          <div className="p-2">
-            <h3 className="text-sm font-medium text-gray-900 truncate">
-              {product.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {formatPriceToINR(product.variants[0]?.price)}
-            </p>
-            <button
-              onClick={(e) => handleAddToCart(product, e)}
-              disabled={addingToCart[product.id]}
-              className="mt-2 w-full text-xs bg-theme-blue text-white py-1.5 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {addingToCart[product.id] ? 'Adding...' : 'Add to Cart'}
-            </button>
+            {/* Content */}
+            <div className="p-2 md:p-3 space-y-1.5">
+              <h3 className="text-xs md:text-sm font-medium text-gray-800 line-clamp-2 min-h-[32px]">
+                {product.title}
+              </h3>
+              <p className="text-xs md:text-sm font-semibold text-theme-blue">
+                {formatPriceToINR(product.variants[0]?.price)}
+              </p>
+              <button
+                onClick={(e) => handleAddToCart(product, e)}
+                disabled={addingToCart[product.id]}
+                className={`w-full py-1.5 md:py-2 rounded text-xs md:text-sm font-medium transition-all duration-200
+                  ${addingToCart[product.id]
+                    ? 'bg-gray-100 text-gray-400'
+                    : 'bg-theme-blue text-white hover:bg-blue-700'}`}
+              >
+                {addingToCart[product.id] ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                    Adding...
+                  </span>
+                ) : (
+                  'Add to Cart'
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
 
-export default React.memo(CartRelatedProducts, (prevProps, nextProps) => {
-  // Improve memoization to prevent unnecessary rerenders
-  return JSON.stringify(prevProps.items) === JSON.stringify(nextProps.items);
-});
+export default React.memo(CartRelatedProducts);

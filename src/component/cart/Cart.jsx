@@ -153,20 +153,22 @@ const Cart = () => {
 
   return (
     <div className={`flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px] ${!hasRelatedProducts ? 'justify-center' : ''}`}>
-      {/* Only render related products section if there are products to show */}
+      {/* Related Products Section */}
       {isInitialized && persistentCartData.items.length > 0 && (
-        <div className="md:w-1/2 p-5 border-r overflow-y-auto scrollbar-custom">
-          <CartRelatedProducts 
-            items={persistentCartData.items} 
-            key={router.asPath}
-            onProductsLoad={handleProductsLoad}
-          />
+        <div className="md:w-1/2 p-4 md:p-6 border-r overflow-y-auto scrollbar-custom bg-gray-50">
+          <div className="max-w-md mx-auto">
+            <CartRelatedProducts 
+              items={persistentCartData.items} 
+              key={router.asPath}
+              onProductsLoad={handleProductsLoad}
+            />
+          </div>
         </div>
       )}
 
-      {/* Cart section - Full width when no related products */}
+      {/* Cart Section */}
       <div className={`
-        flex flex-col
+        flex flex-col bg-white
         ${hasRelatedProducts ? 'md:w-1/2' : 'md:w-3/4 mx-auto'} 
         transition-all duration-300
       `}>
