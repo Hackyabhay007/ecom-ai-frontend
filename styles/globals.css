@@ -1,11 +1,11 @@
-/* Add these styles to your global CSS */
+/* Add these styles for the collections slider */
 .collections-slider {
   padding: 1rem 0;
 }
 
 .collections-slider .swiper-button-next,
 .collections-slider .swiper-button-prev {
-  color: black;
+  color: #153A63;
   width: 40px;
   height: 40px;
   background: white;
@@ -16,4 +16,18 @@
 .collections-slider .swiper-button-next:after,
 .collections-slider .swiper-button-prev:after {
   font-size: 18px;
+}
+
+.collections-slider .swiper-button-next:hover,
+.collections-slider .swiper-button-prev:hover {
+  background: #153A63;
+  color: white;
+}
+
+.collections-slider .swiper-slide {
+  transition: transform 0.3s ease;
+}
+
+.collections-slider .swiper-slide:hover {
+  transform: translateY(-2px);
 }

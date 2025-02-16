@@ -35,56 +35,31 @@ const ShopArea = () => {
   const [layout, setLayout] = useState("grid");
   const [showSaleOnly, setShowSaleOnly] = useState(false);
   const [sortBy, setSortBy] = useState("default");
-  const [selectedCategoryId, setSelectedCategoryId] = useState(cat_id || null);
-  const [selectedCollectionId, setSelectedCollectionId] = useState(router.query.collection_id || null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Get categories from store filters
   const categories = storeFilters?.categories || [];
 
-  // Modify the useEffect for fetching products to prevent double fetching
+  // Load products when filters change
   useEffect(() => {
     if (!router.isReady) return;
 
-    const filters = {
-      ...(selectedCategoryId && { categoryId: selectedCategoryId }),
-      ...(selectedCollectionId && { collections: selectedCollectionId }),
-      ...(size && { size }),
-      ...(color && { color }),
-      ...(min_price && { minPrice: min_price }),
-      ...(max_price && { maxPrice: max_price }),
-      ...(showSaleOnly && { saleOnly: showSaleOnly })
-    };
-
-    // Store current filters in session storage
-    sessionStorage.setItem('lastAppliedFilters', JSON.stringify(filters));
-    
-    // Dispatch only if we have valid filters
-    if (Object.keys(filters).length > 0) {
-      dispatch(fetchProducts({ page: 1, filters }));
-    }
-  }, [router.isReady, selectedCategoryId, selectedCollectionId, size, color, min_price, max_price, showSaleOnly]);
-
-  // Add effect to restore filters on mount
-  useEffect(() => {
-    const savedFilters = sessionStorage.getItem('lastAppliedFilters');
-    if (savedFilters) {
-      const parsedFilters = JSON.parse(savedFilters);
-      if (parsedFilters.categoryId && !cat_id) {
-        router.push({
-          pathname: '/shop',
-          query: {
-            ...router.query,
-            cat_id: parsedFilters.categoryId
-          }
-        }, undefined, { shallow: true });
+    dispatch(fetchProducts({
+      page: currentPage,
+      filters: {
+        categoryId: cat_id,
+        size,
+        color,
+        minPrice: min_price,
+        maxPrice: max_price,
+        saleOnly: showSaleOnly // Add this line
       }
-    }
-  }, []);
+    }));
+  }, [dispatch, currentPage, cat_id, size, color, min_price, max_price, showSaleOnly, router.isReady]); // Add showSaleOnly to dependencies
 
    const { appliedFilters } = useSelector(state => state.shop);
 
-  // Remove the second useEffect that was updating filtered products
-  // This was causing double updates
+  // Update filtered products when products change
   useEffect(() => {
     if (products?.length > 0) {
       setFilteredProducts(products);
@@ -112,22 +87,8 @@ const ShopArea = () => {
   };
 
   const handleCategorySelect = (category) => {
-    setSelectedCategoryId(category.id);
-    setHeading(category.name.charAt(0).toUpperCase() + category.name.slice(1));
-    
-    // Update URL with category info
-    router.push({
-      pathname: '/shop',
-      query: {
-        ...router.query,
-        cat_id: category.id,
-        cat_name: category.name
-      }
-    }, undefined, { shallow: true });
-  };
-
-  const handleCollectionSelect = (collectionId) => {
-    setSelectedCollectionId(collectionId);
+    dispatch(setFilters({ ...storeFilters, category }));
+    setHeading(category.charAt(0).toUpperCase() + category.slice(1));
   };
 
   // Scroll to top when products update
@@ -213,12 +174,30 @@ const ShopArea = () => {
     }));
   };
 
+  const handleCollectionSelect = (collectionId) => {
+    dispatch(fetchProducts({
+      page: 1,
+      filters: {
+        ...appliedFilters,
+        collections: collectionId
+      }
+    }));
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="py-16 md:py-0 md:mb-5">
       {loading && <SkeletonScreen />}
 
       <Breadcrumb
         heading={heading}
+        subCategory={selectedCategory}
+        onCategorySelect={handleCategorySelect}
+        categories={categories}
         onCollectionSelect={handleCollectionSelect}
       />
 
@@ -270,6 +249,24 @@ const ShopArea = () => {
               // currentSort={sortBy} // Add this prop
             />
           )}
+
+          {/* {meta.totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-8">
+              {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === page
+                      ? 'bg-theme-blue text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+          )} */}
         </div>
       </div>
     </div>

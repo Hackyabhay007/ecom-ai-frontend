@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import ProductCard from "../ProductCard";
-import { fetchProductsBySearch } from "../../../../redux/slices/shopSlice";
+import { fetchProductsBySearch, setPage } from "../../../../redux/slices/shopSlice"; // Add setPage import
 
 // Memoize ShimmerProductCard component
 const ShimmerProductCard = memo(() => (
@@ -29,9 +29,6 @@ const MemoizedProductCard = memo(({ product, layout }) => (
 ));
 
 const ProductList = ({ layout, currentSort }) => {
-  const [productsArray, setProductsArray] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(10);
   const dispatch = useDispatch();
   const { 
     products, 
@@ -42,16 +39,10 @@ const ProductList = ({ layout, currentSort }) => {
     isFiltered
   } = useSelector(state => state.shop);
 
-  useEffect(() => {
-    setProductsArray(products);
-    console.log("This is the Products of the PageList", products);
-  }, [products]);
-
-  
   // Add request cancellation reference
   const abortControllerRef = useRef(null);
- 
-  // Optimize fetch function
+
+  // Update fetchProducts to handle pagination properly
   const fetchProducts = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -60,28 +51,25 @@ const ProductList = ({ layout, currentSort }) => {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    const debounceTimer = setTimeout(() => {
-      dispatch(fetchProductsBySearch({
-        filters: {
-          ...appliedFilters,
-          page: currentPage,
-          limit: productsPerPage,
-          sort: currentSort
-        },
-        signal: controller.signal
-      }));
-    }, 300);
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...appliedFilters,
+        page: meta.page,
+        limit: meta.limit,
+        sort: currentSort
+      },
+      signal: controller.signal
+    }));
 
     return () => {
-      clearTimeout(debounceTimer);
       controller.abort();
     };
-  }, [currentPage, currentSort, JSON.stringify(appliedFilters), productsPerPage]);
+  }, [meta.page, currentSort, appliedFilters]);
 
   // Optimize effects
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
+    if (meta.page !== 1) {
+      dispatch(setPage(1));
     }
   }, [appliedFilters]);
 
@@ -90,26 +78,11 @@ const ProductList = ({ layout, currentSort }) => {
     return () => cleanup();
   }, [fetchProducts]);
 
-  // console.log("This is the Products of the PageList", products)
-
   // Handle pagination
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handlePageChange = (newPage) => {
+    dispatch(setPage(newPage));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const nextPage = () => {
-    if (currentPage < meta.totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  // Calculate page numbers
-  const pageNumbers = [];
-  for (let i = Math.max(1, currentPage - 2); i <= Math.min(meta.totalPages, currentPage + 2); i++) {
-    pageNumbers.push(i);
-  }
 
   // Loading state with fixed height
   if ((loading || searchLoading) && !products.length) {
@@ -151,37 +124,51 @@ const ProductList = ({ layout, currentSort }) => {
         )}
       </div>
 
-      {/* Pagination Controls */}
-      {products.length > 0 && (
-        <div className="text-sm md:text-base flex justify-center mt-4">
+      {/* Updated Pagination Controls */}
+      {meta.totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
           <button
-            onClick={prevPage}
-            disabled={currentPage === 1}
-            className="md:px-4 py-2 px-3 border md:rounded-sm rounded-none"
+            onClick={() => handlePageChange(meta.page - 1)}
+            disabled={meta.page === 1}
+            className="px-4 py-2 border rounded-md disabled:opacity-50"
           >
             Previous
           </button>
 
-          <div className="flex items-center mx-2">
-            {pageNumbers.map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none mx-1 ${
-                  currentPage === page
-                    ? "bg-black text-white"
-                    : "bg-white text-black hover:bg-gray-200"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-          </div>
+          {[...Array(meta.totalPages)].map((_, index) => {
+            const pageNumber = index + 1;
+            // Show current page, first, last, and nearby pages
+            if (
+              pageNumber === 1 ||
+              pageNumber === meta.totalPages ||
+              Math.abs(pageNumber - meta.page) <= 2
+            ) {
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => handlePageChange(pageNumber)}
+                  className={`px-4 py-2 rounded-md ${
+                    meta.page === pageNumber
+                      ? 'bg-theme-blue text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            } else if (
+              pageNumber === 2 ||
+              pageNumber === meta.totalPages - 1
+            ) {
+              return <span key={pageNumber}>...</span>;
+            }
+            return null;
+          })}
 
           <button
-            onClick={nextPage}
-            disabled={currentPage >= meta.totalPages}
-            className="md:px-4 py-2 px-3 border md:rounded-sm rounded-none"
+            onClick={() => handlePageChange(meta.page + 1)}
+            disabled={meta.page >= meta.totalPages}
+            className="px-4 py-2 border rounded-md disabled:opacity-50"
           >
             Next
           </button>

@@ -102,8 +102,11 @@ export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
   async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
     try {
-      // Format query parameters
-      const queryParams = new URLSearchParams();
+      const queryParams = new URLSearchParams({
+        page: String(filters.page || 1),
+        limit: String(filters.limit || 10),
+        // ...rest of the filter parameters...
+      });
       
       if (searchQuery) {
         queryParams.append('search', searchQuery);
@@ -222,6 +225,9 @@ const shopSlice = createSlice({
         maxPrice: action.payload.max
       };
       state.isFiltered = true;
+    },
+    setPage: (state, action) => {
+      state.meta.page = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -283,7 +289,11 @@ const shopSlice = createSlice({
         state.searchLoading = false;
         state.searchError = null;
         state.products = action.payload.products;
-        state.meta = action.payload.meta;
+        // Make sure we update the meta information
+        state.meta = {
+          ...state.meta,
+          ...action.payload.meta
+        };
 
         // Preserve applied filters while updating available ones
         state.filters = {
@@ -317,7 +327,7 @@ const shopSlice = createSlice({
   }
 });
 
-export const { setFilters, clearFilters, setPriceRange } = shopSlice.actions;
+export const { setFilters, clearFilters, setPriceRange, setPage } = shopSlice.actions;
 
 // Update the selectMatchingProducts selector
 export const selectMatchingProducts = (state, productIds) => {
