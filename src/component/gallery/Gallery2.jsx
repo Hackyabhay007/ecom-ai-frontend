@@ -81,25 +81,28 @@ function Gallery2() {
           ) : (
             <video
               src={video?.url} // Assuming video URL is stored in 'image' property
-              muted
-              loop
-              autoPlay
-              className="w-full h-full object-cover"
-            />
-          )}
+                muted
+                loop
+                autoPlay
+                className="w-full h-full object-cover"
+              />
+              )}
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-500">
-            <h2 className="text-white text-4xl font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              {selectedItem.title || "Title"}
-            </h2>
-            <button className="text-black bg-white rounded-lg text-lg shadow-lg py-2 px-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              {selectedItem.text || "View All"}
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-500">
+              <h2 className="text-white text-4xl font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {selectedItem.title || "Top Products"}
+              </h2>
+              <a 
+                href="/shop" 
+                className="text-black bg-white rounded-lg text-lg shadow-lg py-2 px-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+              >
+                {selectedItem.text || "View All"}
+              </a>
+              </div>
+            </div>
+            )}
 
-      {/* Black Strip with Scrolling Text */}
+            {/* Black Strip with Scrolling Text */}
       <div className="bg-black h-8 pt-1 text-white text-sm flex overflow-hidden md:flex-col md:h-full gap-11 w-full md:w-10 items-center justify-center md:writing-mode-vertical px-2">
         <div className="gap-4 md:gap-0 flex flex-row md:flex-col h-fit animate-scroll-left-gallery md:animate-scroll-up-gallery md:space-y-10">
           {Array.from({ length: 20 }, (_, i) => (
