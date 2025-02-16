@@ -1,67 +1,69 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 import SearchSuggestion from "./SearchSuggestion";
 import { useRegion } from "../../contexts/RegionContext.jsx";
 import medusaClient from "../../lib/medusa-client";
 import LineLoader from "../loader/LineLoader";
 
 const Search = ({ onClose, isMobile }) => {
+  const dispatch = useDispatch();
+  const { products, searchLoading } = useSelector(state => state.shop); // Add searchLoading
   const [query, setQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const { region } = useRegion();
 
-  const convertToDecimal = (amount) => {
-    return Math.floor(amount) / 100;
+  // Debounce search to prevent too many API calls
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
   };
 
-  const formatPrice = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: region.currency_code,
-    }).format(convertToDecimal(amount));
-  };
+  // Handle search with debounce
+  const debouncedSearch = useCallback(
+    debounce(async (searchQuery) => {
+      if (searchQuery.length >= 1) { // Only search if query is 1 or more characters
+        try {
+          await dispatch(fetchProductsBySearch({
+            searchQuery,
+            filters: { limit: 10, page: 1 }
+          })).unwrap();
+        } catch (error) {
+          console.error("Search error:", error);
+        }
+      } else {
+        setFilteredProducts([]);
+      }
+      setIsTyping(false);
+    }, 500),
+    [dispatch]
+  );
 
-  const handleSearch = async (e) => {
+  // Update filteredProducts when products change
+  useEffect(() => {
+    if (products?.length > 0) {
+      console.log('Updating filtered products:', products);
+      setFilteredProducts(products);
+    }
+  }, [products]);
+
+  const handleSearch = (e) => {
     const searchQuery = e.target.value.toLowerCase();
     setQuery(searchQuery);
     setIsTyping(true);
-
-    if (searchQuery) {
-      try {
-        const { products } = await medusaClient.products.list({
-          q: searchQuery,
-          region_id: region.id
-        });
-
-        // Add formatted prices to products
-        const productsWithPrices = products.map(product => ({
-          ...product,
-          formattedPrices: product.variants.map(variant => 
-            formatPrice(variant.calculated_price_incl_tax)
-          )
-        }));
-
-        setFilteredProducts(productsWithPrices || []);
-      } catch (error) {
-        console.error("Search error:", error);
-        setFilteredProducts([]);
-      }
-    } else {
-      setFilteredProducts([]);
-    }
-
-    setTimeout(() => {
-      setIsTyping(false);
-    }, 500);
+    debouncedSearch(searchQuery);
   };
 
   return (
     <div
-      className={`${
-        isMobile
-          ? "w-full bg-white relative"
-          : "fixed top-1/2 left-1/2 w-[90%] md:w-[70%] min-h-[32vh] -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-3xl shadow-2xl shadow-black z-50"
-      }`}
+      className={`${isMobile
+        ? "w-full bg-white relative"
+        : "fixed top-1/2 left-1/2 w-[90%] md:w-[70%] min-h-[32vh] -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-3xl shadow-2xl shadow-black z-50"
+        }`}
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex-1"></div>
@@ -70,7 +72,7 @@ const Search = ({ onClose, isMobile }) => {
           onClick={onClose}
         ></i>
       </div>
-      
+
       <div className="flex flex-col relative">
         {isTyping && <LineLoader />}
         <input
@@ -86,10 +88,9 @@ const Search = ({ onClose, isMobile }) => {
         )}
         {query && (
           <p className="text-sm mt-2 transition-opacity duration-300">
-            {isTyping ? "Searching..." : 
-              filteredProducts.length > 0
-                ? `${filteredProducts.length} products found`
-                : "No products found"}
+            {isTyping || searchLoading ? "Searching..." : 
+             filteredProducts.length > 0 ? `${filteredProducts.length} products found` : 
+             "No products found"}
           </p>
         )}
       </div>

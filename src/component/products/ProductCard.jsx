@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   addToWishlist,
   toggleWishlistSidebar,
-} from "../../../redux/slices/wishSlice";
+  removeFromWishlist // Add this import
+} from "../../../redux/slices/wishlistSlice"; // Fix the path
 import QuickView from "./product_view/QuickView";
 import { useRegion } from "../../contexts/RegionContext";
-import { addToCart, updateCart } from "@/lib/data/cart";
-import { useSelector } from "react-redux";
+import { addToCart, initializeGuestId } from "../../../redux/slices/cartSlice"; // Fixed import path
 import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
+import { formatPriceToINR } from "utils/currencyUtils";
+import { toast } from 'react-hot-toast';
+import { getCookie } from '../../../utils/cookieUtils';
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 // import "./Hoverimagechnage.css"
 
@@ -18,18 +23,27 @@ const ProductCard = ({ product, layout }) => {
   // console.log(product, " this product was come ");
   const router = useRouter();
   const dispatch = useDispatch();
-  const { currentCustomer: user } = useSelector((state) => state.customer);
-  const { wishlist } = useSelector((state) => state.wishlist);
-  // console.log(user);
+  const customer = useSelector((state) => state.customer) || {};
+  const user = customer?.currentCustomer || null;
+  const wishlistState = useSelector((state) => state.wishlist) || {};
+  const wishlistMessage = wishlistState.message;
+  const wishlistError = useSelector((state) => state.wishlist?.error);
+  const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false); // Add this state
 
   useEffect(() => {
-    dispatch(retrieveCustomer());
-  }, [dispatch]);
+    if (!user) {
+      dispatch(retrieveCustomer());
+    }
+  }, [dispatch, user]);
 
   const [isWishlistAdded, setIsWishlistAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isCartAdded, setIsCartAdded] = useState(false);
   const { region } = useRegion();
+  const currency_code = region?.currency_code || 'INR'; // Add default currency code
   const [products, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [variantPrice, setVariantPrice] = useState(null);
@@ -43,166 +57,184 @@ const ProductCard = ({ product, layout }) => {
 
   const {
     id,
-    name,
-    price,
-    prevPrice,
-    thumbnail: image,
-    tags = [],
-    description,
+    name = product.title,
+    description = product.description,
+    variants = [],
+    attributes = {},
+    metadata = {},
+    created_at
   } = product;
 
-  // console.log(product.variants[0], " this is product card data");
+  // Get primary image from first variant or fallback
+  const primaryImage = variants[0]?.images?.find(img => img.isPrimary)?.url 
+    || variants[0]?.images?.[0]?.url 
+    || '/placeholder-image.jpg';
+
+  // Get secondary image for hover effect
+  const secondaryImage = variants[0]?.images?.[1]?.url || primaryImage;
+
+  // Get variant price
+  const defaultVariant = variants[0] || {};
+  const variantPriceValue = defaultVariant.price || 0;
 
   useEffect(() => {
     const fetchVariantDetails = async () => {
       try {
         setLoading(true);
-
-        let targetVariant =
-          size && color
-            ? product?.variants.find((v) =>
-                v.options?.some(
-                  (option) =>
-                    option.value.toLowerCase() === color.toLowerCase() &&
-                    v.options?.some(
-                      (option) =>
-                        option.value.toLowerCase() === size.toLowerCase()
-                    )
-                )
-              )
-            : color
-            ? product?.variants.find((variant) =>
-                variant.options?.some(
-                  (option) => option.value.toLowerCase() === color.toLowerCase()
-                )
-              )
-            : size
-            ? product?.variants.find((variant) =>
-                variant.options?.some(
-                  (option) => option.value.toLowerCase() === size.toLowerCase()
-                )
-              )
-            : product.variants[0];
-
-        if (!targetVariant) {
-          targetVariant = product.variants[0];
-          setNotfoundoncurrentvaiant(product.variants[0]);
-        }
+        
+        const targetVariant = variants.find(v => 
+          (!size && !color) ? v.isActive :
+          (size && color) ? (v.size === size && v.color === color) :
+          size ? v.size === size :
+          color ? v.color === color : false
+        ) || variants[0];
 
         if (targetVariant) {
-          setVariantPrice(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: region.currency_code,
-            }).format(targetVariant.calculated_price?.calculated_amount)
-          );
+          setVariantPrice(targetVariant?.price);
 
-          const calculatedAmount =
-            targetVariant.calculated_price?.calculated_amount;
-
-          if (product.metadata?.discount) {
-            setdiscount(product.metadata.discount);
-          }
-
-          if (calculatedAmount && product.metadata?.discount > 0) {
+          if (metadata?.discount > 0) {
+            setdiscount(metadata.discount);
+            const discounted = targetVariant.price * (1 - metadata.discount / 100);
             setDiscountedamount(
               new Intl.NumberFormat("en-US", {
                 style: "currency",
-                currency: region.currency_code,
-              }).format(
-                calculatedAmount -
-                  calculatedAmount * (product.metadata?.discount / 100)
-              )
+                currency: currency_code,
+              }).format(discounted)
             );
-          } else {
-            setDiscountedamount(0); // Handle no valid amount/discount case
           }
-          setLoading(false);
-        } else {
-          setVariantPrice("N/A");
-          setLoading(false); // Stop loading in case no variant is found
         }
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching variant details:", error);
-        // Handle error gracefully, e.g., show a message or fallback value
-        setVariantPrice("Error fetching price");
-        setDiscountedamount("Error calculating discount");
-        setLoading(false); // Stop loading on error
+        console.error("Error processing variant details:", error);
+        setLoading(false);
       }
     };
 
     fetchVariantDetails();
-  }, [
-    product.metadata,
-    id,
-    region,
-    discount,
-    size,
-    color,
-    max_pirce,
-    min_price,
-  ]);
+  }, [variants, size, color, currency_code, metadata]);
 
-  const handleAddToWishlist = (event) => {
-    event.stopPropagation(); // Prevent card click navigation
-    // console.log(user, " this is user");
-    // console.log(product, " this is product");
+  // Check if product is in wishlist
+  useEffect(() => {
+    if (wishlistState.items && product) {
+      setIsInWishlist(wishlistState.items.some(item => 
+        item?.product?.id === product.id
+      ));
+    }
+  }, [wishlistState.items, product]);
 
-    if (!user) {
-      router.push("/auth/login"); // Redirect to login if no user is logged in
+  // Add this effect to log wishlist items for debugging
+  useEffect(() => {
+    if (wishlistItems.length > 0) {
+      console.log('Current wishlist items:', wishlistItems);
+    }
+  }, [wishlistItems]);
+
+  // Updated handleAddToWishlist function
+  const handleAddToWishlist = async (event) => {
+    event.stopPropagation();
+    
+    // Check for authentication
+    const authToken = getCookie('auth_token');
+    if (!authToken) {
+      toast.error('Please login to add items to your wishlist', {
+        duration: 3000,
+        position: 'top-center',
+        icon: '🔒',
+      });
       return;
     }
+
+    setWishlistLoading(true);
     
-    let update = {
-      metadata: {
-        wishlist: user?.metadata?.wishlist?.some((item) => item.id === product.id)
-          ? user.metadata.wishlist
-          : [...(user?.metadata?.wishlist || []), product],
-      },
-    };
+    try {
+      if (isInWishlist) {
+        // Find the wishlist item for this product
+        const wishlistItem = wishlistItems.find(item => 
+          item.product?.id === product.id
+        );
+        
+        console.log('Removing item from wishlist:', {
+          wishlistItemId: wishlistItem?.id,
+          productId: product.id
+        });
 
-    const wishlistProducts = user?.metadata?.wishlist || [];
-    const productExists = wishlistProducts.some((item) => item.id === product.id);
-
-    if (!productExists) {
-      dispatch(addToWishlist([product]));
-    } else {
-      dispatch(addToWishlist({product : wishlistProducts}));
+        if (wishlistItem?.id) {
+          const result = await dispatch(removeFromWishlist(wishlistItem.id)).unwrap();
+          console.log('Remove result:', result);
+          if (result) {
+            setIsInWishlist(false);
+            toast.success('Removed from wishlist');
+          }
+        } else {
+          console.error('Could not find wishlist item ID for product:', product.id);
+        }
+      } else {
+        const result = await dispatch(addToWishlist({
+          productId: product.id,
+          variantId: variants[0].id
+        })).unwrap();
+        
+        console.log('Add result:', result);
+        if (result) {
+          setIsInWishlist(true);
+          toast.success('Added to wishlist');
+        }
+      }
+    } catch (error) {
+      console.error('Wishlist operation failed:', error);
+      toast.error('Failed to update wishlist');
+    } finally {
+      setWishlistLoading(false);
     }
-
-    console.log(update, "state.wishlist");
-    dispatch(updateCustomer(update));
-    dispatch(retrieveCustomer());
-    setIsWishlistAdded(true); // Mark as added to wishlist
   };
+
+  // Update useEffect to check wishlist status and log for debugging
+  useEffect(() => {
+    if (wishlistItems && product) {
+      const isInList = wishlistItems.some(item => item.product?.id === product.id);
+      console.log('Wishlist status check:', {
+        productId: product.id,
+        isInList,
+        totalItems: wishlistItems.length
+      });
+      setIsInWishlist(isInList);
+    }
+  }, [wishlistItems, product]);
 
   const handleAddToCart = async (event) => {
     event.stopPropagation();
-
-    // Get the first variant's options
+    
     const firstVariant = product.variants[0];
-    const defaultColor =
-      firstVariant?.options?.find((opt) => opt.option_id === "opt_color")
-        ?.value || null;
-    const defaultSize =
-      firstVariant?.options?.find((opt) => opt.option_id === "opt_size")
-        ?.value || null;
+    
+    if (!firstVariant) {
+      toast.error('No variant available for this product');
+      return;
+    }
 
     try {
-      await addToCart(
-        {
-          variantId: firstVariant.id,
-          quantity: 1,
-          region,
-          Updater: updateCart,
-        },
-        process.env.NEXT_PUBLIC_REVALIDATE_SECRET
-      );
+      // Initialize guest ID if user is not authenticated
+      // const authToken = getCookie('auth_token');
+      // if (!authToken) {
+      //   dispatch(initializeGuestId());
+      // }
 
-      setIsCartAdded(true);
-      setTimeout(() => setIsCartAdded(false), 3000);
+      // Create the action payload
+      const payload = {
+        productId: product.id,
+        variantId: firstVariant.id,
+        quantity: 1
+      };
+
+      const result = await dispatch(addToCart(payload)).unwrap();
+      
+      if (result) {
+        setIsCartAdded(true);
+        toast.success('Added to cart successfully');
+        setTimeout(() => setIsCartAdded(false), 2000);
+      }
     } catch (error) {
       console.error("Error adding to cart:", error);
+      toast.error(error.message || 'Failed to add item to cart');
     }
   };
 
@@ -253,6 +285,18 @@ const ProductCard = ({ product, layout }) => {
     }
   }, [id, region, discount]);
 
+  const getSecondaryImage = () => {
+    if (!product.images || product.images.length < 2) {
+      return image; // fallback to primary image if no secondary image exists
+    }
+    return product.images[1].url;
+  };
+
+  const handleQuickView = (e) => {
+    e.stopPropagation(); // Prevent navigation
+    setIsQuickViewOpen(true);
+  };
+
   if (loading) {
     return (
       <div>
@@ -262,7 +306,90 @@ const ProductCard = ({ product, layout }) => {
     );
   }
 
-  // console.log(product.images[1].url, "product.images");
+  if (layout === "list") {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-row gap-4 bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 p-4"
+      >
+        {/* Product Image */}
+        <div className="w-1/3 md:w-48 relative aspect-square flex-shrink-0">
+          <Image
+            src={primaryImage || '/placeholder.png'}
+            alt={product.name}
+            fill
+            className="object-cover rounded-xl"
+            sizes="(max-width: 768px) 33vw, 200px"
+            priority
+          />
+          {discountes > 0 && (
+            <span className="absolute top-2 left-2 bg-[#DB4444] text-white text-xs px-3 py-1 rounded-full">
+              SALE
+            </span>
+          )}
+        </div>
+
+        {/* Product Details */}
+        <div className="flex-1 flex flex-col justify-between">
+          <div>
+            <h3 className="text-base md:text-lg font-semibold mb-1">{product.name}</h3>
+            <p className="text-gray-600 text-sm mb-2">{product.category?.name}</p>
+            
+            <div className="mb-2">
+              {discount > 0 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[#DB4444] font-semibold">{discountedamount}</span>
+                  <span className="text-gray-400 line-through text-sm">{formatPriceToINR(variantPrice)}</span>
+                  <span className="bg-[#D2EF9A] text-black text-xs px-2 py-1 rounded-full">
+                    -{discount}% off
+                  </span>
+                </div>
+              ) : (
+                <span className="font-semibold">{formatPriceToINR(variantPrice)}</span>
+              )}
+            </div>
+
+            <p className="text-gray-600 text-sm mb-4 line-clamp-2 hidden md:block">
+              {description}
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(e);
+              }}
+              className="flex-1 min-w-[120px] bg-black text-white py-2 rounded-full hover:bg-theme-blue transition-colors"
+            >
+              {addedToCart ? 'Added ✓' : 'Add to Cart'}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsQuickViewOpen(true);
+              }}
+              className="px-4 py-2 border border-black rounded-full hover:bg-black hover:text-white transition-colors"
+            >
+              Quick View
+            </button>
+            <button
+              onClick={(e) => handleAddToWishlist(e)}
+              className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full border transition-colors ${
+                isInWishlist 
+                  ? 'bg-theme-blue text-white border-theme-blue' 
+                  : 'border-black hover:bg-black hover:text-white'
+              }`}
+            >
+              <i className={`${isInWishlist ? 'ri-heart-fill' : 'ri-heart-line'}`}></i>
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <>
@@ -293,7 +420,7 @@ const ProductCard = ({ product, layout }) => {
           </div>
 
           <Image
-            src={image}
+            src={primaryImage}
             alt={name}
             layout="fill"
             size={"fit"}
@@ -301,52 +428,61 @@ const ProductCard = ({ product, layout }) => {
             className="rounded-2xl hidden max-sm:flex  hover:scale-105 duration-150 shadow-lg  h-72"
           />
 
-          <div class="product-image-wrapper h-[150%]  overflow-hidden max-sm:hidden flex">
-            <Image layout="fill" src={image} alt={name} class="product-image" />
-            <Image
-              layout="fill"
-              src={product.images[1].url}
-              alt={name}
-              class="product-image-hover"
+          <div className="product-image-wrapper h-[150%] overflow-hidden max-sm:hidden flex">
+            <Image layout="fill" src={primaryImage} alt={name} className="product-image" />
+            <Image 
+              layout="fill" 
+              src={secondaryImage} 
+              alt={name} 
+              className="product-image-hover"
             />
           </div>
 
           {/* Remove the old sale badge code */}
           {/* Remove or comment out the existing (discountes > 0 || diffInDays <= 3) span */}
 
-          {/* Heart Icon */}
-          <div
-            className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-            onClick={(event) => handleAddToWishlist(event)}
-          >
-            <i
-              className={`text-xl ${
-                isWishlistAdded || wishlist.some((item) => item.id === product.id)
-                  ? "text-black ri-heart-fill"
-                  : "text-black ri-heart-line"
-              }`}
-            ></i>
-          </div>
+      
+                <div
+                className="absolute m-2 top-2 right-2 flex items-center justify-center w-10 h-10 bg-white rounded-full transform translate-x-4 z-20 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                onClick={handleAddToWishlist}
+                >
+                {wishlistLoading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                ) : (
+                  <i
+                  className={`text-xl ${
+                    isInWishlist
+                    ? "text-black ri-heart-fill"
+                    : "text-black ri-heart-line"
+                  }`}
+                  ></i>
+                )}
+                </div>
 
-          {/* Shopping Bag Icon */}
-          <div
-            className="z-20  absolute bottom-4 right-[10%] md:right-[20%] flex items-center justify-center w-10 h-9 md:w-20 md:h-9 bg-white text-black hover:bg-black hover:text-white  rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
-            onClick={handleAddToCart}
-          >
-            <i className="ri-shopping-bag-2-line text-sm md:text-lg"></i>
-          </div>
+                {/* Shopping Bag Icon */}
+                <button
+                className="z-20 absolute bottom-4 right-[2%] md:right-[10%] flex items-center justify-center w-10 h-10 md:w-auto md:h-9 bg-white text-black hover:bg-black hover:text-white rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 md:px-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(e);
+                  setAddedToCart(true);
+                  setTimeout(() => setAddedToCart(false), 2000);
+                }}
+                >
+                <span className="hidden md:inline">
+                  {addedToCart ? 'Added ✓' : 'Add to Cart'}
+                </span>
+                <i className="ri-shopping-cart-line md:hidden text-xl"></i>
+                </button>
 
-          {/* Quick View Button (For Non-List Layout - Image Hover) */}
+                {/* Quick View Button (For Non-List Layout - Image Hover) */}
           {layout !== "list" && (
             <div
               className="z-20  absolute bottom-4 left-[30%] md:left-1/4 transform -translate-x-1/2  translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500"
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent card click navigation
-                setIsQuickViewOpen(true);
-              }}
+              onClick={handleQuickView}
             >
               <button className="md:px-4 px-2 py-2 bg-white text-black rounded-full text-xs md:text-sm hover:bg-black hover:text-white transition-all duration-150 ease-in-out">
-                Quick View
+                Quick View 
               </button>
             </div>
           )}
@@ -358,7 +494,7 @@ const ProductCard = ({ product, layout }) => {
             layout === "list"
               ? "md:w-3/4 w-1/2 pl-10 flex flex-col justify-center items-start"
               : ""
-          }`}
+          }`} 
         >
           <h3 className="text-sm md:text-base font-medium text-black mb-2 line-clamp-2 text-left  hover:text-gray-700 pt-2">
             {product.title || name}
@@ -366,7 +502,7 @@ const ProductCard = ({ product, layout }) => {
 
           {discount > 0 ? (
             <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
-              <span className="text-sm md:text-md">{discountedamount}</span>
+              <span className="text-sm md:text-md ">{discountedamount}</span>
               {/* <span className="md:text-sm text-xs text-sub-color line-through">
                 {variantPrice}
               </span> */}
@@ -376,7 +512,7 @@ const ProductCard = ({ product, layout }) => {
             </div>
           ) : (
             <div className="flex flex-wrap mb-5 gap-2 md:gap-3 items-center">
-              <span className="text-sm md:text-md">{variantPrice}</span>
+              <span className="text-sm md:text-md">{formatPriceToINR(variantPrice)}</span>
               {/* <span className="md:text-sm text-xs text-sub-color line-through">
               {variantPrice}
             </span>
@@ -410,18 +546,18 @@ const ProductCard = ({ product, layout }) => {
       {/* Quick View Modal */}
       {isQuickViewOpen && (
         <QuickView
-          product={{
-            ...product,
-            size,
-            color,
+          productId={id}
+          initialData={product}
+          onClose={(e) => {
+            e?.stopPropagation();
+            setIsQuickViewOpen(false);
           }}
-          onClose={() => setIsQuickViewOpen(false)}
         />
       )}
 
       {/* Added to Cart Notification */}
       {isCartAdded && (
-        <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 z-20 ">
+        <div className="fixed top-20 right-9 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 ">
           Added to Cart
         </div>
       )}

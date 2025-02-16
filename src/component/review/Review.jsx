@@ -4,12 +4,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchreviews } from "../../../redux/slices/reviewSlicer.js";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
+import { fetchReviewSection } from "@/redux/slices/homePageSlice.js"
 
 const Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const dispatch = useDispatch();
-  const { reviews, status, error } = useSelector((state) => state.reviewsection);
+  // const { reviews, status, error } = useSelector((state) => state.reviewsection);
   const [itemsPerView, setItemsPerView] = useState(3);
+  const [title, setTitle] = useState("");
+  const [reviewsData, setReviewsData] = useState([]);
+  const reviews = [];
 
   // Update items per view based on screen size
   useEffect(() => {
@@ -28,16 +31,51 @@ const Review = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const dispatch = useDispatch();
+  const { reviewSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+
   useEffect(() => {
-    dispatch(fetchreviews());
+    dispatch(fetchReviewSection());
   }, [dispatch]);
 
+  useEffect(() => {
+    // console.log("This is the Review Section data", reviewSection);
+    if(reviewSection?.section_data?.title){
+      setTitle(reviewSection?.section_data?.title);
+    }
+
+
+    if(reviewSection?.section_data?.testimonials?.length>0){
+      const reviewsArray = reviewSection?.section_data?.testimonials.map((item) => {
+        return {
+          date: item.date,
+          message: item.message,
+          name: item.name,
+          profile_picture: item.profile_picture,
+          rating: item.rating
+        }
+      });
+      setReviewsData(reviewsArray);
+    }
+  }, [reviewSection])
+
   const nextReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + itemsPerView) % reviews.length);
+    if (reviewsData.length > 0) {
+      setCurrentIndex((prevIndex) => {
+        const newIndex = (prevIndex + 1) % reviewsData.length;
+        return newIndex;
+      });
+    }
   };
 
   const prevReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - itemsPerView + reviews.length) % reviews.length);
+    if (reviewsData.length > 0) {
+      setCurrentIndex((prevIndex) => {
+        const newIndex = (prevIndex - 1 + reviewsData.length) % reviewsData.length;
+        return newIndex;
+      });
+    }
   };
 
   // Add swipe handlers for mobile
@@ -73,9 +111,80 @@ const Review = () => {
     return formattedDate;
   }
 
-  const reviewsToShow = reviews.slice(currentIndex, currentIndex + itemsPerView);
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  };
 
-  if (status === 'loading') {
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset, velocity) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  const ReviewCard = ({ review, index, animate = true }) => (
+    <motion.div 
+      className="w-full md:w-1/3 px-4 mb-4"
+      initial={animate ? { opacity: 0, y: 20 } : { opacity: 1 }}
+      animate={animate ? { 
+        opacity: 1, 
+        y: 0,
+        transition: { 
+          delay: index * 0.1,
+          duration: 0.5,
+          ease: "easeOut"
+        } 
+      } : {}}
+      exit={animate ? { opacity: 0, y: -20 } : {}}
+    >
+      <motion.div 
+        className="border-2 border-theme-blue rounded-lg p-6 bg-white h-full"
+        initial={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
+        whileHover={{ 
+          boxShadow: "0 8px 12px rgba(0, 0, 0, 0.15)",
+          transition: { duration: 0.2 }
+        }}
+      >
+        <div className="flex items-start space-x-4 mb-4">
+          <div className="flex-shrink-0 w-16 h-16 relative">
+            <Image
+              src={review?.profile_picture || '/default-avatar.png'}
+              alt={`${review?.name || 'User'}'s profile`}
+              fill
+              className="rounded-xl object-cover"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-yellow-600 mb-2">
+              {renderStars(review?.rating)}
+            </div>
+            <h3 className="font-semibold text-lg mb-2 truncate">
+              {review?.name}
+            </h3>
+            <p className="text-gray-600 text-sm">
+              {review?.date}
+            </p>
+          </div>
+        </div>
+        <p className="text-gray-700 line-clamp-4">
+          {review?.message}
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+
+  if (loading) {
     return (
       <div className="h-[350px] w-full flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-theme-blue"></div>
@@ -92,75 +201,103 @@ const Review = () => {
   }
 
   return (
-    <div className="p-3 md:p-5 relative h-auto min-h-[350px] w-full overflow-hidden" {...swipeHandlers}>
-      <h2 className="text-center text-xl md:text-3xl font-bold mb-4 md:mb-8">
-        What People Are Saying
-      </h2>
+    <div className="p-5">
+      <motion.h2 
+        className="text-center text-xl md:text-3xl font-bold mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {title}
+      </motion.h2>
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2 md:px-5 relative`}>
-        <AnimatePresence initial={false} mode="wait">
-          {reviewsToShow.map((review) => (
-            <motion.div
-              key={review.id}
-              className="w-full px-3 md:px-5 border-2 border-theme-blue rounded-lg"
-              style={{ minHeight: "250px" }}
-              variants={{
-                enter: { opacity: 0, x: 50 },
-                center: { opacity: 1, x: 0 },
-                exit: { opacity: 0, x: -50 }
-              }}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <div className="relative py-4">
-                <div className="flex items-start space-x-4">
-                  <div className="w-16 h-16 flex-shrink-0 relative">
-                    <Image
-                      src={review.user_pic}
-                      alt={`${review.user_name}'s profile`}
-                      width={64}
-                      height={64}
-                      className="rounded-xl object-cover w-full h-full"
-                      style={{ aspectRatio: '1/1' }}
-                      priority={true}
+      <div className="relative">
+        <motion.div 
+          className="flex flex-nowrap overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <AnimatePresence initial={false} mode="wait" custom={currentIndex}>
+            <div className="flex flex-col md:flex-row w-full">
+              {/* Mobile View */}
+              <div className="block md:hidden w-full">
+                {reviewsData[currentIndex] && (
+                  <motion.div
+                    key={`mobile-review-${currentIndex}`}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 25
+                    }}
+                  >
+                    <ReviewCard review={reviewsData[currentIndex]} index={0} />
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:flex space-x-4 w-full">
+                <div className="flex space-x-4 w-full justify-center">
+                  {reviewsData.slice(0, 3).map((review, index) => (
+                    <ReviewCard 
+                      key={review.name + index} 
+                      review={review}
+                      index={index}
+                      animate={true}
                     />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-yellow-600" aria-label={`Rating: ${review.rating} out of 5 stars`}>
-                      {renderStars(review.rating)}
-                    </div>
-                    <h3 className="font-semibold text-lg mt-2">{review.title}</h3>
-                  </div>
-                </div>
-                <p className="text-sub-color mt-4 line-clamp-3">{review.description}</p>
-                <div className="mt-4">
-                  <p className="text-sm font-bold">{review.user_name}</p>
-                  <p className="text-sm text-sub-color">{formatLocalDate(review.created_at)}</p>
+                  ))}
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+            </div>
+          </AnimatePresence>
+        </motion.div>
 
-        {reviews.length > itemsPerView && (
-          <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full flex justify-between px-2">
-            <button
-              onClick={prevReview}
-              className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full hover:bg-white/25 transition-colors"
-              aria-label="Previous reviews"
-            >
-              <i className="ri-arrow-left-s-fill"></i>
-            </button>
-            <button
-              onClick={nextReview}
-              className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full hover:bg-white/25 transition-colors"
-              aria-label="Next reviews"
-            >
-              <i className="ri-arrow-right-s-fill"></i>
-            </button>
-          </div>
+        {/* Navigation Controls - Only show in mobile or when more than 3 reviews in desktop */}
+        {reviewsData.length > 1 && (
+          <>
+            <div className="md:hidden absolute top-1/2 left-0 w-full flex justify-between -translate-y-1/2 px-2">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={prevReview}
+                className="bg-white/80 p-3 rounded-full shadow-lg z-10"
+              >
+                <i className="ri-arrow-left-s-line text-xl"></i>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={nextReview}
+                className="bg-white/80 p-3 rounded-full shadow-lg z-10"
+              >
+                <i className="ri-arrow-right-s-line text-xl"></i>
+              </motion.button>
+            </div>
+
+            {/* Pagination Dots - Only show in mobile */}
+            <div className="md:hidden flex justify-center space-x-3 mt-6">
+              {reviewsData.map((_, index) => (
+                <motion.button
+                  key={`dot-${index}`}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
+                    index === currentIndex ? 'bg-theme-blue' : 'bg-gray-300'
+                  }`}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    scale: index === currentIndex ? 1.2 : 1,
+                    transition: { duration: 0.2 }
+                  }}
+                  initial={false}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

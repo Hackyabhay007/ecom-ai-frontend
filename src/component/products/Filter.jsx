@@ -1,107 +1,186 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchcategores } from "../../../redux/slices/categorySlice";
-import axios from "axios";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { useRouter } from "next/router";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useDispatch, useSelector } from "react-redux";
+import { setPriceRange, setFilters, fetchProductsBySearch } from "../../../redux/slices/shopSlice";
+import FilterSkeleton from './FilterSkeleton';
 
-const Filter = ({ onApplyFilters }) => {
-  const {
-    categories: data,
-    status,
-    error,
-  } = useSelector((state) => state.categorysection);
+const Filter = memo(({ onApplyFilters, currentFilters }) => {
+  const dispatch = useDispatch();
+  const [showSaleOnly, setShowSaleOnly] = useState(false);
+  const { filters, appliedFilters, loading: storeLoading, error: storeError } = useSelector((state) => state.shop);
   const Route = useRouter();
+
+  // Get dynamic values from Redux store
+  const availableSizes = filters.sizes || [];
+  const availableColors = filters.colors || [];
+  const availableCategories = filters.categories || [];
+  const availableCollections = filters.collections || [];
+
+  // Price range states
+  const [sliderValues, setSliderValues] = useState([
+    filters.priceRange?.min || 0,
+    filters.priceRange?.max || 10000
+  ]);
+
+  const [inputValues, setInputValues] = useState({
+    min: filters.priceRange?.min || 0,
+    max: filters.priceRange?.max || 10000
+  });
+
+  // Debounce function
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  // Price handlers
+  const handleSliderChange = useCallback((value) => {
+    setSliderValues(value);
+  }, []);
+
+  const debouncedPriceUpdate = useCallback(
+    debounce((values) => {
+      dispatch(setPriceRange({ min: values[0], max: values[1] }));
+      updateQueryParams({ min_price: values[0], max_price: values[1] });
+    }, 500),
+    [dispatch]
+  );
+
+  const handleSliderAfterChange = useCallback((value) => {
+    debouncedPriceUpdate(value);
+  }, [debouncedPriceUpdate]);
+
+  const handleInputChange = useCallback((type, value) => {
+    const numValue = parseInt(value) || 0;
+    const newValues = [...sliderValues];
+    
+    if (type === 'min') {
+      newValues[0] = Math.min(numValue, sliderValues[1]);
+    } else {
+      newValues[1] = Math.max(numValue, sliderValues[0]);
+    }
+    
+    setSliderValues(newValues);
+    setInputValues(prev => ({ ...prev, [type]: numValue }));
+    debouncedPriceUpdate(newValues);
+  }, [sliderValues, debouncedPriceUpdate]);
+
+  // Sale toggle handler
+  const handleSaleToggle = useCallback(() => {
+    const newSaleValue = !showSaleOnly;
+    setShowSaleOnly(newSaleValue);
+    
+    // Dispatch search with onSale parameter
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...appliedFilters,
+        onSale: newSaleValue ? "true" : undefined // Send as string "true" or remove parameter
+      }
+    }));
+  }, [showSaleOnly, appliedFilters, dispatch]);
+
+  // Update query params
+  const updateQueryParams = useCallback((newParams) => {
+    const currentQuery = { ...Route.query };
+    const updatedQuery = { ...currentQuery, ...newParams };
+    
+    // If this is a category selection, add the category name
+    if (newParams.cat_id) {
+      const selectedCategory = availableCategories.find(cat => cat.id.toString() === newParams.cat_id.toString());
+      if (selectedCategory) {
+        updatedQuery.cat_name = selectedCategory.name;
+      }
+    }
+
+    // Clean up undefined values
+    Object.keys(updatedQuery).forEach(key => 
+      updatedQuery[key] == null && delete updatedQuery[key]
+    );
+
+    const searchFilters = {
+      ...appliedFilters,
+      categoryId: updatedQuery.cat_id,
+      sizes: updatedQuery.size,
+      colors: updatedQuery.color,
+      minPrice: updatedQuery.min_price,
+      maxPrice: updatedQuery.max_price
+    };
+
+    // Store category in session storage
+    if (searchFilters.categoryId) {
+      sessionStorage.setItem('selectedCategoryId', searchFilters.categoryId);
+      sessionStorage.setItem('selectedCategoryName', updatedQuery.cat_name);
+    }
+
+    // Update Redux store first
+    dispatch(setFilters(searchFilters));
+    
+    // Then update URL
+    Route.push({
+      pathname: "/shop",
+      query: updatedQuery
+    }, undefined, { shallow: true });
+
+    // Finally, fetch products
+    dispatch(fetchProductsBySearch({ filters: searchFilters }));
+  }, [appliedFilters, Route, dispatch, availableCategories]);
+
+  // Effects
+  useEffect(() => {
+    if (filters.priceRange) {
+      setSliderValues([filters.priceRange.min, filters.priceRange.max]);
+      setInputValues({
+        min: filters.priceRange.min,
+        max: filters.priceRange.max
+      });
+    }
+  }, [filters.priceRange]);
+
+  useEffect(() => {
+    const onSale = Route.query.onSale === 'true';
+    setShowSaleOnly(onSale);
+  }, [Route.query.onSale]);
+
   const {
     cat_id,
     cat_name,
-    size: seleted_size,
-    color: seleted_color,
+    size: selected_size,
+    color: selected_color,
     min_price,
     max_price,
-  } = Route.query; // Extract `id` from the query
+  } = Route.query;
 
-  const [categroies, setCategroies] = useState([]);
-  const dispatch = useDispatch();
-
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(null);
-
-  const getCountOfProductFromCategory = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/category/get-category-with-product-count`,
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-            'x-publishable-api-key': process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || '',
-          },
-        }
-      );
-      
-      if (response.data && response.data.categories) {
-        const categories = response.data.categories;
-        const updatedData = data?.map((item) => {
-          const matchingCategory = categories.find((cat) => cat.id === item.id);
-          return matchingCategory
-            ? { ...item, product_count: matchingCategory.product_count }
-            : { ...item, product_count: 0 };
-        }) || [];
-        setCategroies(updatedData);
-      }
-    } catch (error) {
-      console.error("Error fetching product counts:", error.response?.data || error.message);
-      setFetchError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    dispatch(fetchcategores());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (data && data.length > 0) {
-      getCountOfProductFromCategory();
-    }
-  }, [data]);
-
-  const [priceRange, setPriceRange] = useState({
-    min: min_price || 0,
-    max: max_price || 1000,
-  });
-  const [Range, setRange] = useState({
-    min: 0,
-    max: 1000,
-  });
-
-  const [filters, setFilters] = useState({
-    category: "",
-    price: [0, 1000],
-    size: "",
-    brand: [],
-    color: "",
-  });
+  const { categories = [], priceRange = { min: 0, max: 1000 } } = currentFilters || {};
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const handleFilterChange = (key, value) => {
-    const updatedFilters = { ...filters, [key]: value };
-    setFilters(updatedFilters);
-    onApplyFilters(updatedFilters);
-  };
+  const debouncedUpdateFilters = useCallback((newFilters) => {
+    dispatch(setFilters(newFilters));
+    
+    // Use a single dispatch for search
+    dispatch(fetchProductsBySearch({
+      filters: {
+        ...appliedFilters,
+        ...newFilters
+      }
+    }));
+  }, [dispatch, appliedFilters]);
 
-  const updateQueryParams = (newParams) => {
-    const currentQuery = Route.query;
-    Route.push({
-      pathname: "/shop",
-      query: { ...currentQuery, ...newParams },
-    });
-  };
+  // Optimize filter handlers
+  const handleFilterChange = useCallback((key, value) => {
+    const newFilters = { ...appliedFilters, [key]: value };
+    debouncedUpdateFilters(newFilters);
+  }, [appliedFilters, debouncedUpdateFilters]);
+
+  // Add new handler for size filter
+  const handleSizeFilter = useCallback((size) => {
+    updateQueryParams({ size });
+  }, [updateQueryParams]);
 
   useEffect(() => {
     if (isMobileFilterOpen) {
@@ -114,17 +193,39 @@ const Filter = ({ onApplyFilters }) => {
     };
   }, [isMobileFilterOpen]);
 
-  // Handle the change for the min or max price
-  const handlePriceChange = (type, value) => {
-    setRange({ ...Range, [type]: value });
-  };
+  const renderCategories = () => (
+    <ul>
+      {availableCategories.map((item) => (
+        <li
+          key={item.id}
+          className={`flex py-1 text-sm cursor-pointer transition-all duration-300 relative
+            ${
+              item.id.toString() === cat_id || 
+              item.name === cat_name
+                ? "text-theme-blue font-medium translate-x-2"
+                : "text-black hover:text-theme-blue hover:translate-x-1"
+            }
+            before:content-[''] before:absolute before:left-0 before:bottom-0 
+            before:h-[1px] before:bg-theme-blue before:transition-all before:duration-300
+            before:w-0 hover:before:w-full
+          `}
+          onClick={() => {
+            updateQueryParams({ 
+              cat_id: item.id.toString(),
+              cat_name: item.name 
+            });
+          }}
+        >
+          <span className="capitalize">{item.name}</span>
+        </li>
+      ))}
+    </ul>
+  );
 
-  // Handle the slider change
-  const handleSliderChange = (value) => {
-    setPriceRange({ min: value[0], max: value[1] });
-    
-    // setRange({ min: value[0], max: value[1] });
-  };
+  if (storeLoading) {
+    return <FilterSkeleton />;
+  }
+
   return (
     <div>
       <button
@@ -159,52 +260,36 @@ const Filter = ({ onApplyFilters }) => {
             Filter
           </h2>
 
-          {/* Product Type Filter */}
+          {/* Product Type Filter - Updated without count */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">
               Product Type
             </h3>
-            {loading ? (
+            {storeLoading ? (
               <p>Loading categories...</p>
-            ) : fetchError ? (
-              <p>Error: {fetchError}</p>
+            ) : storeError ? (
+              <p>Error: {storeError}</p>
+            ) : availableCategories.length === 0 ? (
+              <p>No categories available</p>
             ) : (
-              <ul>
-                {categroies.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`flex py-1 justify-between text-sm cursor-pointer ${
-                      cat_name === item.name ? "text-theme-blue" : "text-black"
-                    }`}
-                    onClick={() => {
-                      updateQueryParams({ cat_id: item.id, cat_name: item.name });
-                    }}
-                  >
-                    <span className="capitalize">{item.name}</span>
-                    <span>({item.product_count || 0})</span>
-                  </li>
-                ))}
-              </ul>
+              renderCategories()
             )}
             <hr className="my-4" />
           </div>
 
-          {/* Size Filter */}
+          {/* Size Filter - Updated */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Size</h3>
             <div className="flex flex-wrap gap-2 text-sm">
-              {["XS", "S", "M", "L", "XL"].map((size) => (
+              {availableSizes.map((size) => (
                 <button
                   key={size}
                   className={`p-[4px] px-[16px] text-xs border border-gray-900 rounded-sm ${
-                    seleted_size === size
+                    selected_size === size
                       ? "bg-theme-blue text-white"
                       : "bg-white text-black"
                   }`}
-                  onClick={() => {
-                    updateQueryParams({ size });
-                    handleFilterChange("size", size);
-                  }}
+                  onClick={() => handleSizeFilter(size)}
                 >
                   {size}
                 </button>
@@ -230,134 +315,102 @@ const Filter = ({ onApplyFilters }) => {
             </p>
             <hr className="my-4" />
           </div> */}
-          <div className="mb-4">
-            <h3 className="text-md font-semibold text-black mb-2">Price</h3>
-            <div className="flex items-center gap-4">
+          <div className="mb-6">
+            <h3 className="text-md font-semibold text-black mb-4">Price Range</h3>
+            
+            {/* Price inputs */}
+            <div className="flex items-center gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-black">
-                  Min Price
-                </label>
+                <label className="block text-sm text-gray-600 mb-1">Min</label>
                 <input
                   type="number"
-                  className="border border-gray-300 rounded p-2 w-24"
-                  value={Range.min}
-                  onChange={(e) =>
-                    handlePriceChange("min", Number(e.target.value))
-                  }
+                  min="0"
+                  value={inputValues.min}
+                  onChange={(e) => handleInputChange('min', e.target.value)}
+                  className="w-24 p-2 border rounded-md focus:ring-1 focus:ring-theme-blue"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-black">
-                  Max Price
-                </label>
+                <label className="block text-sm text-gray-600 mb-1">Max</label>
                 <input
                   type="number"
-                  className="border border-gray-300 rounded p-2 w-24"
-                  value={Range.max}
-                  onChange={(e) =>
-                    handlePriceChange("max", Number(e.target.value))
-                  }
+                  min="0"
+                  value={inputValues.max}
+                  onChange={(e) => handleInputChange('max', e.target.value)}
+                  className="w-24 p-2 border rounded-md focus:ring-1 focus:ring-theme-blue"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 px-2 w-full overflow-hidden">
-              {/* Slider for Price */}
+            {/* Slider */}
+            <div className="px-2 py-4">
               <Slider
                 range
                 min={0}
-                max={Range.max}
-                className="px-2 mt-2"
-                step={10}
-                trackStyle={{ backgroundColor: "black" }} // Set the track color to black
-                handleStyle={{
-                  backgroundColor: "black", // Set the handle color to black
-                  borderColor: "black", // Set the handle border color to black
-                }}
-                value={[priceRange.min, priceRange.max]}
+                max={10000}
+                step={100}
+                value={sliderValues}
                 onChange={handleSliderChange}
-                marks={{
-                  0: `₹0`,
-                  1000: `₹1000`,
-                  5000: `₹5000`,
-                  10000: `₹10000`,
-                }}
+                onAfterChange={handleSliderAfterChange}
+                trackStyle={[{ backgroundColor: '#153A63' }]}
+                handleStyle={[
+                  { borderColor: '#153A63', backgroundColor: 'white' },
+                  { borderColor: '#153A63', backgroundColor: 'white' }
+                ]}
+                railStyle={{ backgroundColor: '#E5E7EB' }}
               />
-
-              <div className="flex justify-between text-sm">
-                <span>₹{priceRange.min}</span>
-                <span>₹{priceRange.max}</span>
+              <div className="flex justify-between mt-2 text-sm text-gray-600">
+                <span>₹{sliderValues[0]}</span>
+                <span>₹{sliderValues[1]}</span>
               </div>
-                <button onClick={()=>updateQueryParams({min_price : priceRange.min , max_price : priceRange.max })} className=" border-2 border-black bg-white text-black py-1 rounded-md hover:bg-black hover:text-white duration-150 ">
-                  Apply
-                </button>
             </div>
           </div>
 
-          {/* Colors Filter */}
+          {/* Sale toggle with state sync */}
+          <div className="mb-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showSaleOnly}
+                onChange={handleSaleToggle}
+                className="form-checkbox h-4 w-4 text-theme-blue rounded border-gray-300"
+              />
+              <span className="text-sm font-medium">Sale Items Only</span>
+            </label>
+          </div>
+
+          {/* Colors Filter Section */}
           <div className="mb-4">
             <h3 className="text-md font-semibold text-black mb-2">Colors</h3>
             <div className="flex flex-wrap gap-2">
-              {["blue", "red", "yellow", "green", "black", "white"].map(
-                (color) => (
+              {availableColors.map((color) => (
+                <div
+                  key={color}
+                  className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
+                    color === selected_color
+                      ? "border-black"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => updateQueryParams({ color })}
+                  style={{ cursor: "pointer" }}
+                >
                   <div
-                    key={color}
-                    className={`flex items-center font-thin gap-2 border rounded-3xl py-1 px-1 pr-3 ${
-                      color === seleted_color
-                        ? "border-black"
-                        : "border-gray-300"
-                    }`}
-                    onClick={() => updateQueryParams({ color: color })}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div
-                      className="w-4 h-4 rounded-2xl border-2"
-                      style={{ backgroundColor: color }}
-                    ></div>
-                    <span className="capitalize text-xs text-cream">
-                      {color}
-                    </span>
-                  </div>
-                )
-              )}
+                    className="w-4 h-4 rounded-2xl border-2"
+                    style={{ backgroundColor: color.toLowerCase() }}
+                  ></div>
+                  <span className="capitalize text-xs text-cream">
+                    {color}
+                  </span>
+                </div>
+              ))}
             </div>
             <hr className="my-4" />
           </div>
 
-          {/* Brand Filter */}
-          {/* <div className="mb-4">
-            <h3 className="text-md font-semibold text-black mb-2">Brand</h3>
-            <div className="flex flex-col gap-2">
-              {[
-                "Adidas",
-                "Gucci",
-                "Hermes",
-                "Zara",
-                "Nike",
-                "LV",
-                "Puma",
-                "HM",
-              ].map((brand) => (
-                <label key={brand} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.brand.includes(brand)}
-                    onChange={() => {
-                      const newBrandFilter = filters.brand.includes(brand)
-                        ? filters.brand.filter((b) => b !== brand)
-                        : [...filters.brand, brand];
-                      handleFilterChange("brand", newBrandFilter);
-                    }}
-                  />
-                  {brand}
-                </label>
-              ))}
-            </div>
-          </div> */}
         </div>
       </div>
     </div>
   );
-};
+});
 
 export default Filter;

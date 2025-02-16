@@ -1,167 +1,41 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addToCart,
-  updateLineItem,
-  updateCart,
-  appendToCart,
-} from "../../../lib/data/cart";
+import { addToCart } from "../../../../redux/slices/cartSlice"; // Update import
 import { useRouter } from "next/router";
 import { useRegion } from "../../../contexts/RegionContext";
-import axios from "axios";
-import { fetchProducts } from "@/redux/slices/productSlice";
+import { formatPriceToINR } from "../../../../utils/currencyUtils"; // Add this import
+import { size } from "lodash";
 
-const QuickView = ({ product : propdata, onClose }) => {
-  const { id, title: name, price, prevPrice, image, color = [] } = propdata;
-  const { region } = useRegion();
-  const Router = useRouter();
-  const { temp_size, temp_color } = Router.query;
-
+const QuickView = ({ productId, initialData, onClose }) => {
   const dispatch = useDispatch();
-  const [selectedColor, setSelectedColor] = useState(temp_color || null);
-  const [selectedSize, setSelectedSize] = useState(temp_size || null);
+  const router = useRouter();
+  const { region } = useRegion();
+  const { products, filters } = useSelector((state) => state.shop);
+
+  console.log("This is the Products of the QuickView", products);
+  console.log("This is the initialData of the QuickView", initialData);
+
+  // Group all useState declarations together
+  const [product, setProduct] = useState(initialData);
+  const [loading, setLoading] = useState(true);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [warning, setWarning] = useState("");
   const [isProgressVisible, setIsProgressVisible] = useState(false);
-  const [additionalImages , setAdditionalImages] = useState([]);
-  const [discount, setdiscount] = useState(0);
+  const [additionalImages, setAdditionalImages] = useState([]);
+  const [discount, setDiscount] = useState(0);
   const [variantPrice, setVariantPrice] = useState(0);
-  const [discountedamount, setDiscountedamount] = useState(0);
-  const [categories, setCategory] = useState([]);
-  const [rating, setRating] = useState([]);
+  const [discountedAmount, setDiscountedAmount] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const [avaragerating, setAvaragerating] = useState(0);
-  const [product, setProduct] = useState();
-  
+  const [averageRating, setAverageRating] = useState(0);
 
-  useMemo(() => {
-    axios
-      .get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/get-product-with-review-and-category/${id}`,
-        {
-          headers: {
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
-          },
-        }
-      )
-      .then((res) => {
-        const responses = res.data.productsubdetails;
-        // console.log(res.data.productsubdetails);
-        if (responses?.reviews) {
-          setRating(responses.reviews);
-          setAvaragerating(responses.averageRating);
-        }
-        if (responses?.categories) {
-          setCategory(responses.categories);
-        }
-      });
-  }, [product]);
-
-  const {
-    products: data,
-    count,
-    nextPage,
-    status,
-    error,
-  } = useSelector((state) => state.products);
-
-  console.log(data,status , "this is data");
-
-  useEffect(() => {
-    const queryParams = {
-      limit: 12,
-      fields:
-        "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
-      id: id,
-    };
-    dispatch(fetchProducts({ pageParam: 1, queryParams, region }));
-  }, [dispatch, region, id]);
-
-
-  useEffect(() => {
-    if (status === "succeeded") {
-      setProduct(data[0]);
-    }
-  }, [status, data]);
-
-
-  useEffect(() => {
-    if (product) {
-      setAdditionalImages(product.images)
-    }
-  }, [product]);
-
-  useMemo(() => {
-    if (region) {
-      const targetVariant =
-        selectedSize && selectedColor
-          ? product?.variants.find((v) =>
-              v.options?.some(
-                (option) =>
-                  option.value.toLowerCase() === selectedColor.toLowerCase() &&
-                  v.options?.some(
-                    (option) =>
-                      option.value.toLowerCase() === selectedSize.toLowerCase()
-                  )
-              )
-            )
-          : selectedColor
-          ? product?.variants.find((variant) =>
-              variant.options?.some(
-                (option) =>
-                  option.value.toLowerCase() === selectedColor.toLowerCase()
-              )
-            )
-          : selectedSize
-          ? product?.variants.find((variant) =>
-              variant.options?.some(
-                (option) =>
-                  option.value.toLowerCase() === selectedSize.toLowerCase()
-              )
-            )
-          : product?.variants.find((variant) =>
-              variant.options?.some(
-                (option) => option.value.toLowerCase() === "m"
-              )
-            );
-
-      // // console.log(
-      //   targetVariant,
-      //   "this is target vaiant",
-      //   selectedColor,
-      //   selectedSize,
-      //   product
-      // );
-
-      if (targetVariant) {
-        setVariantPrice(targetVariant.calculated_price?.calculated_amount);
-
-        const calculatedAmount =
-          targetVariant.calculated_price?.calculated_amount;
-
-        if (product.metadata?.discount) {
-          setdiscount(product.metadata.discount);
-        }
-        if (calculatedAmount && product.metadata?.discount > 0) {
-          setDiscountedamount(
-            calculatedAmount -
-              calculatedAmount * (product.metadata?.discount / 100)
-          );
-        } else {
-          setDiscountedamount(0); // Or handle the case when there's no valid amount/discount
-        }
-
-        setSelectedVariant(targetVariant);
-        // console.log(targetVariant);
-        // setLoading(false);
-      } else {
-        setVariantPrice("N/A");
-      }
-    }
-  }, [product?.metadata, region, discount, selectedColor, selectedSize]);
-
+  // Group useEffects together
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -169,269 +43,302 @@ const QuickView = ({ product : propdata, onClose }) => {
     };
   }, []);
 
-  const handleQuantityChange = (type) => {
-    setQuantity((prev) =>
-      type === "increment" ? prev + 1 : Math.max(1, prev - 1)
+  // Debug log for initialData
+  useEffect(() => {
+    console.log('Initial data variants:', initialData?.variants);
+  }, [initialData]);
+
+  // Updated useEffect for sizes and colors
+  useEffect(() => {
+    if (initialData?.variants) {
+      // Direct access to size and color properties
+      const sizesArray = [...new Set(initialData.variants.map(variant => variant.size))].filter(Boolean);
+      const colorsArray = [...new Set(initialData.variants.map(variant => variant.color))].filter(Boolean);
+
+      if (sizesArray.length > 0) {
+        setSizes(sizesArray);
+        setSelectedSize(sizesArray[0]); // Set first size as default
+      }
+
+      if (colorsArray.length > 0) {
+        setColors(colorsArray);
+        setSelectedColor(colorsArray[0]); // Set first color as default
+      }
+
+      // Set initial variant
+      if (initialData.variants[0]) {
+        setSelectedVariant(initialData.variants[0]);
+      }
+    }
+  }, [initialData]);
+
+  console.log(sizes  , "This is the size of the QuickView");
+  console.log(colors  , "This is the color of the QuickView");
+  useEffect(() => {
+    setLoading(true);
+    const currentProduct = products.find(p => p.id === productId);
+    if (currentProduct) {
+      // const uniqueColors = [...new Set(currentProduct.variants
+      //   .map(variant => variant.options?.find(opt => opt.option_id === "opt_color")?.value)
+      //   .filter(Boolean))];
+      
+      // const uniqueSizes = [...new Set(currentProduct.variants
+      //   .map(variant => variant.options?.find(opt => opt.option_id === "opt_size")?.value)
+      //   .filter(Boolean))];
+
+      const productCategories = filters.categories.filter(cat => 
+        currentProduct.categories?.includes(cat.id)
+      );
+
+      setProduct(currentProduct);
+      // setColors(uniqueColors);
+      // setSizes(uniqueSizes);
+      setCategories(productCategories);
+      
+      // Set initial variant and price
+      if (currentProduct.variants?.length > 0) {
+        setSelectedVariant(currentProduct.variants[0]);
+        setVariantPrice(currentProduct.variants[0].price);
+        
+        if (currentProduct.metadata?.discount) {
+          setDiscount(currentProduct.metadata.discount);
+          const discounted = currentProduct.variants[0].price * (1 - currentProduct.metadata.discount / 100);
+          setDiscountedAmount(discounted);
+        }
+      }
+      
+      setLoading(false);
+    }
+  }, [productId, products, filters]);
+
+  // Helper functions
+  const getCurrentVariant = () => {
+    return product?.variants?.find(variant => 
+      (!selectedColor || variant.options?.some(opt => opt.value === selectedColor)) &&
+      (!selectedSize || variant.options?.some(opt => opt.value === selectedSize))
     );
   };
 
+  const getVariantPrice = () => {
+    const variant = getCurrentVariant();
+    return variant?.price || product?.variants?.[0]?.price || 0;
+  };
+
+  // Handler functions
+  const handleQuantityChange = (type) => {
+    setQuantity(prev => type === "increment" ? prev + 1 : Math.max(1, prev - 1));
+  };
+
   const handleAddToCart = async () => {
-     process.env.NEXT_PUBLIC_REVALIDATE_SECRET;
-     if (!selectedSize) {
-       setWarning("Please select  size.");
-       setIsProgressVisible(true);
- 
-       setTimeout(() => {
-         setWarning("");
-         setIsProgressVisible(false);
-       }, 3000);
-       return;
-     }
-     if (!selectedSize) {
-       setWarning("Please select  size.");
-       setIsProgressVisible(true);
- 
-       setTimeout(() => {
-         setWarning("");
-         setIsProgressVisible(false);
-       }, 3000);
-       return;
-     }
+    console.log("Handle Add To Cart is called of the Quick View");
+    // if (!selectedSize) {
+    //   setWarning("Please select a size.");
+    //   setIsProgressVisible(true);
+    //   setTimeout(() => {
+    //     setWarning("");
+    //     setIsProgressVisible(false);
+    //   }, 3000);
+    //   return;
+    // }
 
-     console.log(selectedVariant , "this is selected variant");
- 
-     await addToCart(
-       {
-         variantId: selectedVariant.id,
-         quantity: 1,
-         region: region,
-         Updater: updateCart,
-       },
-       process.env.NEXT_PUBLIC_REVALIDATE_SECRET
-     );
- 
-     setIsAdded(true);
-   };
+    console.log("hello")
+    try {
+      // Create the action payload object
+      const payload = {
+        productId: product.id,
+        variantId: selectedVariant.id,
+        quantity
+      };
 
-  const colors =
-    product?.options
-      ?.find((option) => option.title === "Color")
-      ?.values.map((v) => v.value) || [];
-  const sizes =
-    product?.options
-      ?.find((option) => option.title === "Size")
-      ?.values.map((v) => v.value) || [];
+      console.log('Adding to cart:', payload);
 
-  function getPriceForVariant() {
-    // Find the variant matching the selected color and size
-    const variant = product.variants.find(
-      (v) =>
-        v.options.some(
-          (o) => o.option.title === "Color" && o.value === selectedColor
-        ) &&
-        v.options.some(
-          (o) => o.option.title === "Size" && o.value === selectedSize
-        )
+      // Dispatch the action and await the result
+      await dispatch(addToCart(payload)).unwrap();
+
+      // Show success state
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 3000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      setWarning("Failed to add to cart");
+    }
+  };
+
+  const handleContainerClick = (e) => {
+    e.stopPropagation();
+  };
+
+  // Loading state check
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg">
+          <p>Loading product details...</p>
+        </div>
+      </div>
     );
-
-    // console.log(variant?.calculated_price?.calculated_amount);
-
-    // Return the price if a variant is found
-    setVariantPrice(variant?.calculated_price?.calculated_amount);
-    return variant ? variant?.calculated_price?.calculated_amount : null;
   }
 
-  const handleBuyNow = async () => {
-      if (!selectedSize) {
-        setWarning("Please select a size.");
-        setIsProgressVisible(true);
-  
-        setTimeout(() => {
-          setWarning("");
-          setIsProgressVisible(false);
-        }, 3000);
-        return;
-      }
-  
-      await addToCart(
-        {
-          variantId: selectedVariant.id,
-          quantity: 1,
-          region: region,
-          Updater: updateCart,
-        },
-        process.env.NEXT_PUBLIC_REVALIDATE_SECRET
-      );
-  
-      Router.push("/checkout");
-    };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 pb-20 md:pb-5 z-50 ">
-      <div className="bg-white w-full md:w-2/3 h-full md:h-auto md:max-h-[90%] rounded-lg flex flex-col md:flex-row transform px-1 pb-2 animate-scale-up sm:overflow-hidden overflow-y-auto">
+    <div 
+      onClick={handleContainerClick} 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-50 backdrop-blur-sm"
+    >
+      <div className="bg-white w-full md:w-4/5 lg:w-3/4 h-[90vh] rounded-2xl flex flex-col md:flex-row relative overflow-hidden">
         {/* Close Button */}
         <button
-          className="absolute top-4 right-4 bg-gray-200 hover:bg-black hover:text-white transition-all duration-300 rounded-full w-8 h-8 flex items-center justify-center text-black"
           onClick={onClose}
+          className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-black hover:text-white transition-all duration-300"
         >
-          X
+          ✕
         </button>
 
-        {/* Images Section */}
-        <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom">
-          <Image
-            src={product?.thumbnail}
-            alt={name}
-            width={300}
-            height={300}
-            className="rounded-lg object-cover"
-          />
-          {additionalImages && additionalImages.map((image, index) => (
-            <Image
-              key={index}
-              src={image.url}
-              alt={`Additional Image ${index + 1}`}
-              width={300}
-              height={100}
-              className="rounded-lg object-cover"
-            />
-          ))}
+        {/* Images Section - Left */}
+        <div className="md:w-1/2 p-6 overflow-y-auto scrollbar-hide">
+          <div className="space-y-4">
+            {/* Main Image */}
+            <div className="relative aspect-square w-full rounded-2xl overflow-hidden">
+              <Image
+                src={initialData?.images[0]?.url}
+                alt={initialData?.images[0]?.alt}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            
+            {/* Additional Images */}
+            <div className="grid grid-cols-2 gap-4">
+              {initialData?.variants?.[0]?.images?.map((image, index) => (
+                <div key={index} className="relative aspect-square rounded-xl overflow-hidden">
+                  <Image
+                    src={image.url}
+                    alt={`Product view ${index + 1}`}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Product Details Section */}
-        <div className="md:w-2/3 w-full p-6 flex flex-col">
-          <h1 className="text-2xl font-bold mb-2">{name}</h1>
-
-          {/* Star Rating */}
-          <div className="flex items-center mb-4">
-            {Array.from({ length: avaragerating }, (_, i) => (
-              <i key={i} className="ri-star-fill text-yellow-400"></i>
-            ))}
+        {/* Product Details - Right */}
+        <div className="md:w-1/2 p-8 overflow-y-auto scrollbar-hide bg-gray-50">
+          <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
+          
+          {/* Category */}
+          <div className="mb-6">
+            <span className="text-gray-600">Category: </span>
+            <span className="font-medium">{initialData?.category?.name}</span>
           </div>
 
-          {/* Pricing Details */}
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-md text-theme-blue font-bold">
-            ₹ {product?.metadata?.discount > 0
-                ? discountedamount
-                : variantPrice}
+          {/* Price */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-2xl font-bold text-theme-blue">
+              {product?.metadata?.discount > 0
+                ? formatPriceToINR(discountedAmount)
+                : formatPriceToINR(getVariantPrice())}
             </span>
             {product?.metadata?.discount > 0 && (
               <>
-                <span className="text-sub-color text-sm line-through">
-                ₹ {variantPrice}
-                </span>{" "}
-                <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
-                  -{discount}%
+                <span className="text-gray-400 line-through">
+                  {formatPriceToINR(getVariantPrice())}
+                </span>
+                <span className="bg-[#D2EF9A] text-black px-2 py-1 rounded-full text-sm">
+                  -{discount}% OFF
                 </span>
               </>
             )}
           </div>
 
-          {/* Categories */}
-          <div className="mb-4">
-            <span className="text-md font-bold">Category: </span>
-            {categories.map((category, index) => (
-              <span key={index} className="text-sm text-sub-color mr-2">
-                {category.name}
-              </span>
-            ))}
-          </div>
-
           {/* Colors */}
-          <div className="mb-4">
-            <span className="text-md font-bold">Color: </span>
-            <div className="flex my-2 gap-2">
-              {colors.map((color, index) => (
-                <div
-                  key={index}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer ${
-                    selectedColor === color ? "border-black" : ""
-                  }`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => {
-                    setSelectedColor(color);
-                    // Router.push({
-                    //   pathname: Router.pathname,
-                    //   query: {
-                    //     ...Router.query,
-                    //     temp_color: color,
-                    //   },
-                    // });
-                    getPriceForVariant();
-                  }}
-                />
-              ))}
+          {colors?.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-medium mb-3">Color</h3>
+              <div className="flex gap-3">
+                {colors?.map((color, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedColor(color)}
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${
+                      selectedColor === color
+                        ? 'border-theme-blue ring-2 ring-theme-blue ring-offset-2'
+                        : 'border-gray-300 hover:border-theme-blue'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Sizes */}
-          <div className="mb-4">
-            <span className="text-md font-bold">Size: </span>
-            <div className="flex my-2 gap-4">
-              {sizes.map((size, index) => (
-                <div
-                  key={index}
-                  className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
-                    selectedSize === size ? "border-black" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedSize(size);
-                    // Router.push({
-                    //   pathname: Router.pathname,
-                    //   query: {
-                    //     ...Router.query,
-                    //     temp_size: size,
-                    //   },
-                    // });
-                    getPriceForVariant();
-                  }}
-                >
-                  {size}
-                </div>
-              ))}
+          {sizes?.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-medium mb-3">Size</h3>
+              <div className="flex flex-wrap gap-3">
+                {sizes?.map((size, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedSize(size)}
+                    className={`min-w-[48px] h-12 rounded-lg border-2 transition-all ${
+                      selectedSize === size
+                        ? 'border-theme-blue bg-theme-blue text-white'
+                        : 'border-gray-300 hover:border-theme-blue'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Quantity and Add to Cart */}
-          <h3 className=" text-md font-semibold">Quantity:</h3>
-          <div className="flex flex-wrap items-center gap-2 ">
-            <div className="flex items-center min-w-20 w-1/3 border rounded-lg">
+          {/* Quantity */}
+          <div className="mb-6">
+            <h3 className="font-medium mb-3">Quantity</h3>
+            <div className="flex items-center h-12 w-32 border-2 border-gray-300 rounded-lg">
               <button
-                className="px-3 py-2"
                 onClick={() => handleQuantityChange("decrement")}
+                className="w-12 h-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
-                -
+                −
               </button>
               <input
                 type="text"
                 value={quantity}
                 readOnly
-                className="w-full text-center"
+                className="w-full text-center bg-transparent"
               />
               <button
-                className="px-3 py-2"
                 onClick={() => handleQuantityChange("increment")}
+                className="w-12 h-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
                 +
               </button>
             </div>
-            <button
-              className={`w-full  rounded-lg px-6 py-2 ${
-                isAdded
-                  ? "bg-green-500 text-white"
-                  : "bg-white border-2 border-gray-300"
-              }`}
-              onClick={handleAddToCart}
-            >
-              {isAdded ? "Added to Cart" : "Add to Cart"}
-            </button>
-            <button onClick={()=>handleBuyNow()} className="bg-black text-white w-full px-6 py-2 rounded-lg ">
-              Buy It Now
-            </button>
           </div>
 
-          {/* Buy Now Button */}
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleAddToCart}
+              className={`w-full h-12 rounded-full transition-all ${
+                isAdded
+                  ? 'bg-green-500 text-white'
+                  : 'bg-theme-blue text-white hover:bg-black'
+              }`}
+            >
+              {isAdded ? '✓ Added to Cart' : 'Add to Cart'}
+            </button>
+            <button
+              onClick={() => handleBuyNow()}
+              className="w-full h-12 rounded-full bg-black text-white hover:bg-theme-blue transition-all"
+            >
+              Buy Now
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -16,7 +16,13 @@ const NavCategory = () => {
     kids: useRef(null),
   };
 
-  const route = useRouter();
+  const router = useRouter();
+
+  const categories = [
+    { name: 'Men', path: '/shop?gender=men', key: 'men' },
+    { name: 'Women', path: '/shop?gender=women', key: 'women' },
+    // { name: 'Kids', path: '/shop?gender=kids', key: 'kids' }
+  ];
 
   const menuItemVariants = {
     hidden: { 
@@ -32,8 +38,8 @@ const NavCategory = () => {
       }
     },
     hover: {
-      scale: 1.05,
-      color: "#2563eb", // theme-blue color
+      y: -2,
+      color: "#153A63",
       transition: {
         duration: 0.2,
         ease: "easeInOut"
@@ -42,30 +48,38 @@ const NavCategory = () => {
   };
 
   const dropdownVariants = {
-    hidden: {
+    initial: {
       opacity: 0,
-      y: -20,
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut"
-      }
+      scaleY: 0,
+      transformOrigin: "top"
     },
-    visible: {
+    animate: {
       opacity: 1,
-      y: 0,
+      scaleY: 1,
       transition: {
         duration: 0.3,
-        ease: "easeOut"
+        ease: [0.4, 0, 0.2, 1], // Custom easing
+        when: "beforeChildren"
       }
     },
     exit: {
       opacity: 0,
-      y: -10,
+      scaleY: 0,
       transition: {
         duration: 0.2,
-        ease: "easeIn"
+        ease: "easeInOut",
+        when: "afterChildren"
       }
     }
+  };
+
+  const overlayVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: { duration: 0.3 }
+    },
+    exit: { opacity: 0 }
   };
 
   const arrowVariants = {
@@ -73,27 +87,39 @@ const NavCategory = () => {
     open: { rotate: 90 }
   };
 
-
-  const toggleCategoryDropdown = (category) => {
-    if (activeCategory === category) {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setActiveCategory(null);
-        setIsAnimating(false);
-      }, 300);
-    } else {
-      setActiveCategory(category);
+  const contentVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: { duration: 0.2 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.1 }
     }
   };
 
-  const handleCategoryClose = () => {
-    if (activeCategory) {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setActiveCategory(null);
+  const toggleCategoryDropdown = useCallback((category) => {
+    if (activeCategory === category) {
+      handleCategoryClose();
+    } else {
+      if (activeCategory) {
+        // Smooth transition between categories
+        setIsAnimating(true);
+        setActiveCategory(category);
         setIsAnimating(false);
-      }, 300);
+      } else {
+        setActiveCategory(category);
+      }
     }
+  }, [activeCategory]);
+
+  const handleCategoryClose = () => {
+    setIsAnimating(true);
+    setActiveCategory(null);
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 300);
   };
 
   // Enhanced click outside handler
@@ -136,45 +162,38 @@ const NavCategory = () => {
     };
   }, [handleScroll]);
 
+  const handleCategoryClick = (category, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleCategoryDropdown(category.key);
+  };
 
   return (
-    <div className="relative z-50 ">
+    <div className="relative z-50">
       <motion.div 
         initial="hidden"
         animate="visible"
         className="flex px-5 text-xl md:text-base text-black md:px-0 bg-light-BG md:bg-white flex-col space-y-8 md:space-y-0 md:flex-row md:gap-10 md:items-center justify-around pt-10 pb-5 md:py-0 md:pb-0 md:border-none z-50"
       >
-        {["men", "woman", "kids"].map((category, index) => (
-          <motion.div
-            key={category}
-            ref={categoryRefs[category]}
-            variants={menuItemVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover="hover"
-            custom={index}
-            transition={{ delay: index * 0.1 }}
-            className={`cursor-pointer md:uppercase md:text-sm relative group flex items-center justify-between ${
-              activeCategory === category ? "text-theme-blue font-semibold" : ""
-            }`}
-            onClick={() => toggleCategoryDropdown(category)}
-          >
-            <span className="relative">
-              {category.charAt(0).toUpperCase() + category.slice(1)}
+        {categories.map((category) => (
+          <div key={category.name} className="relative">
+            <motion.div
+              variants={menuItemVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              className="cursor-pointer uppercase text-sm"
+              onClick={(e) => handleCategoryClick(category, e)}
+            >
+              {category.name}
               <motion.div
                 className="absolute bottom-0 left-0 w-full h-0.5 bg-theme-blue origin-left"
                 initial={{ scaleX: 0 }}
-                animate={{ scaleX: activeCategory === category ? 1 : 0 }}
+                whileHover={{ scaleX: 1 }}
                 transition={{ duration: 0.3 }}
               />
-            </span>
-            <motion.i
-              className="ri-arrow-drop-right-line md:hidden"
-              variants={arrowVariants}
-              animate={activeCategory === category ? "open" : "closed"}
-              transition={{ duration: 0.2 }}
-            />
-          </motion.div>
+            </motion.div>
+          </div>
         ))}
         <motion.p 
           className="md:hidden"
@@ -195,18 +214,52 @@ const NavCategory = () => {
         </motion.p>
       </motion.div>
 
-      <AnimatePresence>
+      <AnimatePresence mode="sync">
         {activeCategory && (
-          <motion.div
-            ref={dropdownRef}
-            variants={dropdownVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="fixed inset-x-0 top-20 z-50"
-          >
-            <Collection activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-          </motion.div>
+          <>
+            {/* Backdrop overlay */}
+            <motion.div
+              variants={overlayVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40"
+              onClick={handleCategoryClose}
+            />
+
+            {/* Dropdown content */}
+            <motion.div
+              ref={dropdownRef}
+              variants={dropdownVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="fixed inset-x-0 top-20 z-50 bg-white shadow-lg"
+            >
+              <motion.div
+                variants={contentVariants}
+                className="w-full h-full"
+              >
+                <motion.button
+                  className="absolute top-4 right-4 p-2 text-gray-500 hover:text-black z-50"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleCategoryClose}
+                >
+                  <i className="ri-close-line text-2xl" />
+                </motion.button>
+
+                <Collection 
+                  activeCategory={activeCategory} 
+                  setActiveCategory={setActiveCategory}
+                  onNavigate={(path) => {
+                    handleCategoryClose();
+                    router.push(path);
+                  }}
+                />
+              </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

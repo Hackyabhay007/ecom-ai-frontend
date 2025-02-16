@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-const ProductDetailsInfo = ({ categories }) => {
+const ProductDetailsInfo = ({ categories, sku }) => { // Add sku to props
   // Payment options data
   const paymentOptions = [
     { src: "/images/payment/payment1.png", alt: "Payment Option 1" },
@@ -108,7 +108,7 @@ const ProductDetailsInfo = ({ categories }) => {
 
           {/* SKU */}
           <p className="text-sub-color">
-            <span className="text-black text-lg">SKU:</span> #12345
+            <span className="text-black text-lg">SKU:</span> {sku} {/* Update SKU display */}
           </p>
 
           {/* Categories */}

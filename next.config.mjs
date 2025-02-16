@@ -1,8 +1,33 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
   images: {
-    domains: ['148.135.138.221','medusa-public-images.s3.eu-west-1.amazonaws.com','example.com','plus.unsplash.com' ,'localhost','images.pexels.com','randomuser.me'], // Add the hostname here
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        port: '',
+        pathname: '/photos/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+        port: '',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.shutterstock.com',
+        port: '',
+        pathname: '/image-photo/**',
+      },
+    ],
   },
 };
 

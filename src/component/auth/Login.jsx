@@ -1,47 +1,49 @@
-"use client"
-import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useDispatch, useSelector } from "react-redux"
-import { login } from "@/redux/slices/authSlice" // Assuming the slice is created
-import Cookies from "js-cookie"
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from "@/../redux/slices/authSlice";
+import { getCookie } from "utils/cookieUtils"; 
 
 const Login = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorValue, setErrorValue] = useState("");
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { error, loading, isAuthenticated } = useSelector((state) => state.auth);
 
-  const router = useRouter()
-  const dispatch = useDispatch()
-  const { token, isLoading } = useSelector(state => state.customer)
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    try {
+      if (email && password) {
+        const credentials = { email, password };
+        const result = await dispatch(loginUser(credentials));
+        if (!result.error) {
+          router.push('/auth/dashboard'); // Redirect on successful login
+        }
+      }
+    } catch (error) {
+      setErrorValue("Invalid email or password"); // Set error message
+    }
+  };
 
   useEffect(() => {
-    if (Cookies.get("_medusa_jwt")) {
-      router.push("/auth/dashboard")
+    // Check if user is already authenticated
+    const cookie = getCookie('auth_token');
+    if (cookie || isAuthenticated) {
+      router.push('/auth/dashboard'); // or wherever you want to redirect authenticated users
+      console.log("User is already Logged Now");
     }
-  }, [router])
+  }, [isAuthenticated]);
 
-  const handleLogin = async e => {
-    e.preventDefault()
-    setError("")
+  useEffect(()=>{
+    setErrorValue(error);
+  }, [error]);
 
-    const secretKey = process.env.NEXT_PUBLIC_REVALIDATE_SECRET || ""
 
-    if (email && password) {
-      try {
-        await dispatch(
-          login({
-            formData: { email, password },
-            secretKey
-          })
-        ).unwrap()
-        router.push("/auth/dashboard")
-      } catch (err) {
-        setError("Login failed. Please check your credentials.")
-      }
-    } else {
-      setError("Invalid email or password.")
-    }
-  }
+  useEffect(() => { 
+    setErrorValue(""); // Set error message
+  }, []);
 
   return (
     <div className="flex flex-col md:flex-row min-h-fit md:min-h-screen bg-white">
@@ -50,7 +52,8 @@ const Login = () => {
           Login
         </h2>
 
-        {error && <p className="text-xs text-red-500 mb-4">{error}</p>}
+        {/* Updated error message display */}
+        {error && <p className="text-xs text-red-500 mb-4">{errorValue}</p>}
 
         <form className="space-y-6" onSubmit={handleLogin}>
           <div>
@@ -88,10 +91,10 @@ const Login = () => {
           <div className="flex justify-between items-center">
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="bg-black text-sm md:text-md md:font-bold uppercase text-white py-2 px-7 md:px-10 md:py-4 rounded-md md:rounded-xl hover:bg-discount-color hover:text-cream transition duration-300"
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {loading ? "Logging in..." : "Login"}
             </button>
             <button
               type="button"

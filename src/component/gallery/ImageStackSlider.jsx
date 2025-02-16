@@ -1,18 +1,52 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGallery_Two } from '../../../redux/slices/homePageSlice'; // Import the fetchHeroSection action creator
+import Link from "next/link";
 
-const images = [
-  "/images/gallery/gallery1.png",
-  "/images/gallery/gallery2.png",
-  "/images/gallery/gallery3.png",
-  "/images/gallery/gallery4.png",
-  "/images/gallery/gallery5.png",
-];
+// const images = [
+//   "/images/gallery/gallery1.png",
+//   "/images/gallery/gallery2.png",
+//   "/images/gallery/gallery3.png",
+//   "/images/gallery/gallery4.png",
+//   "/images/gallery/gallery5.png",
+// ];
 
 const ImageStackSlider = ({catalogdata}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [images, setImages] = useState([]);
+
+
+  const dispatch = useDispatch();
+  const { galleryTwoSection, loading, error } = useSelector((state) => state?.homePage); // Correct selector
+
+  useEffect(() => {
+    dispatch(fetchGallery_Two());
+  }, [dispatch]);
+
+  // Log the hero section data from state
+  useEffect(() => {
+    if (galleryTwoSection?.section_data?.carousel?.length > 0) {
+      const carouselData = galleryTwoSection?.section_data?.carousel.map((item) => {
+        return item.image;
+        
+        // {
+        //   id: item.id,
+        //   src: item.image,
+        //   alt: item.alt,
+        //   link: item.link,
+        //   title: item.title,
+        //   buttonText: item.buttonText,
+        // };
+      });
+      setImages(carouselData);
+
+      // console.log("This is the Carousel Data of the Image Stack Slider Data", carouselData);
+      // console.log("This is the Carousel Array Data of the  Image Stack Slider Data", images);
+    }
+  }, [galleryTwoSection]);
 
   
 
@@ -60,7 +94,7 @@ const ImageStackSlider = ({catalogdata}) => {
     >
       {/* Stacked Images */}
       <div className="relative h-full flex items-center justify-center">
-        {catalogdata.map((data, index) => {
+        {images?.map((data, index) => {
           // Calculate position for stacking
           const position = (index - currentIndex + images.length) % images.length;
           const zIndex = images.length - position;
@@ -72,9 +106,8 @@ const ImageStackSlider = ({catalogdata}) => {
           return (
             <a href={data.link}
               key={index}
-              className={`absolute w-[90%] md:w-[70%] h-[90%] transition-all duration-500 ease-in-out ${
-                position === 0 ? "shadow-xl" : "shadow-md"
-              }`}
+              className={`absolute w-[90%] md:w-[70%] h-[90%] transition-all duration-500 ease-in-out ${position === 0 ? "shadow-xl" : "shadow-md"
+                }`}
               style={{
                 zIndex,
                 transform,
@@ -82,7 +115,7 @@ const ImageStackSlider = ({catalogdata}) => {
               }}
             >
               <Image
-                src={data.image}
+                src={data}
                 alt={`Gallery Image ${index + 1}`}
                 layout="fill"
                 objectFit="cover"

@@ -1,46 +1,54 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  retrieveCustomer,
-  updateCustomer,
-  updateCustomerPassword,
-} from "@/redux/slices/authSlice";
+import { updateCustomer } from "@/redux/slices/authSlice";
 import axios from "axios";
 import { Spinner } from "@medusajs/icons";
 
-const SettingsTab = () => {
-  const { currentCustomer: user } = useSelector((state) => state.customer);
+const SettingsTab = ({ userInfo }) => { // Get userInfo from props instead of state
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth || {});
 
-  useEffect(() => {
-    dispatch(retrieveCustomer());
-  }, [dispatch]);
+  // Log the userInfo to check what we're receiving
+  console.log('User Info received:', userInfo);
 
-  const [userInfo, setUserInfo] = useState({
-    firstName: user?.first_name || "",
-    lastName: user?.last_name || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    gender: user?.gender || "Male",
-    dob: user?.dob || "1990-01-01",
+  const [userData, setUserData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    gender: "Male",
+    dob: "1990-01-01",
   });
 
-  const [loading , setLoading] = useState(false);
+  // Update form when userInfo changes
+  useEffect(() => {
+    if (userInfo) {
+      setUserData({
+        firstName: userInfo.firstName || userInfo.first_name || "",
+        lastName: userInfo.lastName || userInfo.last_name || "",
+        email: userInfo.email || "",
+        phone: userInfo.phone || "",
+        gender: userInfo.metadata?.gender || userInfo.gender || "Male",
+        dob: userInfo.metadata?.dob || userInfo.dob || "1990-01-01",
+      });
+      setEditImage(userInfo.metadata?.avatar || userInfo.avatar || "");
+    }
+  }, [userInfo]);
 
+  const [formLoading, setFormLoading] = useState(false);
+  const [image, setImage] = useState(null);
+  const [editImage, setEditImage] = useState("");
+  const [newImage, setNewImage] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState({
+    profileMessage: "",
+    passwordMessage: "",
+  });
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-
-  const [updateStatus, setUpdateStatus] = useState({
-    profileMessage: "",
-    passwordMessage: "",
-  });
-  const [image, setImage] = useState(null);
-  const [editImage, setEditImage] = useState(user?.metadata?.avatar || "");
-  const [newimage , setNewImage] = useState(false);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -86,7 +94,7 @@ const SettingsTab = () => {
 
   const handleUserChange = (e) => {
     const { name, value } = e.target;
-    setUserInfo((prev) => ({ ...prev, [name]: value }));
+    setUserData(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePasswordChange = (e) => {
@@ -95,36 +103,38 @@ const SettingsTab = () => {
   };
 
   const handleSaveChanges = async () => {
-    setLoading(true);
+    setFormLoading(true);
     try {
-     const resiamgelink = newimage ?  await uploadImage(image) : editImage;
-      const result = await dispatch(
-        updateCustomer({
-          first_name: userInfo.firstName,
-          last_name: userInfo.lastName,
-          phone: userInfo.phone,
-          metadata: {
-            gender: userInfo.gender,
-            dob: userInfo.dob,
-            avatar : resiamgelink,
-          },
-        })
-      );
+      const imageLink = newImage ? await uploadImage(image) : editImage;
+      
+      const updateData = {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+        metadata: {
+          ...userInfo.metadata, // Preserve existing metadata
+          gender: userData.gender,
+          dob: userData.dob,
+          avatar: imageLink,
+        },
+      };
 
-      if (result.meta.requestStatus === "fulfilled") {
-        setUpdateStatus((prev) => ({
-          ...prev,
-          profileMessage: "Profile updated successfully!",
-        }));
-      }
-      setLoading(false);
+      console.log('Updating with data:', updateData);
+      await dispatch(updateCustomer(updateData)).unwrap();
+      
+      setUpdateStatus(prev => ({
+        ...prev,
+        profileMessage: "Profile updated successfully!"
+      }));
       setNewImage(false);
     } catch (error) {
-      setUpdateStatus((prev) => ({
+      console.error('Update error:', error);
+      setUpdateStatus(prev => ({
         ...prev,
-        profileMessage: "Failed to update profile.",
+        profileMessage: "Failed to update profile."
       }));
-      
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -166,7 +176,10 @@ const SettingsTab = () => {
     }
   };
 
- 
+  // Show loading state if no user data
+  if (!userInfo) {
+    return <div className="text-center py-4">Loading user information...</div>;
+  }
 
   return (
     <div className="p-4 border rounded-xl my-2">
@@ -214,7 +227,7 @@ const SettingsTab = () => {
               <input
                 type="text"
                 name="firstName"
-                value={userInfo.firstName}
+                value={userData.firstName}
                 onChange={handleUserChange}
                 className="w-full py-4 px-4 border rounded-lg"
               />
@@ -226,7 +239,7 @@ const SettingsTab = () => {
               <input
                 type="text"
                 name="lastName"
-                value={userInfo.lastName}
+                value={userData.lastName}
                 onChange={handleUserChange}
                 className="w-full py-4 px-4 border rounded-lg"
               />
@@ -241,7 +254,7 @@ const SettingsTab = () => {
               <input
                 type="text"
                 name="phone"
-                value={userInfo.phone}
+                value={userData.phone}
                 onChange={handleUserChange}
                 className="w-full py-4 px-4 border rounded-lg"
               />
@@ -254,7 +267,7 @@ const SettingsTab = () => {
                 type="email"
                 name="email"
                 disabled
-                value={userInfo.email}
+                value={userData.email}
                 className="w-full py-4 px-4 border rounded-lg"
               />
             </div>
@@ -267,7 +280,7 @@ const SettingsTab = () => {
               </label>
               <select
                 name="gender"
-                value={userInfo.gender}
+                value={userData.gender}
                 onChange={handleUserChange}
                 className="w-full py-4 px-4 border rounded-lg"
               >
@@ -283,7 +296,7 @@ const SettingsTab = () => {
               <input
                 type="date"
                 name="dob"
-                value={userInfo.dob}
+                value={userData.dob}
                 onChange={handleUserChange}
                 placeholder="mm/dd/yyyy"
                 className="w-full py-4 px-4 border rounded-lg"
@@ -292,11 +305,11 @@ const SettingsTab = () => {
           </div>
 
           <button
-            disabled={loading}
+            disabled={formLoading}
             onClick={handleSaveChanges}
             className="mt-6 px-6 md:py-4 py-3 rounded-md md:rounded-xl text-xs md:text-sm uppercase md:font-bold bg-black text-white  hover:bg-discount-color transition-all duration-200 ease-in-out min-w-44 hover:text-black"
           >
-            {loading ? <> <div className="animate-spin"><Spinner/></div> </> : "Save Changes"}
+            {formLoading ? <> <div className="animate-spin"><Spinner/></div> </> : "Save Changes"}
           </button>
         </div>
 

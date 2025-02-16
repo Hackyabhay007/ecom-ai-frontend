@@ -1,9 +1,9 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useDispatch, useSelector } from "react-redux"
-import { signup } from "@/redux/slices/authSlice"
-import Cookies from "js-cookie"
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "@/redux/slices/authSlice";
+import { getCookie } from "utils/cookieUtils";
 
 const Register = () => {
   const [firstName, setFirstname] = useState("")
@@ -15,34 +15,45 @@ const Register = () => {
 
   const router = useRouter()
   const dispatch = useDispatch()
-  const { token, isLoading } = useSelector(state => state.customer)
+  // const { token, isLoading } = useSelector(state => state.customer)
+  const {error, loading} = useSelector(state => state.auth)
+  const isLoading = false;
+  const token = "";
+
+  useEffect(()=>{
+
+  }, [error])
 
   useEffect(() => {
-    if (Cookies.get("_medusa_jwt")) {
-      router.push("/auth/dashboard")
+    const cookie = getCookie("auth_token");
+    
+    if (cookie) {
+      // console.log("User is already Logged Now");
+      // router.push("/auth/dashboard");
     }
   }, [router])
 
   const handleRegister = async e => {
-    e.preventDefault()
-    const secretKey = process.env.NEXT_PUBLIC_REVALIDATE_SECRET || ""
-
+    e.preventDefault();
     try {
-      await dispatch(
-        signup({
-          formData: {
-            firstName,
-            lastName,
-            email,
-            password,
-            phone
-          },
-          secretKey
-        })
-      ).unwrap()
-      router.push("/auth/dashboard")
+      const result = await dispatch(registerUser({
+        firstName, 
+        lastName, 
+        email, 
+        phone, 
+        password
+      })).unwrap();
+
+      // If registration is successful (no error was thrown)
+      if (result === undefined) { // Since our registerUser returns undefined on success
+        // Show success message (optional)
+        // alert("Registration successful! Please login with your credentials.");
+        // Redirect to login page
+        router.push("/auth/login");
+      }
     } catch (error) {
-      console.error("Registration failed", error)
+      console.error("Registration failed", error);
+      // Error handling is already done in the slice
     }
   }
 
@@ -98,6 +109,7 @@ const Register = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="border p-3 rounded-xl w-full"
+              autoComplete="off"
               required
             />
             <input

@@ -1,55 +1,23 @@
-import React, { useEffect, useState, useMemo } from "react";
-import Image from "next/image";
-import { useRegion } from "../../contexts/RegionContext";
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import Image from 'next/image';
+import Link from 'next/link';
+import { fetchSingleProduct } from '../../../redux/slices/shopSlice';
+import { formatPriceToINR } from 'utils/currencyUtils';
 
-function BestSellerCard({ id, image, rating, price, prevPrice, discount, title }) {
-  const { region } = useRegion();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [variantPrice, setVariantPrice] = useState(null);
+const BestSellerCard = ({ id }) => {
+  const dispatch = useDispatch();
+  const { selectedProduct, selectedProductLoading, selectedProductError } = useSelector((state) => state.shop);
 
   useEffect(() => {
-    if (!region || !id) return;
+    if (id) {
+      dispatch(fetchSingleProduct(id));
+      console.log("got products here ",id);
+      
+    }
+  }, [dispatch, id]);
 
-    setLoading(true);
-    const queryParams = new URLSearchParams({
-      fields: `*variants.calculated_price`,
-      region_id: region.id,
-    });
-
-    fetch(`${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products/${id}?${queryParams.toString()}`, {
-      credentials: "include",
-      headers: {
-        "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "temp",
-      },
-    })
-      .then((res) => res.json())
-      .then(({ product: dataProduct }) => {
-        setProduct(dataProduct);
-
-        // Find the variant with size 'M'
-        const targetVariant = dataProduct.variants.find((variant) =>
-          variant.options.some(
-            (option) => option.value.toLowerCase() === "m" // Check if size is 'M'
-          )
-        );
-
-        if (targetVariant) {
-          setVariantPrice(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: region.currency_code,
-            }).format(targetVariant.calculated_price?.calculated_amount)
-          );
-        } else {
-          setVariantPrice("N/A"); // Handle case where no variant matches
-        }
-
-        setLoading(false);
-      });
-  }, [id, region]);
-
-  if (loading) {
+  if (selectedProductLoading) {
     return (
       <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col animate-pulse">
         <div className="w-full h-96 bg-gray-200"></div>
@@ -65,32 +33,60 @@ function BestSellerCard({ id, image, rating, price, prevPrice, discount, title }
     );
   }
 
+  if (selectedProductError || !selectedProduct) {
+    return null;
+  }
+
+  const mainVariant = selectedProduct.variants[0];
+  const mainImage = mainVariant?.images[0];
+  const isOnSale = mainVariant?.isOnSale;
+  const discount = isOnSale ? 
+    Math.round(((mainVariant.price - mainVariant.salePrice) / mainVariant.price) * 100) : 0;
+
   return (
-    <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col">
-      <Image
-        src={image}
-        alt={title}
-        width={384}
-        height={384}
-        className="w-full h-96 object-cover mb-4"
-      />
-      <div className="flex flex-col p-4">
-        <h2 className="font-bold">{title || "Clothing for men"}</h2>
-        <span className="text-yellow-600 font-semibold mr-2">{rating} ★</span>
-        <div className="flex flex-wrap gap-5 items-center">
-          <span className="font-bold text-lg">
-            {variantPrice !== "N/A" ? variantPrice : "Size M not available"}
-          </span>
-          {prevPrice && <span className="text-sub-color line-through">₹{prevPrice}</span>}
-          {discount && (
-            <span className="text-white bg-theme-blue rounded-full px-2 text-sm">
-              - {discount}% off
-            </span>
+    <Link href={`/shop/product/${id}`}>
+      <div className="bg-white border-2 border-theme-blue overflow-hidden rounded-lg shadow-lg my-5 flex flex-col group">
+        <div className="relative w-full h-96">
+          <Image
+            src={mainImage?.url || '/images/placeholder.jpg'}
+            alt={mainImage?.alt || selectedProduct.name}
+            layout="fill"
+            objectFit="cover"
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
+          {discount > 0 && (
+            <div className="absolute top-2 right-2 bg-theme-blue text-white rounded-full px-3 py-1 text-sm">
+              -{discount}% off
+            </div>
           )}
         </div>
+        
+        <div className="flex flex-col p-4">
+          <h2 className="font-bold text-lg mb-2">{selectedProduct.name}</h2>
+          
+          <div className="flex items-center mb-2">
+            {selectedProduct.rating && (
+              <span className="text-yellow-600 font-semibold mr-2">
+                {selectedProduct.rating} ★
+              </span>
+            )}
+            <span className="text-gray-500">{selectedProduct.category?.name}</span>
+          </div>
+
+          <div className="flex flex-wrap gap-3 items-center">
+            <span className="font-bold text-lg">
+              {formatPriceToINR(mainVariant?.price)}
+            </span>
+            {isOnSale && (
+              <span className="text-sub-color line-through">
+                {formatPriceToINR(mainVariant.salePrice)}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </Link>
   );
-}
+};
 
 export default BestSellerCard;

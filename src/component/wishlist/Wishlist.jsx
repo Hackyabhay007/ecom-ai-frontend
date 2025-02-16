@@ -1,149 +1,289 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { use, useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/router";
+import Image from "next/image";
 import WishlistBreadCrumb from "./WishlistBreadCrumb";
 import WishlistGridLayout from "./WishlistGridLayout";
-import Image from "next/image";
-import { removeFromWishlist } from "@/redux/slices/wishSlice";
-import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
-import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
-
+import {
+  fetchAllWishlistItems,
+  removeFromWishlist,
+  selectWishlistItems,
+  selectWishlistLoading,
+  selectWishlistCount,
+  selectWishlistError,
+  selectDeleteSuccess,
+  clearDeleteSuccess,
+  clearWishlistError, // Add this import
+  selectWishlistMeta, // Add this import
+} from "../../../redux/slices/wishlistSlice";
+import { formatPriceToINR } from "utils/currencyUtils";
 
 const Wishlist = () => {
-  const { wishlist } = useSelector((state) => state.wishlist);
-  const { currentCustomer: user } = useSelector((state) => state.customer);
   const dispatch = useDispatch();
+  const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
-  useEffect(() => {
-    if (!user) {
+  // Use all available selectors from wishlistSlice
+  const wishlistItems = useSelector(selectWishlistItems);
+  const isLoading = useSelector(selectWishlistLoading);
+  const totalCount = useSelector(selectWishlistCount);
+  const error = useSelector(selectWishlistError);
+  const deleteSuccess = useSelector(selectDeleteSuccess);
+  const meta = useSelector(selectWishlistMeta);
 
-      dispatch(retrieveCustomer());
+  // console.log("Wishlist Items", wishlistItems);
 
-    } 
-  }, [dispatch, user]); 
+  useEffect(()=>{
+    const result = dispatch(fetchAllWishlistItems());
+    console.log("This is the result", result);
+  }, [])
+  // console.log(const resdispatch(fetchAllWishlistItems()));
+  // let result = dispatch(fetchAllWishlistItems());
+  // console.log("This is the result", result);
+
+  const {items} = useSelector(state => state.wishlist);
+
+  // useEffect(() => { 
+  //   console.log("This is the Wishlist Items", [...items]);
+  // }, [items]);
+
   const [layout, setLayout] = useState(3);
   const [filters, setFilters] = useState({
     category: "all",
     sort: "best-selling",
   });
-  const router = useRouter()
 
+  // Updated useEffect to handle pagination changes
+  useEffect(() => {
+    console.log('Fetching wishlist items for page:', currentPage);
+    const fetchItems = async () => {
+      try {
+        await dispatch(fetchAllWishlistItems({
+          page: currentPage,
+          limit: ITEMS_PER_PAGE
+        })).unwrap();
+
+        console.log('Fetched wishlist items for page:', currentPage, fetchItems);
+      } catch (error) {
+        console.error('Error fetching wishlist items:', error);
+      }
+    };
+    fetchItems();
+    console.log('Fetching wishlist items for page:', currentPage);
+  }, [dispatch, currentPage]); // Depend only on page changes and dispatch
+
+  // Separate useEffect for handling delete success
+  useEffect(() => {
+    if (deleteSuccess) {
+      console.log('Deletion successful, refreshing current page...');
+      dispatch(clearWishlistError());
+      dispatch(clearDeleteSuccess());
+      // After deletion, fetch the current page again
+      dispatch(fetchAllWishlistItems({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE
+      }));
+    }
+  }, [deleteSuccess, dispatch, currentPage]);
+
+  // Handle layout and filter changes
   const handleLayoutChange = (newLayout) => setLayout(newLayout);
-
   const handleFilterChange = (filterName, value) => {
-    setFilters((prev) => ({ ...prev, [filterName]: value }));
+    setFilters(prev => ({ ...prev, [filterName]: value }));
   };
 
-  // Apply Filters
-  const filteredWishlist = wishlist.filter((product) => {
+  const handleRemoveFromWishlist = async (wishlistId) => {
+    console.log('Starting removal process for wishlist item:', wishlistId);
+    try {
+      dispatch(clearWishlistError()); // Clear any previous errors
+      await dispatch(removeFromWishlist(wishlistId)).unwrap();
+    } catch (error) {
+      console.error('Remove from wishlist failed:', {
+        wishlistId,
+        error: error
+      });
+    }
+  };
+
+  // Only show error state if it's not during deletion
+  if (error && !deleteSuccess) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading wishlist items...
+      </div>
+    );
+  }
+
+  // Filter and sort wishlist items
+  const filteredWishlist = wishlistItems?.filter(item => {
     if (filters.category === "all") return true;
-    return product.category === filters.category;
+    return item?.product?.category?.name?.toLowerCase() === filters.category;
+  }) || [];
+
+  const sortedWishlist = [...filteredWishlist].sort((a, b) => {
+    switch (filters.sort) {
+      case "low-high":
+        return (a?.variant?.price || 0) - (b?.variant?.price || 0);
+      case "high-low":
+        return (b?.variant?.price || 0) - (a?.variant?.price || 0);
+      default:
+        return 0;
+    }
   });
 
-  // Apply Sorting
-  const sortedWishlist = filteredWishlist.sort((a, b) => {
-    if (filters.sort === "low-high") return a.price - b.price;
-    if (filters.sort === "high-low") return b.price - a.price;
-    if (filters.sort === "discount") return b.discount - a.discount;
-    return 0; // Default sorting for "best-selling" or no specific order
-  });
+  // Updated pagination handlers with proper async handling
+  const handlePageChange = async (newPage) => {
+    console.log('Changing to page:', newPage);
+    try {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // The useEffect will handle the actual data fetching
+    } catch (error) {
+      console.error('Error changing page:', error);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const nextPage = () => {
+    if (currentPage < (meta?.totalPages || 1)) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Calculate page numbers
+  const pageNumbers = [];
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(meta.totalPages, currentPage + 2); i++) {
+    pageNumbers.push(i);
+  }
 
   return (
-    <div className="mb-10 pt-16 md:pt-0">
+    <div className="wishlist_container mb-10 pt-16 md:pt-0">
       <WishlistBreadCrumb />
       <WishlistGridLayout
         onLayoutChange={handleLayoutChange}
         onFilterChange={handleFilterChange}
       />
-      <span className="text-sub-color font-medium text-lg px-5">
-        {sortedWishlist.length} Product{sortedWishlist.length !== 1 && "s"}{" "}
-        Found
-      </span>
-      <div
-        className={`grid gap-4 p-4`}
-        style={{
-          gridTemplateColumns: `repeat(${layout}, minmax(0, 1fr))`,
-        }}
-      >
-        {sortedWishlist.map((product) => (
-          <div
-            key={product.id}
-            className="rounded-lg text-center  relative text-cream cursor-pointer"
-            
-          >
-            {/* Image */}
-            <div onClick={() => (router.push(`/shop/product/${product.id}`))} className="relative w-full h-32 md:h-96">
-              <Image
-                src={product.thumbnail}
-                alt={product.name}
-                layout="fill"
-                objectFit="cover"
-                className="rounded-xl"
-                
-              />
-            </div>
 
-            {/* Product Information */}
-            <div className="mt-4 px-2">
-              <h3 className="mb-1 font-medium text-xs md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
-                {product.title}
-              </h3>
+      <div className="px-5 flex flex-col">
+        {/* Count display */}
+        <span className="text-sub-color font-medium text-lg mb-4">
+          {totalCount} Product{totalCount !== 1 && "s"} in Wishlist
+        </span>
 
-              <div className="flex flex-wrap mb-5 gap-3 items-center justify-between pr-10 ">
-                <span className="md:text-lg text-xs">₹{product.variants[0].calculated_price.calculated_amount}</span>
-                {product.prevPrice && (
-                  <span className="text-xs text-sub-color line-through">
-                    ₹{product.prevPrice}
-                  </span>
-                )}
-                {product.discount && (
-                  <span className="bg-[#D2EF9A] rounded-full px-[5px] py-[2px] font-thin text-xs text-black">
-                    -{product.discount}% 
-                  </span>
-                )}
-                <button
-                 onClick={() => {
-                
-                                  if (!user) {
-                                    router.push("/auth/login"); // Redirect to login if no user is logged in
-                                    return;
-                                  }
-                
-                                  const update = {
-                                    metadata: {
-                                      wishlist: user?.metadata?.wishlist.filter((wishlistItem) => wishlistItem.id !== product.id),
-                                    },
-                                  };
-                                
-                                  console.log(update, "update");
-                                
-                                  if (JSON.stringify(update.metadata.wishlist) === JSON.stringify(user?.metadata?.wishlist)) {
-                                    console.log("No change");
-                                    return;
-                                  }
-                                
-                                  dispatch(updateCustomer(update));
-                                
-                                  dispatch(
-                                    removeFromWishlist({
-                                      productId: product.id,
-                                      userurrentCustomer: user,
-                                    })
-                                  );
-                                
-                                  dispatch(retrieveCustomer());
-                                  console.log(user, "user");
-                                }}
-                                
-                                  className="bg-red-500 duration-200 text-white px-2 py-1  rounded-lg hover:bg-red-700 "
-                                 
+        {/* Products grid - Updated to show loading state during page changes */}
+        <div
+          className={`grid gap-4 mb-8`}
+          style={{
+            gridTemplateColumns: `repeat(${layout}, minmax(0, 1fr))`,
+          }}
+        >
+          {isLoading ? (
+            <div className="col-span-full text-center py-4">Loading...</div>
+          ) : sortedWishlist.length > 0 ? (
+            sortedWishlist.map((item) => (
+              <div
+                key={item?.id}
+                className="rounded-lg text-center relative text-cream cursor-pointer group"
+              >
+                <div
+                  onClick={() => router.push(`/shop/product/${item.product.id}`)}
+                  className="relative w-full h-32 md:h-96"
                 >
-                  remove
-                </button>
+                  <Image
+                    src={item.product.primaryImage.url}
+                    alt={item.product.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-xl"
+                  />
+
+                  {/* Updated Remove Button - Positioned absolutely */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFromWishlist(item.id);
+                    }}
+                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-red-50 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    title="Remove from wishlist"
+                  >
+                    <i className="ri-close-line text-xl text-red-500"></i>
+                  </button>
+                </div>
+
+                <div className="mt-4 px-2">
+                  <h3 className="mb-1 font-medium text-xs md:text-md text-cream text-left overflow-hidden text-ellipsis whitespace-nowrap">
+                    {item.product.name}
+                  </h3>
+
+                  <div className="flex items-center justify-between">
+                    <span className="md:text-lg text-xs">
+                      {formatPriceToINR(item.variant.price)}
+                    </span>
+                  </div>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-4">No items in wishlist</div>
+          )}
+        </div>
+
+        {/* Updated Pagination Controls */}
+        {meta?.totalPages > 1 && (
+          <div className="text-sm md:text-base flex justify-center mt-4">
+            <button
+              onClick={prevPage}
+              disabled={currentPage === 1 || isLoading}
+              className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none ${
+                (currentPage === 1 || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              Previous
+            </button>
+
+            <div className="flex items-center mx-2">
+              {pageNumbers.map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  disabled={isLoading}
+                  className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none mx-1 ${
+                    currentPage === page
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-gray-200"
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {page}
+                </button>
+              ))}
             </div>
+
+            <button
+              onClick={nextPage}
+              disabled={currentPage >= (meta?.totalPages || 1) || isLoading}
+              className={`md:px-4 py-2 px-3 border md:rounded-sm rounded-none ${
+                (currentPage >= (meta?.totalPages || 1) || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              Next
+            </button>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

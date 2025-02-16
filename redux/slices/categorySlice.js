@@ -1,49 +1,83 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import Image from "next/image";
 import axios from "axios";
+import { createApiUrl } from '../../utils/apiConfig';
 
-// Async action to fetch category data
-export const fetchcategores = createAsyncThunk(
-  "categories/fetchcategores",
-  async () => {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/product-categories`,
-      {
+// Updated fetchCategories to handle dynamic parameters
+export const fetchCategories = createAsyncThunk(
+  "categories/fetchCategories",
+  async ({ searchParams = {} } = {}, { rejectWithValue }) => {
+    try {
+      // Create query string from all provided search parameters
+      const queryParams = new URLSearchParams();
+      
+      // Add all search parameters dynamically
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (value) {
+          queryParams.append(key, value);
+        }
+      });
+
+      const queryString = queryParams.toString();
+      const url = createApiUrl(`/categories${queryString ? `?${queryString}` : ''}`);
+
+      console.log('Fetching categories with URL:', url);
+
+      const response = await axios.get(url, {
         headers: {
-          "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+          'Content-Type': 'application/json',
         },
+      });
+
+      if (!response.data.success) {
+        return rejectWithValue('Failed to fetch categories');
       }
-    ); // Replace with your API endpoint
-    // console.log(response.data, " this is get rescome from category");
-    return response.data.product_categories; // Assume the API returns an array of categories
+
+      console.log("Fetched categories:", response.data.data);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch categories');
+    }
   }
 );
-// console.log("");
-// fetchcategores();
 
-const categorysectionSlice = createSlice({
+const categorySlice = createSlice({
   name: "categories",
   initialState: {
-    categories: [], // Default state
-    status: "idle",
+    categories: [], // Array of category objects
+    count: 0,      // Total count of categories
+    loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearCategoryError: (state) => {
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchcategores.pending, (state) => {
-        state.status = "loading";
+      .addCase(fetchCategories.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(fetchcategores.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        // console.log(action.payload);
-        state.categories = action.payload;
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories = action.payload.categories;
+        state.count = action.payload.count;
       })
-      .addCase(fetchcategores.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export default categorysectionSlice.reducer;
+// Export actions
+export const { clearCategoryError } = categorySlice.actions;
+
+// Export selectors
+export const selectCategories = (state) => state.categories.categories;
+export const selectCategoryCount = (state) => state.categories.count;
+export const selectCategoryLoading = (state) => state.categories.loading;
+export const selectCategoryError = (state) => state.categories.error;
+
+export default categorySlice.reducer;

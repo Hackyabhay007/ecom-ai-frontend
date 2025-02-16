@@ -1,82 +1,136 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { getAuthHeaders } from "@/lib/data/cookies";
+import { createApiUrl } from '../../utils/apiConfig';
+import { getCookie } from '../../utils/cookieUtils';
 
-const BASE_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
-const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY; // Ensure this is set in .env
+// Make sure the fetchReviews thunk includes pagination params
+export const fetchReviews = createAsyncThunk(
+  'reviews/fetchReviews',
+  async ({ productId, page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        createApiUrl(`/reviews/product/${productId}?page=${page}&limit=${limit}`),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-// Helper function to get headers
-const getHeaders = async () => {
-  const authHeaders = await getAuthHeaders();
-  return {
-    ...authHeaders,
-    "x-publishable-api-key": PUBLISHABLE_API_KEY,
-  };
+      if (!response.data.success) {
+        return rejectWithValue('Failed to fetch reviews');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch reviews');
+    }
+  }
+);
+
+export const postReview = createAsyncThunk(
+  'reviews/postReview',
+  async (reviewData, { rejectWithValue }) => {
+    
+    try {
+      const authToken = getCookie('auth_token');
+      
+      if (!authToken) {
+        return rejectWithValue('Please login to submit a review');
+      }
+
+      const response = await axios.post(
+        createApiUrl('/reviews'),
+        reviewData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        }
+      );
+
+      console.log('5. Review API Response:', response.data);
+
+      if (!response.data.success) {
+        console.log('6. API reported failure:', response.data.error);
+        return rejectWithValue(response.data.error?.message || 'Failed to post review');
+      }
+
+      console.log('7. Review submitted successfully:', response.data.data);
+      return {
+        data: response.data.data,
+        message: 'Review submitted successfully!'
+      };
+    } catch (error) {
+      console.error('8. Review submission error:', {
+        error: error.response?.data,
+        status: error.response?.status
+      });
+      return rejectWithValue(
+        error.response?.data?.error?.message || 
+        'Failed to submit review. Please try again.'
+      );
+    }
+  }
+);
+
+const initialState = {
+  reviews: [],
+  stats: {
+    total: 0,
+    average: 0,
+    distribution: {
+      1: { count: 0, percentage: 0 },
+      2: { count: 0, percentage: 0 },
+      3: { count: 0, percentage: 0 },
+      4: { count: 0, percentage: 0 },
+      5: { count: 0, percentage: 0 }
+    }
+  },
+  meta: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 1
+  },
+  loading: false,
+  error: null
 };
 
-// Fetch reviews
-export const fetchReviews = createAsyncThunk("reviews/fetchAll", async () => {
-  const headers = await getHeaders();
-  const response = await axios.get(`${BASE_URL}/store/review`, { headers });
-  return response.data;
-});
-
-// Add a review
-export const addReview = createAsyncThunk("reviews/add", async (reviewData) => {
-  const headers = await getHeaders();
-  const response = await axios.post(`${BASE_URL}/store/review`, reviewData, { headers });
-  console.log(response.data.review);
-  return response.data.review;
-});
-
-// Update a review
-export const updateReview = createAsyncThunk("reviews/update", async ({ id, updatedData }) => {
-  const headers = await getHeaders();
-  const response = await axios.put(`${BASE_URL}/store/review/${id}`, updatedData, { headers });
-  return response.data;
-});
-
-// Delete a review
-export const deleteReview = createAsyncThunk("reviews/delete", async (id) => {
-  const headers = await getHeaders();
-  await axios.delete(`${BASE_URL}/store/review/${id}`, { headers });
-  return id;
-});
-
 const reviewSlice = createSlice({
-  name: "reviews",
-  initialState: {
-    reviews: [],
-    status: "idle",
-    error: null,
-  },
+  name: 'reviews',
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchReviews.pending, (state) => {
-        state.status = "loading";
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchReviews.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.reviews = action.payload;
+        state.loading = false;
+        state.reviews = action.payload.reviews;
+        state.stats = action.payload.stats;
+        state.meta = action.payload.meta;
       })
       .addCase(fetchReviews.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
+        state.loading = false;
+        state.error = action.payload;
       })
-      .addCase(addReview.fulfilled, (state, action) => {
-        state.reviews.push(action.payload);
+      .addCase(postReview.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(updateReview.fulfilled, (state, action) => {
-        const index = state.reviews.findIndex((review) => review.id === action.payload.id);
-        if (index !== -1) {
-          state.reviews[index] = action.payload;
-        }
+      .addCase(postReview.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reviews = [action.payload, ...state.reviews];
       })
-      .addCase(deleteReview.fulfilled, (state, action) => {
-        state.reviews = state.reviews.filter((review) => review.id !== action.payload);
+      .addCase(postReview.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
-  },
+  }
 });
 
 export default reviewSlice.reducer;

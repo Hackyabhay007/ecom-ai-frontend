@@ -17,7 +17,7 @@ export const fetchProducts = createAsyncThunk(
       //   // console.log(region.id)
 
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/products`,
+        `${process.env.NEXT_PUBLIC_API_URL}/store/products`,
         {
           params: {
             limit,
@@ -28,7 +28,7 @@ export const fetchProducts = createAsyncThunk(
           },
           headers: {
             "Content-Type": "application/json",
-            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}`,
+            "x-publishable-api-key": `${process.env.NEXT_PUBLIC_API_URL}`,
           },
         }
       );

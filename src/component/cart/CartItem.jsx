@@ -1,148 +1,158 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { useRouter } from "next/router";
-import {
-  removeFromCart,
-  updateQuantity,
-} from "../../../redux/slices/cartSlice";
+import React, { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
-import { useRegion } from "@/contexts/RegionContext";
-import { updateLineItem, deleteLineItem } from "@/lib/data/cart";
+import { updateCart, getAllCart, removeFromCart, selectGuestId } from "../../../redux/slices/cartSlice";
+import { formatPriceToINR } from "../../../utils/currencyUtils";
+import Cookies from 'js-cookie';
 
 const CartItem = ({ item }) => {
   const dispatch = useDispatch();
-  const router = useRouter();
-  const { region } = useRegion();
+  const [quantity, setQuantity] = useState(item?.quantity || 1);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { items, loading } = useSelector(state => state.cart);
+  const guestId = useSelector(selectGuestId);
+  const authToken = Cookies.get('auth_token');
+  const [isIncrementing, setIsIncrementing] = useState(false);
+  const [isDecrementing, setIsDecrementing] = useState(false);
+  
+  // Find updated item from redux store
+  const updatedItem = items.find(cartItem => cartItem.id === item.id);
 
-  const [newQuantity, setNewQuantity] = useState(item?.quantity); // Initialize with item's quantity
-  const [isUpdating, setIsUpdating] = useState(false); // Track API update state
-  const [isVisible, setIsVisible] = useState(true); // Track visibility of the item
-
-  // Debounced API call
+  // Update local quantity when redux store updates
   useEffect(() => {
-    if (isUpdating) {
-      const timer = setTimeout(() => {
-        updateLineItem({ lineId: item.id, quantity: newQuantity })
-          .then(() => {
-            dispatch(updateQuantity({ id: item.id, quantity: newQuantity })); // Update Redux state
-          })
-          .catch((err) => {
-            console.error("Error updating line item:", err);
-          })
-          .finally(() => {
-            setIsUpdating(false); // Reset updating state
-          });
-      }, 300); // Debounce delay
-
-      return () => clearTimeout(timer); // Cleanup on unmount or quantity change
+    if (updatedItem && updatedItem.quantity !== quantity) {
+      setQuantity(updatedItem.quantity);
     }
-  }, [newQuantity, isUpdating, dispatch, item.id]);
+  }, [updatedItem?.quantity]);
 
-  // Handle button click for increment/decrement
-  const handleQuantityChange = (type) => {
-    const updatedQuantity =
-      type === "increment" ? newQuantity + 1 : newQuantity - 1;
-    if (updatedQuantity >= 1) {
-      setNewQuantity(updatedQuantity);
-      setIsUpdating(true);
-    }
-  };
-
-  // Handle direct input change
-  const handleInputChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
-    setNewQuantity(Number(value) || 1); // Set the quantity to at least 1
-  };
-
-  // Handle input blur (when user leaves the input field)
-  const handleInputBlur = () => {
-    if (newQuantity !== item.quantity) {
-      setIsUpdating(true); // Trigger API call on blur
-    }
-  };
-
-  const handleRemove = () => {
-    deleteLineItem(item.id) // API call to remove item
-      .then(() => {
-        dispatch(removeFromCart(item.id)); // Remove item from Redux store
-        setIsVisible(false); // Hide the item visually
-      })
-      .catch((err) => {
-        console.error("Error removing item:", err);
+  // Memoized quantity change handler
+  const handleQuantityChange = useCallback(async (newQuantity, action) => {
+    if (newQuantity < 1) return;
+    
+    // Set loading state based on action
+    if (action === 'increment') setIsIncrementing(true);
+    if (action === 'decrement') setIsDecrementing(true);
+    
+    try {
+      console.log('Starting quantity update:', {
+        itemId: item.id,
+        newQuantity,
+        guestId,
+        hasToken: !!authToken
       });
+
+      await dispatch(updateCart({
+        itemId: item.id,
+        updateData: { 
+          quantity: newQuantity,
+          ...((!authToken && guestId) && { guestId })
+        }
+      })).unwrap();
+
+      // Only fetch updated cart after successful update
+      await dispatch(getAllCart());
+      
+    } catch (error) {
+      console.error('Quantity update failed:', error);
+      // Revert to previous quantity
+      setQuantity(item.quantity);
+    } finally {
+      setIsIncrementing(false);
+      setIsDecrementing(false);
+    }
+  }, [dispatch, item.id, item.quantity, guestId, authToken]);
+
+  const handleRemoveItem = async () => {
+    if (isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      await dispatch(removeFromCart({ itemId: item.id })).unwrap();
+      await dispatch(getAllCart());
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  const handleProductClick = () => {
-    router.push(`/shop/${item.id}`); // Navigate to product page
-  };
+  if (!item?.product) return null;
 
-  if (!isVisible) return null; // Do not render if item is not visible
+  const getImageUrl = () => {
+    return item.product.variants?.[0]?.images?.[0]?.url || '/placeholder-image.jpg';
+  };
 
   return (
-    <div className="flex items-center justify-between border-b py-4">
-      <div className="flex items-center gap-4">
+    <div className="flex py-6">
+      {/* Image section */}
+      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
         <Image
-          src={item.thumbnail}
-          alt={item.product.title}
-          width={200}
-          height={200}
-          className="w-16 h-16 rounded-lg object-cover cursor-pointer"
-          onClick={handleProductClick}
+          src={getImageUrl()}
+          alt={item.product.name}
+          width={100}
+          height={100}
+          className="w-full h-full object-cover"
         />
-        <div>
-          <h4
-            className="font-medium cursor-pointer md:text-base text-xs"
-            onClick={handleProductClick}
-          >
-            {item.product_title}
-          </h4>
-          <p className="md:text-sm text-xs text-gray-500">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: region ? region.currency_code : "inr",
-            }).format(
-              (item.adjustments[0]?.amount? item.unit_price - item.adjustments[0].amount : item.unit_price) * newQuantity
-            )}
-          </p>
-        </div>
       </div>
-      <div className="flex items-center gap-5 md:gap-10">
-        <div className="flex gap-2 md:gap-4 items-center border p-1 border-cream">
-          {/* Decrement Button */}
-          <button
-            className="px-2 py-0 bg-theme-blue text-white rounded-sm"
-            onClick={() => handleQuantityChange("decrement")}
-            disabled={isUpdating}
-          >
-            -
-          </button>
 
-          {/* Quantity Input */}
-          <input
-            type="text"
-            value={newQuantity}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            className="w-12 text-center border border-gray-300 rounded-sm text-black"
-          />
-
-          {/* Increment Button */}
-          <button
-            className="px-2 py-0 border bg-theme-blue text-white rounded-sm"
-            onClick={() => handleQuantityChange("increment")}
-            disabled={isUpdating}
-          >
-            +
-          </button>
+      {/* Content section */}
+      <div className="ml-4 flex flex-1 flex-col">
+        <div>
+          <div className="flex justify-between text-base font-medium text-gray-900">
+            <h3>{item.product.name}</h3>
+            <div className="ml-4">
+              <p>{formatPriceToINR(item.price * quantity)}</p>
+            </div>
+          </div>
+          
+          {/* Product details */}
+          <div className="mt-1 space-y-1">
+            {item.color && (
+              <p className="text-sm text-gray-500">Color: {item.color}</p>
+            )}
+          </div>
+          
+          {/* Quantity controls */}
+          <div className="mt-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleQuantityChange(quantity - 1, 'decrement')}
+                className="px-2 py-1 border rounded-md disabled:opacity-50 min-w-[32px] h-[32px] flex items-center justify-center"
+                disabled={quantity <= 1 || isDecrementing}
+              >
+                {isDecrementing ? (
+                  <span className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "-"
+                )}
+              </button>
+              <span className="px-4 py-1">{quantity}</span>
+              <button
+                onClick={() => handleQuantityChange(quantity + 1, 'increment')}
+                className="px-2 py-1 border rounded-md disabled:opacity-50 min-w-[32px] h-[32px] flex items-center justify-center"
+                disabled={isIncrementing}
+              >
+                {isIncrementing ? (
+                  <span className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "+"
+                )}
+              </button>
+            </div>
+            
+            <button
+              onClick={handleRemoveItem}
+              disabled={isDeleting}
+              className="text-red-500 hover:text-red-700 disabled:opacity-50 flex items-center gap-1"
+            >
+              {isDeleting ? (
+                <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                <i className="ri-delete-bin-line"></i>
+              )}
+            </button>
+          </div>
         </div>
-
-        {/* Remove Button */}
-        <button
-          className="text-black border border-black px-2 py-1 hover:bg-black hover:text-white transition-all duration-200 rounded"
-          onClick={handleRemove}
-        >
-          <i className="ri-delete-bin-line"></i>
-        </button>
       </div>
     </div>
   );

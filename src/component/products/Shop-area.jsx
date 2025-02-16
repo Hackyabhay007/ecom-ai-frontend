@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Filter from "@/component/products/Filter";
 import ProductCard from "@/component/products/ProductCard";
 import Breadcrumb from "./Breadcrumb";
@@ -6,281 +6,282 @@ import GridLayout from "./GridLayout";
 import SelectedFilters from "./SelectedFilters";
 import ProductList from "./product_view/PageList";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../../../redux/slices/productSlice";
+import { fetchProducts, setFilters, clearFilters, fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 import { useRegion } from "../../contexts/RegionContext.jsx";
 import { useRouter } from "next/router";
-import { fetchcategores } from "../../../redux/slices/categorySlice";
+// import { fetchcategores } from "../../../redux/slices/categorySlice";
 import SkeletonScreen from "./Skeletonscreenshoparea";
 import LineLoader from "../loader/LineLoader";
 
 const ShopArea = () => {
   const dispatch = useDispatch();
+  const { 
+    products, 
+    loading, 
+    error, 
+    filters: storeFilters, 
+    meta 
+  } = useSelector((state) => state.shop);
+
+  console.log("This is the Products of the ShopArea", products);
   const { region } = useRegion();
   const router = useRouter();
   const { cat_id, size, color, min_price, max_price } = router.query;
-  const [loading, setloading] = useState(false);
 
-  const { products, count, nextPage, status, error } = useSelector(
-    (state) => state.products
-  );
-
-  const { categories } = useSelector((state) => state.categorysection);
-  // // console.log(category_id, "category_id");
-
-  useEffect(() => {
-    const fetchFilteredProducts = async () => {
-      setloading(true);
-      try {
-        const queryParams = {
-          limit: 12,
-          fields:
-            "*metadata,+options,-subtitle,-description,+images,+variants,+tag",
-          category_id: cat_id,
-        };
-
-        let allProducts = [];
-        let page = 1;
-
-        // Helper function to calculate the discounted price for a variant
-        const calculateDiscountedPrice = (variant, productMetadata) => {
-          const discount = productMetadata?.discount || 0;
-          const price =
-            variant.calculated_price?.calculated_amount ||
-            variant.original_price?.original_amount;
-
-          if (!price) return 0; // No valid price, return 0
-          return price && discount
-            ? price - (price * discount) / 100
-            : price
-            ? price
-            : 0;
-        };
-
-        function extractAndFormat(inputString) {
-          // console.log("Raw inputString:", inputString);
-
-          // Predefined valid size options
-          const validSizes = ["xs", "s", "m", "l", "xl"];
-
-          // Return null if inputString is invalid or not a string
-          if (!inputString || typeof inputString !== "string") {
-            console.warn("Invalid or non-string input:", inputString);
-            return { size: null, color: null };
-          }
-
-          // Split the input string and trim whitespace
-          const parts = inputString
-            .split(" / ")
-            .map((item) => item.trim().toLowerCase());
-          // // console.log("Split parts:", parts);
-
-          // Initialize size and color as null
-          let size = null;
-          let color = null;
-
-          // Check each part to match valid sizes and determine color
-          parts.forEach((part) => {
-            if (validSizes.includes(part)) {
-              size = part; // Match size from predefined options
-            } else if (part.length >= 3) {
-              color = part; // Assign color if it's a string of 3+ characters
-            } else {
-              console.warn("Unrecognized part:", part);
-            }
-          });
-
-          const result = { size, color };
-          // // console.log("Extracted result:", result);
-          return result;
-        }
-
-        // Fetch products and filter
-        while (allProducts.length < 10) {
-          const response = await dispatch(
-            fetchProducts({ pageParam: page, queryParams, region })
-          ).unwrap();
-
-          const filteredProducts = response.products
-
-            .map((product) => {
-              const validVariants = product.variants.filter((variant) => {
-                const result = extractAndFormat(variant.title);
-                // // console.log(extractAndFormat(variant.title) , result , "extractAndFormat(variant.title)" )
-
-                const hasValidSize =
-                  size && result?.size && result?.size.toLowerCase() == size.toLowerCase();
-
-                const hasValidColor =
-                  result.color && color
-                    ? result?.color.toLowerCase() == color.toLowerCase()
-                    : false;
-
-                // // console.log(hasValidSize && hasValidColor ,"hasValidSize && hasValidColor" , product.title, variant)
-                if (!hasValidColor) return hasValidSize;
-
-                return hasValidSize && hasValidColor;
-              });
-
-              // If no size or color is provided, use the first variant
-              const variantsToConsider =
-                size || color ? validVariants : [product.variants[0]];
-
-              // Filter variants by price
-              const priceFilteredVariants = variantsToConsider.filter(
-                (variant) => {
-                  const discountedPrice = calculateDiscountedPrice(
-                    variant,
-                    product.metadata
-                  );
-                  return (
-                    discountedPrice &&
-                    (!min_price || discountedPrice > min_price) &&
-                    (!max_price || discountedPrice < max_price)
-                  );
-                }
-              );
-
-              // Return the product with valid variants
-              if (priceFilteredVariants.length > 0) {
-                return { ...product, variants: priceFilteredVariants };
-              }
-              return null;
-            })
-            .filter((product) => product !== null); // Remove invalid products
-
-          allProducts = [...allProducts, ...filteredProducts];
-          setFilteredProducts(allProducts);
-
-          // If fewer products are fetched and no more pages are left, break the loop
-          if (response.products.length < 12) break;
-
-          page++; // Increment the page for the next fetch
-        }
-
-        // Ensure not to fetch if products are less than 10 after all attempts
-        if (allProducts.length >= 0) {
-          dispatch({
-            type: "SET_PRODUCTS",
-            payload: allProducts.slice(0, 12), // Limit to 12 products
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setloading(false); // Always set loading to false when done
-      }
-    };
-
-    fetchFilteredProducts();
-    dispatch(fetchcategores());
-  }, [dispatch, cat_id, region, size, color, min_price, max_price]);
-
-  // console.log(products, "from shop area");
-  // console.log(categories, "categories");
-
+  // Move state declarations before the useEffect
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [heading, setHeading] = useState("Shop");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [layout, setLayout] = useState("grid");
   const [showSaleOnly, setShowSaleOnly] = useState(false);
-  const [sortBy, setSortBy] = useState("");
-  const [filters, setFilters] = useState({
-    category: "",
-    price: [0, 1000],
-    size: "",
-    brand: [],
-    color: "",
-  });
+  const [sortBy, setSortBy] = useState("default");
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Get categories from store filters
+  const categories = storeFilters?.categories || [];
+
+  // Load products when filters change
   useEffect(() => {
-    window.scrollTo({ top: 100, behavior: "smooth" });
-  }, [products, filteredProducts]);
+    if (!router.isReady) return;
 
+    dispatch(fetchProducts({
+      page: currentPage,
+      filters: {
+        categoryId: cat_id,
+        size,
+        color,
+        minPrice: min_price,
+        maxPrice: max_price,
+        saleOnly: showSaleOnly // Add this line
+      }
+    }));
+  }, [dispatch, currentPage, cat_id, size, color, min_price, max_price, showSaleOnly, router.isReady]); // Add showSaleOnly to dependencies
+
+   const { appliedFilters } = useSelector(state => state.shop);
+
+  // Update filtered products when products change
+  useEffect(() => {
+    if (products?.length > 0) {
+      setFilteredProducts(products);
+    }
+  }, [products]);
+
+  // Handle filter actions
   const clearFilter = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: Array.isArray(prev[key])
-        ? prev[key].filter((item) => item !== value)
-        : "",
+    dispatch(setFilters({
+      ...storeFilters,
+      [key]: Array.isArray(storeFilters[key])
+        ? storeFilters[key].filter((item) => item !== value)
+        : ""
     }));
   };
 
   const clearAllFilters = () => {
-    setFilters({
-      category: "",
-      price: [0, 1000],
-      size: "",
-      brand: [],
-      color: "",
-    });
+    dispatch(clearFilters());
+    router.push('/shop');
   };
 
   const applyFilters = (newFilters) => {
-    setFilters(newFilters);
+    dispatch(setFilters(newFilters));
+    dispatch(fetchProducts({ page: 1, filters: newFilters }));
   };
 
   const handleCategorySelect = (category) => {
-    setFilters((prev) => ({ ...prev, category }));
+    dispatch(setFilters({ ...storeFilters, category }));
     setHeading(category.charAt(0).toUpperCase() + category.slice(1));
+  };
+
+  // Scroll to top when products update
+  useEffect(() => {
+    window.scrollTo({ top: 100, behavior: "smooth" });
+  }, [products, filteredProducts]);
+
+  // Handle individual filter clearing
+  const handleClearFilter = (filterType, value) => {
+    const newQuery = { ...router.query };
+    
+    switch (filterType) {
+      case 'priceRange':
+        delete newQuery.min_price;
+        delete newQuery.max_price;
+        break;
+      case 'color':
+        delete newQuery.color;
+        break;
+      case 'size':
+        delete newQuery.size;
+        break;
+      case 'category':
+        delete newQuery.cat_id;
+        delete newQuery.cat_name;
+        break;
+      default:
+        break;
+    }
+
+    // Update URL without the cleared filter
+    router.push({
+      pathname: '/shop',
+      query: newQuery
+    }, undefined, { shallow: true });
+
+    // Update Redux store
+    dispatch(setFilters({}));
+
+    // Fetch products with updated filters
+    dispatch(fetchProducts({
+      page: 1,
+      filters: {
+        ...newQuery,
+        categoryId: newQuery.cat_id,
+        minPrice: newQuery.min_price,
+        maxPrice: newQuery.max_price
+      }
+    }));
+  };
+
+  // Handle clearing all filters
+  const handleClearAllFilters = () => {
+    // Clear URL query params
+    router.push('/shop', undefined, { shallow: true });
+
+    // Clear filters in Redux store
+    dispatch(clearFilters());
+
+    // Fetch products without filters
+    dispatch(fetchProducts({ page: 1, filters: {} }));
+  };
+
+  // Handle sort change
+  const handleSortChange = (value) => {
+    setSortBy(value);
+  };
+
+  // Update the handleSaleToggle function
+  const handleSaleToggle = () => {
+    setShowSaleOnly(!showSaleOnly);
+
+    const isChecked = showSaleOnly;
+    // onSaleToggle(e); // Keep existing toggle behavior
+    
+    // Dispatch search with onSale parameter
+    dispatch(fetchProductsBySearch({
+      searchQuery: "",
+      filters: {
+        ...appliedFilters,
+        onSale: isChecked
+      }
+    }));
+  };
+
+  const handleCollectionSelect = (collectionId) => {
+    // Update applied filters with the selected collection
+    dispatch(setFilters({
+      ...appliedFilters,
+      collections: collectionId
+    }));
+
+    // Fetch products with the selected collection
+    dispatch(fetchProducts({
+      page: 1,
+      filters: {
+        ...appliedFilters,
+        collections: collectionId
+      }
+    }));
+
+    // Update URL
+    router.push({
+      pathname: '/shop',
+      query: {
+        ...router.query,
+        collection_id: collectionId
+      }
+    }, undefined, { shallow: true });
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="py-16 md:py-0 md:mb-5">
-      {status === "loading" ||
-        loading ||
-        status === "failed" ||
-        status == undefined ||
-        (status == null && <SkeletonScreen />)}
+      {loading && <SkeletonScreen />}
 
       <Breadcrumb
         heading={heading}
-        subCategory={selectedCategory}
-        onCategorySelect={handleCategorySelect}
-        categories={categories}
+        onCollectionSelect={handleCollectionSelect}
+        onClearAllFilters={handleClearAllFilters}
       />
 
       <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">
         {/* Filter Section - Left Side on Desktop */}
         <div className="md:w-1/4 w-full">
-          <Filter onApplyFilters={applyFilters} />
+          <Filter 
+            onApplyFilters={applyFilters}
+            currentFilters={storeFilters || {
+              categories: [],
+              priceRange: { min: 0, max: 1000 },
+              colors: [],
+              sizes: []
+            }}
+          />
         </div>
 
         {/* Products Section - Right Side on Desktop */}
         <div className="md:w-3/4 w-full">
-          <GridLayout
+          <GridLayout 
             onLayoutChange={setLayout}
-            onSaleToggle={() => setShowSaleOnly(!showSaleOnly)}
-            onSortChange={(e) => setSortBy(e.target.value)}
+            onSaleToggle={handleSaleToggle}
+            onSortChange={handleSortChange} // Updated: Pass the function directly
             currentLayout={layout}
             showSaleOnly={showSaleOnly}
+            currentSort={sortBy} // Add this prop
+            onClearAllFilters={handleClearAllFilters}
           />
 
           <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
-            {status === "loading" && (
-              <p>
-                <LineLoader />
-              </p>
-            )}
-            {status === "failed" && <p>Error: {error}</p>}
-            {filteredProducts.length} Product
-            {filteredProducts.length !== 1 ? "s" : ""} found
+            {loading && <LineLoader />}
+            {error && <p>Error: {error}</p>}
+            {products.length} Product
+            {products.length !== 1 ? "s" : ""} found
             <SelectedFilters
-              filters={filters}
-              onClearFilter={clearFilter}
-              onClearAllFilters={clearAllFilters}
+              onClearFilter={handleClearFilter}
+              onClearAllFilters={handleClearAllFilters}
               defaultPriceRange={[0, 1000]}
             />
           </div>
 
-          {status == "loading" && cat_id ? (
+          {loading && cat_id ? (
             <LineLoader />
           ) : (
             <ProductList
-              products={filteredProducts}
+              // products={products} // Use products directly from store
               layout={layout}
-              loading={loading && !filteredProducts.length}
+              // loading={loading}
+              // onLayoutChange={setLayout} // Add this prop
+              // currentSort={sortBy} // Add this prop
             />
           )}
+
+          {/* {meta.totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-8">
+              {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === page
+                      ? 'bg-theme-blue text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+          )} */}
         </div>
       </div>
     </div>

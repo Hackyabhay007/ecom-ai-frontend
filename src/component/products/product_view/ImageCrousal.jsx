@@ -1,82 +1,82 @@
-import React, { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import React, { useState } from 'react';
+import Image from 'next/image';
 
-const ImageCarousel = ({ mainImage, additionalImages }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const imageContainerRef = useRef(null);
+const ImageCarousel = ({ images }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const container = imageContainerRef.current;
-      if (container) {
-        const imageWidth = container.offsetWidth; // Calculate the width of one image
-        const index = Math.round(container.scrollLeft / imageWidth);
-        setActiveIndex(index);
-      }
-    };
+  if (!images || images.length === 0) {
+    return (
+      <div className="w-full aspect-square md:aspect-[4/3] lg:aspect-square max-h-[600px] bg-gray-200 flex items-center justify-center">
+        <p>No images available</p>
+      </div>
+    );
+  }
 
-    const container = imageContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
+  const handleNext = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
 
-    return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, []);
+  const handlePrev = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   return (
-    mainImage &&  additionalImages && <div className="flex flex-col md:flex-1 md:mr-4 relative">
-      {/* Desktop View (Full viewport height, one image at a time) */}
-      <div className="hidden md:block">
-        {[mainImage, ...additionalImages].map((image, index) => (
-          <div
+    <div className="w-full">
+      {/* Main Image Container */}
+      <div className="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square max-h-[600px] bg-gray-50">
+        <div className="absolute inset-0">
+          <Image
+            src={images[currentImageIndex].url}
+            alt={images[currentImageIndex].alt}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+            priority
+            className="object-contain"
+          />
+        </div>
+
+        {/* Navigation Buttons */}
+        <button
+          onClick={handlePrev}
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all"
+          aria-label="Previous image"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <button
+          onClick={handleNext}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all"
+          aria-label="Next image"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Thumbnails Container */}
+      <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        {images.map((image, index) => (
+          <button
             key={index}
-            className="relative w-full overflow-hidden mb-2 md:mb-0"
-            style={{ height: "100vh" }} // Full viewport height for each image
+            onClick={() => setCurrentImageIndex(index)}
+            className={`relative flex-shrink-0 w-20 h-20 md:w-24 md:h-24 border-2 transition-all ${
+              currentImageIndex === index
+                ? 'border-black opacity-100'
+                : 'border-transparent opacity-70 hover:opacity-100'
+            }`}
           >
             <Image
-              src={image}
-              alt={`Product Image ${index + 1}`}
-              layout="fill"
-              objectFit="cover" // Ensures the image covers the container
+              src={image.url}
+              alt={`Thumbnail ${index + 1}`}
+              fill
+              sizes="96px"
+              className="object-cover rounded"
             />
-          </div>
+          </button>
         ))}
-      </div>
-
-      {/* Mobile View (Scrollable carousel with index and smaller images) */}
-      <div
-        className="md:hidden overflow-x-auto flex no-scrollbar snap-x snap-mandatory"
-        ref={imageContainerRef}
-      >
-        <div className="flex w-full">
-          {[mainImage, ...additionalImages].map((image, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 w-full relative snap-center"
-              style={{ height: "70vh" }} // Adjust to a smaller size, e.g., 50% of viewport height
-            >
-              <Image
-                src={image}
-                alt={`Product Image ${index + 1}`}
-                layout="fill"
-               
-                objectFit="cover" // Ensures the image covers the container
-                className="bg-cover object-top"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Fixed Index Display */}
-      <div
-        className={` bg-white text-xs text-gray-800 py-1 px-3 rounded-full shadow-lg z-10 md:hidden`}
-      >
-        {`${activeIndex + 1} / ${[mainImage, ...additionalImages].length}`}
       </div>
     </div>
   );

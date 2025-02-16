@@ -3,24 +3,25 @@ import Image from "next/image";
 
 const ProductDetails = ({ product }) => {
   return (
-    <div className="w-full px-5 py-20">
+    <div className="w-full h-screen bg-white px-5 py-20">
       {/* Product Title */}
       <h2 className="text-xl md:text-2xl font-bold mb-4">{product?.title}</h2>
 
       {/* Product Description */}
       <div className="mt-4 text-sm md:text-base">
+        <strong>Description:</strong>
         <p>{product?.description}</p>
       </div>
 
       {/* Material */}
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <strong>Material:</strong> {product?.material}
-      </div>
+      </div> */}
 
       {/* Price */}
-      <div className="">
+      {/* <div className="">
         <strong>Discount:</strong> {product?.metadata?.discount}%
-      </div>
+      </div> */}
 
       {/* Product Images
       <div className="mt-4">
@@ -50,9 +51,10 @@ const ProductDetails = ({ product }) => {
       </div> */}
 
       {/* Variants */}
-      
+      {console.log(product)}
+
         {product?.variants?.length > 0 && (
-          <div className="mt-4 w-fit h-fit   ">
+          <div className="mt-4 w-fit h-fit  ">
             <strong>Available Variants:</strong>
             <div className="flex flex-wrap w-full  h-full gap-4">
               
@@ -61,7 +63,7 @@ const ProductDetails = ({ product }) => {
                     key={index}
                     className="bg-white text-black hover:bg-black hover:text-white border-2 border-black duration-200 px-2 py-1 rounded-full cursor-pointer"
                   >
-                    {variant?.title}
+                    {variant?.size}
                   </div>
                 ))}
               

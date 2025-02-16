@@ -1,0 +1,76 @@
+/* Add these styles for the collections slider */
+.collections-slider {
+  padding: 1rem 0;
+}
+
+.collections-slider .swiper-button-next,
+.collections-slider .swiper-button-prev {
+  color: #153A63;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transform: translateY(-50%);
+}
+
+.collections-slider .swiper-button-next:after,
+.collections-slider .swiper-button-prev:after {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.collections-slider .swiper-button-next:hover,
+.collections-slider .swiper-button-prev:hover {
+  background: #153A63;
+  color: white;
+}
+
+.collections-slider .swiper-slide {
+  transition: transform 0.3s ease;
+}
+
+.collections-slider .swiper-slide:hover {
+  transform: translateY(-2px);
+}
+
+.collections-slider .swiper-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Add these styles for image handling */
+.image-container {
+  position: relative !important;
+}
+
+.image-container > span {
+  position: unset !important;
+}
+
+.image-container .image {
+  object-fit: contain;
+  width: 100% !important;
+  position: relative !important;
+  height: unset !important;
+}
+
+/* Add these styles for hiding scrollbar */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -58,7 +58,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
   };
 
   return (
-    <div className="py-5 ">
+    <div className="py-5">
       {/* Buttons to open modals */}
       <button
         className="group relative w-full px-6 py-4 text-sm text-black border-t border-b border-gray-300 hover:bg-white flex items-center justify-between"
@@ -123,13 +123,13 @@ const HandleInfo = ({ categories, product, reviews }) => {
 
         <div className="p-6 overflow-auto custom-scrollbar">
           {/* Product Info */}
-          <ProductDetailsInfo categories={categories} />
+          <ProductDetailsInfo categories={categories} sku={product?.variants[0]?.sku || 'N/A'}  />
         </div>
       </div>
 
       {/* Product Details Sliding Component */}
       <div
-        className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-50 transition-transform duration-500 ease-in-out ${
+        className={`fixed top-0 right-0 w-full md:w-1/2 h-full z-50 transition-transform duration-500 ease-in-out ${
           isDetailsOpen
             ? "opacity-100 visible md:animate-handleInfoSlideInRight animate-handleInfoSlideInBottom"
             : "opacity-0 invisible md:animate-handleInfoSlideOutLeft animate-handleInfoSlideOutTop"
@@ -147,7 +147,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
           <i class="ri-close-line bg-white p-2 rounded-full "></i>
         </button>
 
-        <div className="p-6 overflow-auto custom-scrollbar">
+        <div className=" overflow-auto custom-scrollbar">
           {/* Product Details */}
           <ProductDetails product={product} />
         </div>
@@ -155,7 +155,7 @@ const HandleInfo = ({ categories, product, reviews }) => {
 
       {/* Customer Review Sliding Component */}
       <div
-        className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-50 transition-transform duration-500 ease-in-out ${
+        className={`fixed top-0 bg-white right-0 w-full md:w-1/2 h-full z-50 transition-transform duration-500 ease-in-out ${
           isReviewOpen
             ? "opacity-100 visible md:animate-handleInfoSlideInRight animate-handleInfoSlideInBottom"
             : "opacity-0 invisible md:animate-handleInfoSlideOutLeft animate-handleInfoSlideOutTop"
@@ -173,7 +173,8 @@ const HandleInfo = ({ categories, product, reviews }) => {
         </button>
 
         <div className="p-2 pb-10 max-h-full overflow-y-auto custom-scrollbar">
-          <CustomerReview reviews={reviews} productImage={product?.thumbnail} productId={product?.id} />
+        {console.log("This is the Product Image from the HandleInfo.jsx page", product)}
+          <CustomerReview reviews={reviews} productImage={product?.variants[0].images[0].url} productId={product?.id} />
         </div>
       </div>
     </div>

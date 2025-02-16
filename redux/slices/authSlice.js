@@ -1,276 +1,293 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { sdk } from "@/lib/config";
-import axios from "axios";
-import { removeAuthToken, setAuthToken } from "@/lib/data/cookies";
-import { getAuthHeaders } from "@/lib/data/cookies";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { createApiUrl } from '../../utils/apiConfig';
+import { setCookie, removeCookie } from '../../utils/cookieUtils';
+import Cookies from 'js-cookie';
+import { getVisitedProducts } from '../../utils/visitedProducts';
 
-// Async Thunks
-export const retrieveCustomer = createAsyncThunk(
-  "customer/retrieve",
-  async (_, { rejectWithValue }) => {
+const header_key = process.env.NEXT_PUBLIC_HEADER_KEY;
+const header_value = process.env.NEXT_PUBLIC_HEADER_VALUE
+
+
+
+
+
+// Create async thunk for login
+export const loginUser = createAsyncThunk(
+  'auth/loginUser',
+  async (credentials, { rejectWithValue }) => {
     try {
-      const headers = await getAuthHeaders();
-
-      // console.log("headers" , headers);
-      // console.log(headers);
-      const response = await sdk.client.fetch("/store/customers/me", {
-        method: "GET",
-        query: { fields: "*orders" },
-
-        headers,
+      console.log("This is the credential form the authSlice page", credentials)
+      const response = await axios.post(createApiUrl('/auth/login'), credentials, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        validateStatus: (status) => status >= 200 && status < 500,
       });
-      return response.customer;
+
+      // Handle common error cases with user-friendly messages
+      if (response.status === 401) {
+        return rejectWithValue('Incorrect email or password. Please try again.');
+      }
+
+      if (response.status === 404) {
+        return rejectWithValue('Account not found. Please check your email or create a new account.');
+      }
+
+      if (response.status >= 400 && response.status < 500) {
+        return rejectWithValue(response.data?.message || 'Please check your login details and try again.');
+      }
+
+      if (response.status >= 500) {
+        return rejectWithValue('Our servers are having trouble. Please try again in a few minutes.');
+      }
+
+      if (!response.data?.success) {
+        return rejectWithValue('Unable to log in at this time. Please try again later.');
+      }
+
+      const { token, user } = response.data.data;
+      setCookie('auth_token', token);
+      return { user, token };
+
     } catch (error) {
-      return rejectWithValue(null);
+      // Handle network and other errors with user-friendly messages
+      if (error.code === 'ECONNREFUSED') {
+        return rejectWithValue('Unable to connect to our servers. Please check your internet connection.');
+      }
+      
+      if (error.code === 'ETIMEDOUT') {
+        return rejectWithValue('The connection timed out. Please try again.');
+      }
+
+      return rejectWithValue('Something went wrong. Please try again later.');
     }
   }
 );
 
-export const createOrUpdateAddress = createAsyncThunk(
-  "customer/createOrUpdateAddress",
-  async ({ addressData }, { getState, rejectWithValue }) => {
+
+// This is the logic for the regiseter User
+export const registerUser = createAsyncThunk(
+  'auth/registerUser',
+  async (userData, { rejectWithValue }) => {
     try {
-      const { customer } = getState();
-      const headers = await getAuthHeaders();
-      // console.log("hi");
+      const response = await axios.post(createApiUrl('/auth/register'), userData, {
+        validateStatus: (status) => status >= 200 && status < 500,
+      });
 
-      if (!customer.currentCustomer) {
-        throw new Error("No customer data available");
+      if (response.status === 201) {
+        // Return undefined on success (as we're doing currently)
+        return undefined;
       }
 
-      const currentAddresses = customer.currentCustomer.addresses;
-
-      console.log(currentAddresses, addressData);
-
-      console.log("currentAddresses", currentAddresses);
-
-      if (!currentAddresses || currentAddresses.length === 0) {
-        const response = await sdk.store.customer
-          .createAddress(addressData, {}, headers)
-          .then(({ customer }) => {
-            // console.log(customer);
-            retrieveCustomer();
-          });
-        // console.log(response.address);
-        return { type: "create", address: response.address };
-      } else {
-        const addressId = currentAddresses[0].id;
-        console.log("update address" , addressId , addressData);
-        await sdk.store.customer.updateAddress(addressId, addressData, {}, headers)
-        .then(({ customer }) => {
-          // console.log(customer);
-          retrieveCustomer();
-        });
-        return { type: "update", address: addressData };
+      // Handle various error cases with user-friendly messages
+      if (response.status === 400) {
+        return rejectWithValue(response.data?.message || 'Invalid registration details.');
       }
+
+      return rejectWithValue('Registration failed. Please try again.');
     } catch (error) {
-      return rejectWithValue(
-        error.message || "Failed to create/update address"
-      );
+      return rejectWithValue(error.response?.data?.message || 'Registration failed. Please try again later.');
+    }
+  }
+);
+
+
+// Add userInfo thunk
+export const userInfo = createAsyncThunk(
+  'auth/userInfo',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = Cookies.get('auth_token'); // Get token from cookies
+      
+      if (!token) {
+        return rejectWithValue('No auth token found');
+      }
+
+      const response = await axios.get(createApiUrl('/auth/me'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.data.user) {
+        return rejectWithValue('User data not found');
+      }
+
+      return response.data.user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user info');
+    }
+  }
+);
+
+
+export const retrieveCustomer = createAsyncThunk(
+  'customer/retrieveCustomer',
+  async () => {
+    try {
+      const response = await axios.get('/api/customers/me');
+      return response.data;
+    } catch (error) {
+      throw Error(error.response?.data?.message || 'Failed to retrieve customer');
     }
   }
 );
 
 export const updateCustomer = createAsyncThunk(
-  "customer/update",
-  async (body, { rejectWithValue }) => {
+  'customer/updateCustomer',
+  async (updateData) => {
     try {
-      const headers = await getAuthHeaders();
-      // console.log("body: ", body);
-      // console.log("headers: ", headers);
-      const response = await sdk.store.customer.update(body, {}, headers);
-      console.log("response from update : ", response);
-      return response.customer;
+      const response = await axios.post('/api/customers/me', updateData);
+      return response.data;
     } catch (error) {
-      console.log("response from update : ", error);
-      return rejectWithValue(error);
+      throw Error(error.response?.data?.message || 'Failed to update customer');
     }
   }
 );
 
-export const updateCustomerPassword = createAsyncThunk(
-  "customer/updatePassword",
-  async ({ currentPassword, newPassword }, { rejectWithValue }) => {
-    try {
-      const response = await sdk.auth.resetPassword({
-        currentPassword,
-        newPassword,
-      });
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Password update failed");
-    }
+export const updateVisitedProducts = createAsyncThunk(
+  'auth/updateVisitedProducts',
+  async () => {
+    return getVisitedProducts();
   }
 );
 
-export const signup = createAsyncThunk(
-  "customer/signup",
-  async ({ formData, secretKey }, { rejectWithValue }) => {
-    try {
-      const { email, password, firstName, lastName, phone } = formData;
 
-      // Register the customer
-      const token = await sdk.auth.register("customer", "emailpass", {
-        email,
-        password,
-      });
+// Create auth slice
+const initialState = {
+  customer: null,
+  loading: false,
+  error: null,
+};
 
-      await setAuthToken(token, secretKey);
-
-      const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
-      const publishableApiKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-
-      // Create customer
-      const response = await axios.post(
-        `${backendUrl}/store/customers`,
-        {
-          email,
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "x-publishable-api-key": publishableApiKey,
-          },
-        }
-      );
-
-      // Login customer
-      const loginToken = await sdk.auth.login("customer", "emailpass", {
-        email,
-        password,
-      });
-
-      await setAuthToken(loginToken, secretKey);
-
-      return { token: loginToken, customer: response.data };
-    } catch (error) {
-      return rejectWithValue(error.toString());
-    }
-  }
-);
-
-export const login = createAsyncThunk(
-  "customer/login",
-  async ({ formData, secretKey }, { rejectWithValue }) => {
-    try {
-      const { email, password } = formData;
-      const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
-
-      const response = await axios.post(
-        `${backendUrl}/auth/customer/emailpass`,
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      const token = response.data.token;
-      await setAuthToken(token, secretKey);
-
-      return { token };
-    } catch (error) {
-      return rejectWithValue(error.toString());
-    }
-  }
-);
-
-export const signout = createAsyncThunk(
-  "customer/signout",
-  async (countryCode, { dispatch }) => {
-    // console.log("logout hit")
-    await sdk.auth.logout();
-    removeAuthToken();
-    dispatch(authSlicer.actions.resetCustomer());
-    return countryCode;
-  }
-);
-
-// Slice
-
-const authSlicer = createSlice({
-  name: "customer",
+const authSlice = createSlice({
+  name: 'auth',
   initialState: {
-    currentCustomer: null,
-    isLoading: false,
-    error: null,
+    user: null,
+    registerData: null,
     token: null,
+    loading: false,
+    error: null,
+    isAuthenticated: false,
+    visitedProducts: [],
   },
   reducers: {
-    resetCustomer: (state) => {
-      state.currentCustomer = null;
+    logout: (state) => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      state.user = null;
       state.token = null;
+      state.error = null;
+      state.isAuthenticated = false;
+      removeCookie('auth_token');
+      // Clear auth tokens from visited products
+      state.visitedProducts = state.visitedProducts.map(product => ({
+        ...product,
+        authToken: null
+      }));
+    },
+    clearError: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
-    // Retrieve Customer
-    builder.addCase(retrieveCustomer.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(retrieveCustomer.fulfilled, (state, action) => {
-      state.currentCustomer = action.payload;
-      state.isLoading = false;
-    });
-    builder.addCase(retrieveCustomer.rejected, (state) => {
-      state.currentCustomer = null;
-      state.isLoading = false;
-    });
-
-    // Update Customer
-    builder.addCase(updateCustomer.fulfilled, (state, action) => {
-      state.currentCustomer = action.payload;
-    });
-
-    // Signup
-    builder.addCase(signup.fulfilled, (state, action) => {
-      state.currentCustomer = action.payload.customer;
-      state.token = action.payload.token;
-    });
-
-    // Login
-    builder.addCase(login.fulfilled, (state, action) => {
-      state.token = action.payload.token;
-    });
-
-    // Signout
-    builder.addCase(signout.fulfilled, (state) => {
-      state.currentCustomer = null;
-      state.token = null;
-    });
-
-    // Create or Update Address
-    builder.addCase(createOrUpdateAddress.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(createOrUpdateAddress.fulfilled, (state, action) => {
-      const { type, address } = action.payload;
-
-      if (type === "create") {
-        // Add new address
-        state.currentCustomer.addresses = [
-          ...(state.currentCustomer.addresses || []),
-          address,
-        ];
-      } else {
-        // Update existing address
-        const index = state.currentCustomer.addresses.findIndex(
-          (addr) => addr.id === address.id
-        );
-        if (index > -1) {
-          state.currentCustomer.addresses[index] = address;
-        }
-      }
-
-      state.isLoading = false;
-    });
-    builder.addCase(createOrUpdateAddress.rejected, (state, action) => {
-      state.error = action.payload;
-      state.isLoading = false;
-    });
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action?.payload?.user;
+        state.token = action?.payload?.token;
+        state.isAuthenticated = true;
+        state.error = null;
+        // Update visited products with auth token
+        const guestId = Cookies.get('guest_id');
+        state.visitedProducts = state.visitedProducts.map(product => ({
+          ...product,
+          authToken: action.payload.token,
+          guestId
+        }));
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'An error occurred';
+        state.isAuthenticated = false;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action?.payload?.user;
+        state.token = action?.payload?.token;
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'An error occurred';
+      })
+      .addCase(userInfo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(userInfo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(userInfo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.isAuthenticated = false;
+      })
+      .addCase(updateVisitedProducts.fulfilled, (state, action) => {
+        state.visitedProducts = action.payload;
+      });
   },
 });
 
-export const { resetCustomer } = authSlicer.actions;
-export default authSlicer.reducer;
+const customerSlice = createSlice({
+  name: 'customer',
+  initialState: {
+    currentCustomer: null,
+    loading: false,
+    error: null
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(retrieveCustomer.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(retrieveCustomer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentCustomer = action.payload;
+        state.error = null;
+      })
+      .addCase(retrieveCustomer.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(updateCustomer.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateCustomer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentCustomer = action.payload;
+        state.error = null;
+      })
+      .addCase(updateCustomer.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
+  }
+});
+
+export const { logout, clearError } = authSlice.actions;
+export default authSlice.reducer;
