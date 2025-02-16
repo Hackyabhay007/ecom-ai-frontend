@@ -86,14 +86,6 @@ const Cart = () => {
 
   // Right Component section
   const renderCartContent = () => {
-    if (loading) {
-      return (
-        <div className="flex justify-center items-center h-full">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-theme-blue"></div>
-        </div>
-      );
-    }
-
     if (items?.length === 0) {
       return (
         <div className="flex flex-col h-full justify-center gap-5 items-center">
@@ -122,14 +114,13 @@ const Cart = () => {
       <>
         <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:mb-10">
           Your Cart <span className="text-sm font-normal">{authToken?"":"(Guest)"}</span>
-          {console.log("This is the cart state", items)}
         </h2>
         {items?.map((item) => (
           <CartItem key={item.id} item={item} />
         ))}
       </>
     );
-  }; // Added missing closing brace here
+  };
 
   return (
     <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">

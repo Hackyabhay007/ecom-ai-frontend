@@ -12,6 +12,8 @@ const CartItem = ({ item }) => {
   const { items, loading } = useSelector(state => state.cart);
   const guestId = useSelector(selectGuestId);
   const authToken = Cookies.get('auth_token');
+  const [isIncrementing, setIsIncrementing] = useState(false);
+  const [isDecrementing, setIsDecrementing] = useState(false);
   
   // Find updated item from redux store
   const updatedItem = items.find(cartItem => cartItem.id === item.id);
@@ -24,8 +26,12 @@ const CartItem = ({ item }) => {
   }, [updatedItem?.quantity]);
 
   // Memoized quantity change handler
-  const handleQuantityChange = useCallback(async (newQuantity) => {
+  const handleQuantityChange = useCallback(async (newQuantity, action) => {
     if (newQuantity < 1) return;
+    
+    // Set loading state based on action
+    if (action === 'increment') setIsIncrementing(true);
+    if (action === 'decrement') setIsDecrementing(true);
     
     try {
       console.log('Starting quantity update:', {
@@ -50,6 +56,9 @@ const CartItem = ({ item }) => {
       console.error('Quantity update failed:', error);
       // Revert to previous quantity
       setQuantity(item.quantity);
+    } finally {
+      setIsIncrementing(false);
+      setIsDecrementing(false);
     }
   }, [dispatch, item.id, item.quantity, guestId, authToken]);
 
@@ -107,19 +116,27 @@ const CartItem = ({ item }) => {
           <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handleQuantityChange(quantity - 1)}
-                className="px-2 py-1 border rounded-md disabled:opacity-50"
-                disabled={quantity <= 1 || loading}
+                onClick={() => handleQuantityChange(quantity - 1, 'decrement')}
+                className="px-2 py-1 border rounded-md disabled:opacity-50 min-w-[32px] h-[32px] flex items-center justify-center"
+                disabled={quantity <= 1 || isDecrementing}
               >
-                -
+                {isDecrementing ? (
+                  <span className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "-"
+                )}
               </button>
               <span className="px-4 py-1">{quantity}</span>
               <button
-                onClick={() => handleQuantityChange(quantity + 1)}
-                className="px-2 py-1 border rounded-md"
-                disabled={loading}
+                onClick={() => handleQuantityChange(quantity + 1, 'increment')}
+                className="px-2 py-1 border rounded-md disabled:opacity-50 min-w-[32px] h-[32px] flex items-center justify-center"
+                disabled={isIncrementing}
               >
-                +
+                {isIncrementing ? (
+                  <span className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "+"
+                )}
               </button>
             </div>
             
