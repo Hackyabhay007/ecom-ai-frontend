@@ -62,17 +62,19 @@ const Review = () => {
 
   const nextReview = () => {
     if (reviewsData.length > 0) {
-      setCurrentIndex((prevIndex) => 
-        (prevIndex + 1) % reviewsData.length
-      );
+      setCurrentIndex((prevIndex) => {
+        const newIndex = (prevIndex + 1) % reviewsData.length;
+        return newIndex;
+      });
     }
   };
 
   const prevReview = () => {
     if (reviewsData.length > 0) {
-      setCurrentIndex((prevIndex) => 
-        (prevIndex - 1 + reviewsData.length) % reviewsData.length
-      );
+      setCurrentIndex((prevIndex) => {
+        const newIndex = (prevIndex - 1 + reviewsData.length) % reviewsData.length;
+        return newIndex;
+      });
     }
   };
 
@@ -221,13 +223,13 @@ const Review = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <AnimatePresence initial={false} mode="wait">
+          <AnimatePresence initial={false} mode="wait" custom={currentIndex}>
             <div className="flex flex-col md:flex-row w-full">
               {/* Mobile View */}
               <div className="block md:hidden w-full">
                 {reviewsData[currentIndex] && (
                   <motion.div
-                    key={currentIndex}
+                    key={`mobile-review-${currentIndex}`}
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
@@ -260,14 +262,14 @@ const Review = () => {
         </motion.div>
 
         {/* Navigation Controls - Only show in mobile or when more than 3 reviews in desktop */}
-        {reviewsData.length > 0 && (
+        {reviewsData.length > 1 && (
           <>
-            <div className="md:hidden absolute top-1/2 left-0 w-full flex justify-between -translate-y-1/2 px-2 pointer-events-none">
+            <div className="md:hidden absolute top-1/2 left-0 w-full flex justify-between -translate-y-1/2 px-2">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={prevReview}
-                className="bg-white/80 p-3 rounded-full shadow-lg pointer-events-auto"
+                className="bg-white/80 p-3 rounded-full shadow-lg z-10"
               >
                 <i className="ri-arrow-left-s-line text-xl"></i>
               </motion.button>
@@ -275,27 +277,28 @@ const Review = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={nextReview}
-                className="bg-white/80 p-3 rounded-full shadow-lg pointer-events-auto"
+                className="bg-white/80 p-3 rounded-full shadow-lg z-10"
               >
                 <i className="ri-arrow-right-s-line text-xl"></i>
               </motion.button>
             </div>
 
             {/* Pagination Dots - Only show in mobile */}
-            <div className="md:hidden flex justify-center space-x-2 mt-6">
+            <div className="md:hidden flex justify-center space-x-3 mt-6">
               {reviewsData.map((_, index) => (
-                <motion.div
-                  key={index}
-                  className={`h-2 w-2 rounded-full cursor-pointer ${
+                <motion.button
+                  key={`dot-${index}`}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
                     index === currentIndex ? 'bg-theme-blue' : 'bg-gray-300'
                   }`}
-                  whileHover={{ scale: 1.3 }}
+                  whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
                   animate={{
-                    scale: index === currentIndex ? 1.2 : 1
+                    scale: index === currentIndex ? 1.2 : 1,
+                    transition: { duration: 0.2 }
                   }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => setCurrentIndex(index)}
+                  initial={false}
                 />
               ))}
             </div>
