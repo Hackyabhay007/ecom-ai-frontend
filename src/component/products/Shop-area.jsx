@@ -175,6 +175,13 @@ const ShopArea = () => {
   };
 
   const handleCollectionSelect = (collectionId) => {
+    // Update applied filters with the selected collection
+    dispatch(setFilters({
+      ...appliedFilters,
+      collections: collectionId
+    }));
+
+    // Fetch products with the selected collection
     dispatch(fetchProducts({
       page: 1,
       filters: {
@@ -182,6 +189,15 @@ const ShopArea = () => {
         collections: collectionId
       }
     }));
+
+    // Update URL
+    router.push({
+      pathname: '/shop',
+      query: {
+        ...router.query,
+        collection_id: collectionId
+      }
+    }, undefined, { shallow: true });
   };
 
   const handlePageChange = (pageNumber) => {
@@ -195,9 +211,6 @@ const ShopArea = () => {
 
       <Breadcrumb
         heading={heading}
-        subCategory={selectedCategory}
-        onCategorySelect={handleCategorySelect}
-        categories={categories}
         onCollectionSelect={handleCollectionSelect}
       />
 

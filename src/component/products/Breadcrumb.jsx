@@ -1,42 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
 import { useRouter } from 'next/router';
-import 'swiper/css';
-import 'swiper/css/navigation';
 
 const Breadcrumb = ({ heading, onCollectionSelect }) => {
   const router = useRouter();
-  const { collection_id } = router.query;
+  const { collection_id, collection_name } = router.query;
   const { filters } = useSelector(state => state.shop);
+  const [selectedCollection, setSelectedCollection] = useState(collection_name || "");
+
+  const handleCollectionSelect = (collection) => {
+    router.push({
+      pathname: "/shop",
+      query: { 
+        collection_id: collection.id, 
+        collection_name: collection.title 
+      }
+    }, undefined, { shallow: true });
+    
+    setSelectedCollection(collection.title);
+    onCollectionSelect(collection.id);
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">{heading}</h1>
-      <div className="relative">
-        <Swiper
-          modules={[Navigation]}
-          navigation={true}
-          spaceBetween={15}
-          slidesPerView="auto"
-          className="collections-slider py-2"
-        >
+    <div className="mb-0 py-5">
+      {/* Breadcrumb Navigation */}
+      <div className="py-1 mb-5">
+        <div className="container mx-auto px-4">
+          <nav className="text-sm text-sub-color flex justify-start gap-0">
+            <span className="text-[#1F1F1F]">Homepage / </span>
+            <span> Shop </span>
+            {selectedCollection && (
+              <>
+                <span> / {selectedCollection}</span>
+              </>
+            )}
+            {heading && !selectedCollection && <span> / {heading}</span>}
+          </nav>
+          <p className="text-4xl font-bold pt-3">{heading}</p>
+        </div>
+      </div>
+
+      {/* Collections */}
+      <div className="px-4 md:px-14">
+        <div className="flex overflow-x-auto gap-4 text-xs md:text-sm font-semibold text-[#1F1F1F] uppercase no-scrollbar">
           {filters.collections?.map((collection) => (
-            <SwiperSlide key={collection.id} style={{ width: 'auto' }}>
-              <button
-                onClick={() => onCollectionSelect(collection.id)}
-                className={`px-6 py-3 rounded-full transition-all hover:bg-theme-blue hover:text-white ${
-                  collection_id === collection.id
-                    ? 'bg-theme-blue text-white'
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {collection.title}
-              </button>
-            </SwiperSlide>
+            <span
+              key={collection.id}
+              className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                collection_id === collection.id
+                  ? "bg-[#1F1F1F] text-white shadow-lg"
+                  : "text-[#1F1F1F] hover:bg-[#1F1F1F] hover:text-white"
+              }`}
+              style={{
+                minWidth: "100px",
+                height: "40px",
+                lineHeight: "1.5",
+              }}
+              onClick={() => handleCollectionSelect(collection)}
+            >
+              {collection.title}
+            </span>
           ))}
-        </Swiper>
+        </div>
       </div>
     </div>
   );
