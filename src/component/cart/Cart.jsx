@@ -95,9 +95,21 @@ const Cart = () => {
     router.push("/shop"); // Navigate to shop page
   };
 
+  // Add persistent cart items state
+  const [persistentItems, setPersistentItems] = useState([]);
+  
+  // Update persistent items when cart updates
+  useEffect(() => {
+    if (items?.length > 0) {
+      setPersistentItems(items);
+    }
+  }, [items]);
+
   // Right Component section
   const renderCartContent = () => {
-    if (items?.length === 0) {
+    const currentItems = items?.length > 0 ? items : persistentItems;
+
+    if (currentItems.length === 0) {
       return (
         <div className="flex flex-col h-full justify-center gap-5 items-center">
           <h2 className="text-xl font-bold text-theme-blue mb-1">
@@ -126,7 +138,7 @@ const Cart = () => {
         <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:mb-10">
           Your Cart <span className="text-sm font-normal">{authToken?"":"(Guest)"}</span>
         </h2>
-        {items?.map((item) => (
+        {currentItems.map((item) => (
           <CartItem key={item.id} item={item} />
         ))}
       </>

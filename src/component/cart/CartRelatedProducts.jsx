@@ -74,11 +74,19 @@ const CartRelatedProducts = ({items}) => {
     setAddingToCart(prev => ({ ...prev, [product.id]: true }));
     
     try {
+      // Add to cart
       await dispatch(addToCart({
         productId: product.id,
         variantId: product.variants[0]?.id,
         quantity: 1
       })).unwrap();
+
+      // Immediately fetch updated cart data
+      await dispatch(getAllCart()).unwrap();
+
+      // Update display products by removing the added product
+      setDisplayProducts(prev => prev.filter(p => p.id !== product.id));
+      
     } catch (error) {
       console.error('Failed to add item to cart:', error);
     } finally {
@@ -137,4 +145,7 @@ const CartRelatedProducts = ({items}) => {
   );
 };
 
-export default React.memo(CartRelatedProducts);
+export default React.memo(CartRelatedProducts, (prevProps, nextProps) => {
+  // Improve memoization to prevent unnecessary rerenders
+  return JSON.stringify(prevProps.items) === JSON.stringify(nextProps.items);
+});

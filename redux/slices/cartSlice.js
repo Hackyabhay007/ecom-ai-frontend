@@ -266,8 +266,8 @@ const cartSlice = createSlice({
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.items;
-        state.totalAmount = action.payload.totalAmount;
+        state.items = action.payload.items || [];  // Ensure items is always an array
+        state.totalAmount = action.payload.totalAmount || 0;
         state.cartId = action.payload.id;
         state.isActive = action.payload.isActive;
         state.error = null;
