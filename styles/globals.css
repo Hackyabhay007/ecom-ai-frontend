@@ -48,3 +48,19 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Add these styles for image handling */
+.image-container {
+  position: relative !important;
+}
+
+.image-container > span {
+  position: unset !important;
+}
+
+.image-container .image {
+  object-fit: contain;
+  width: 100% !important;
+  position: relative !important;
+  height: unset !important;
+}

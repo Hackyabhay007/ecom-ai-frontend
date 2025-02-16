@@ -14,6 +14,8 @@ import { retrieveCustomer, updateCustomer } from "@/redux/slices/authSlice";
 import { formatPriceToINR } from "utils/currencyUtils";
 import { toast } from 'react-hot-toast';
 import { getCookie } from '../../../utils/cookieUtils';
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 // import "./Hoverimagechnage.css"
 
@@ -29,6 +31,7 @@ const ProductCard = ({ product, layout }) => {
   const wishlistItems = useSelector((state) => state.wishlist?.items) || [];
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false); // Add this state
 
   useEffect(() => {
     if (!user) {
@@ -303,7 +306,138 @@ const ProductCard = ({ product, layout }) => {
     );
   }
 
-  // console.log(product.images[1].url, "product.images");
+  if (layout === "list") {
+    const variant = product.variants?.[0];
+    const mainImage = variant?.images?.[0]?.url;
+    const price = variant?.price;
+    const isOnSale = variant?.isOnSale;
+    const salePrice = variant?.salePrice;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="group flex gap-6 bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
+      >
+        {/* Product Image Container */}
+        <div className="relative w-64 min-h-[300px]">
+          <div className="relative h-full w-full">
+            <Image
+              src={mainImage || '/placeholder.png'}
+              alt={product.name}
+              fill
+              className="object-cover rounded-l-2xl"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
+            />
+            {/* Only show Sale tag */}
+            {isOnSale && (
+              <span className="absolute top-2 left-2 bg-[#DB4444] text-white text-xs px-3 py-1 rounded-full font-medium">
+                SALE
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Product Details */}
+        <div className="flex-1 p-6 flex flex-col">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2 group-hover:text-theme-blue transition-colors">
+                {product.name}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {product.category?.name}
+              </p>
+            </div>
+            <div className="text-right">
+              {isOnSale ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-[#DB4444] font-semibold text-lg">{formatPriceToINR(salePrice)}</span>
+                  <span className="text-gray-400 line-through text-sm">{formatPriceToINR(price)}</span>
+                </div>
+              ) : (
+                <span className="font-semibold text-lg">{formatPriceToINR(price)}</span>
+              )}
+            </div>
+          </div>
+
+          <p className="text-gray-600 text-sm mb-6 line-clamp-2">
+            {product.description}
+          </p>
+
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Size:</span>
+              <span className="font-medium">{variant?.size}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Color:</span>
+              <div 
+                className="w-4 h-4 rounded-full border"
+                style={{ backgroundColor: variant?.color?.toLowerCase() }}
+              ></div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Stock:</span>
+              <span className={`text-sm font-medium ${variant?.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {variant?.stock > 0 ? 'In Stock' : 'Out of Stock'}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-auto flex items-center gap-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(e);
+                setAddedToCart(true);
+                setTimeout(() => setAddedToCart(false), 2000);
+              }}
+              className="flex-1 bg-black text-white py-2 rounded-full hover:bg-theme-blue transition-colors duration-300"
+            >
+              {addedToCart ? 'Added ✓' : 'Add to Cart'}
+            </button>
+            
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsQuickViewOpen(true);
+                }}
+                className="px-4 py-2 border border-black rounded-full hover:bg-black hover:text-white transition-all duration-300"
+              >
+                Quick View
+              </button>
+              
+              {isQuickViewOpen && (
+                <QuickView
+                  productId={id}
+                  initialData={product}
+                  onClose={(e) => {
+                    e?.stopPropagation();
+                    setIsQuickViewOpen(false);
+                  }}
+                />
+              )}
+            </div>
+
+            <button
+              onClick={(e) => handleAddToWishlist(e)}
+              className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors duration-300 ${
+                isInWishlist 
+                  ? 'bg-theme-blue text-white border-theme-blue' 
+                  : 'border-black hover:bg-black hover:text-white'
+              }`}
+            >
+              <i className={`${isInWishlist ? 'ri-heart-fill' : 'ri-heart-line'}`}></i>
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <>
@@ -374,12 +508,17 @@ const ProductCard = ({ product, layout }) => {
           </div>
 
           {/* Shopping Bag Icon */}
-          <div
-            className="z-20  absolute bottom-4 right-[10%] md:right-[20%] flex items-center justify-center w-10 h-9 md:w-20 md:h-9 bg-white text-black hover:bg-black hover:text-white  rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
-            onClick={handleAddToCart}
+          <button
+            className="z-20 absolute bottom-4 right-[10%] md:right-[20%] flex items-center justify-center w-auto h-9 md:w-auto md:h-9 bg-white text-black hover:bg-black hover:text-white rounded-full transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 px-4"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart(e);
+              setAddedToCart(true);
+              setTimeout(() => setAddedToCart(false), 2000);
+            }}
           >
-            <i className="ri-shopping-bag-2-line text-sm md:text-lg"></i>
-          </div>
+            {addedToCart ? 'Added ✓' : 'Add to Cart'}
+          </button>
 
           {/* Quick View Button (For Non-List Layout - Image Hover) */}
           {layout !== "list" && (
@@ -454,7 +593,10 @@ const ProductCard = ({ product, layout }) => {
         <QuickView
           productId={id}
           initialData={product}
-          onClose={() => setIsQuickViewOpen(false)}
+          onClose={(e) => {
+            e?.stopPropagation();
+            setIsQuickViewOpen(false);
+          }}
         />
       )}
 
