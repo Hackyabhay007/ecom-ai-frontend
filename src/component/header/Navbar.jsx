@@ -60,6 +60,21 @@ function Navbar() {
     setCartItemsCount(Math.max(reduxCartCount, contextCartCount));
   }, [cartItems, cart?.items]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // const cartCount = 0;
 
   // const { currentCustomer } = useSelector(state => state.customer)
@@ -187,80 +202,105 @@ function Navbar() {
 
   if (isMobile) {
     return (
-      <nav className={`fixed w-full p-4 shadow-md text-black ${isMenuOpen ? "z-50" : "z-40"
-        }`}>
-        <div className="flex items-center justify-between">
+      <nav className="fixed top-0 left-0 w-full bg-white z-40 shadow-md">
+        <div className="flex items-center justify-between p-4">
+          {/* Logo */}
           <Link href="/">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-center items-center relative w-28 h-10"
-            >
+            <div className="relative w-20 h-8">
               <Image
                 src="/images/logo/logo.png"
                 alt="Logo"
-                width={500}
-                height={500}
-                className="absolute w-28 animate-fade1"
+                fill
+                className="object-contain"
               />
-              <Image
-                src="/images/logo/logo2.png"
-                alt="Logo 2"
-                width={500}
-                height={500}
-                className="absolute w-6 animate-fade2"
-              />
-            </motion.div>
+            </div>
           </Link>
 
-          <div className="flex space-x-4 items-center justify-end">
+          {/* Mobile Icons */}
+          <div className="flex items-center space-x-4">
+            <motion.div className="relative">
+              <Link href="/cart">
+                <motion.i
+                  variants={iconVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  className="ri-shopping-bag-line text-xl"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-black border border-theme-blue w-5 h-5 text-xs flex items-center justify-center rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </motion.div>
+
             <motion.i
               variants={iconVariants}
               whileHover="hover"
               whileTap="tap"
-              className="ri-search-line text-xl cursor-pointer hover:text-black"
+              className="ri-search-line text-xl"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
             />
-            <motion.i
+
+            <motion.button
               variants={iconVariants}
               whileHover="hover"
               whileTap="tap"
-              className={`text-xl cursor-pointer transition-all duration-300 ease-in-out ${isMenuOpen
-                  ? "ri-close-line rotate-180"
-                  : "ri-pause-large-line rotate-90"
-                }`}
+              className="text-xl"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-            />
+            >
+              <i className={isMenuOpen ? "ri-close-line" : "ri-menu-line"} />
+            </motion.button>
           </div>
-
-          <AnimatePresence>
-            {isSearchOpen && (
-              <Search onClose={() => setIsSearchOpen(false)} isMobile={false} />
-            )}
-          </AnimatePresence>
         </div>
 
+        {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
-              variants={mobileMenuVariants}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              className="fixed top-19 right-0 h-screen w-full shadow-lg z-50"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-white"
             >
-              <div className="mt-2 py-4 h-full">
-                <motion.ul
-                  className="space-y-0"
-                  variants={menuItemVariants}
+              <div className="flex flex-col py-2">
+                <Link href="/" className="p-4 border-b border-gray-100 hover:bg-gray-50">
+                  Home
+                </Link>
+                <Link href="/shop" className="p-4 border-b border-gray-100 hover:bg-gray-50">
+                  Shop
+                </Link>
+                <div className="p-4 border-b border-gray-100">
+                  <NavCategory />
+                </div>
+                <div 
+                  className="p-4 border-b border-gray-100 hover:bg-gray-50"
+                  onClick={() => currentCustomer ? navigateTo("/auth/dashboard") : navigateTo("/auth/login")}
                 >
-                  {renderUserSection()}
-                  <div className="md:hidden w-full">
-                    <NavCategory />
-                  </div>
-                </motion.ul>
+                  <i className="ri-user-line mr-2"></i>
+                  {currentCustomer ? `Hello, ${currentCustomer.first_name || "User"}` : "Sign In / Register"}
+                </div>
+                <div 
+                  className="p-4 border-b border-gray-100 hover:bg-gray-50"
+                  onClick={handleWishlistClick}
+                >
+                  <i className="ri-heart-line mr-2"></i>
+                  Wishlist
+                  {wishlistCount > 0 && (
+                    <span className="ml-2 bg-white text-black border border-theme-blue px-2 py-1 text-xs rounded-full">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </div>
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Search */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <Search onClose={() => setIsSearchOpen(false)} isMobile={true} />
           )}
         </AnimatePresence>
       </nav>
