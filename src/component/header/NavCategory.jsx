@@ -48,35 +48,37 @@ const NavCategory = () => {
   };
 
   const dropdownVariants = {
-    hidden: {
+    initial: {
       opacity: 0,
-      height: 0,
+      scaleY: 0,
+      transformOrigin: "top"
+    },
+    animate: {
+      opacity: 1,
+      scaleY: 1,
       transition: {
         duration: 0.3,
-        ease: "easeInOut"
-      }
-    },
-    visible: {
-      opacity: 1,
-      height: "auto",
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
+        ease: [0.4, 0, 0.2, 1], // Custom easing
+        when: "beforeChildren"
       }
     },
     exit: {
       opacity: 0,
-      height: 0,
+      scaleY: 0,
       transition: {
-        duration: 0.3,
-        ease: "easeInOut"
+        duration: 0.2,
+        ease: "easeInOut",
+        when: "afterChildren"
       }
     }
   };
 
   const overlayVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: { duration: 0.3 }
+    },
     exit: { opacity: 0 }
   };
 
@@ -85,24 +87,32 @@ const NavCategory = () => {
     open: { rotate: 90 }
   };
 
+  const contentVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: { duration: 0.2 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.1 }
+    }
+  };
 
-  const toggleCategoryDropdown = (category) => {
+  const toggleCategoryDropdown = useCallback((category) => {
     if (activeCategory === category) {
       handleCategoryClose();
     } else {
-      // Smooth transition between categories
       if (activeCategory) {
+        // Smooth transition between categories
         setIsAnimating(true);
-        // Fade out current category
-        setTimeout(() => {
-          setActiveCategory(category);
-          setIsAnimating(false);
-        }, 200);
+        setActiveCategory(category);
+        setIsAnimating(false);
       } else {
         setActiveCategory(category);
       }
     }
-  };
+  }, [activeCategory]);
 
   const handleCategoryClose = () => {
     setIsAnimating(true);
@@ -204,16 +214,16 @@ const NavCategory = () => {
         </motion.p>
       </motion.div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {activeCategory && (
           <>
             {/* Backdrop overlay */}
             <motion.div
               variants={overlayVariants}
-              initial="hidden"
-              animate="visible"
+              initial="initial"
+              animate="animate"
               exit="exit"
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40"
               onClick={handleCategoryClose}
             />
 
@@ -221,27 +231,24 @@ const NavCategory = () => {
             <motion.div
               ref={dropdownRef}
               variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
+              initial="initial"
+              animate="animate"
               exit="exit"
-              className="fixed inset-x-0 top-20 z-50 bg-white shadow-lg overflow-hidden"
+              className="fixed inset-x-0 top-20 z-50 bg-white shadow-lg"
             >
-              {/* Close button */}
-              <motion.button
-                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-black z-50"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleCategoryClose}
-              >
-                <i className="ri-close-line text-2xl" />
-              </motion.button>
-
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: 0.2 }}
+                variants={contentVariants}
+                className="w-full h-full"
               >
+                <motion.button
+                  className="absolute top-4 right-4 p-2 text-gray-500 hover:text-black z-50"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleCategoryClose}
+                >
+                  <i className="ri-close-line text-2xl" />
+                </motion.button>
+
                 <Collection 
                   activeCategory={activeCategory} 
                   setActiveCategory={setActiveCategory}
