@@ -96,12 +96,18 @@ export const registerUser = createAsyncThunk(
 // Add userInfo thunk
 export const userInfo = createAsyncThunk(
   'auth/userInfo',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
-      const token = Cookies.get('auth_token'); // Get token from cookies
+      const token = Cookies.get('auth_token');
       
       if (!token) {
-        return rejectWithValue('No auth token found');
+        return rejectWithValue({ message: 'No auth token found' });
+      }
+
+      // Check if we already have user data
+      const { user } = getState().auth;
+      if (user) {
+        return user;
       }
 
       const response = await axios.get(createApiUrl('/auth/me'), {
@@ -112,12 +118,35 @@ export const userInfo = createAsyncThunk(
       });
 
       if (!response.data.user) {
-        return rejectWithValue('User data not found');
+        return rejectWithValue({ message: 'User data not found' });
       }
 
       return response.data.user;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user info');
+      if (error.code === 'ERR_CONNECTION_REFUSED') {
+        return rejectWithValue({ 
+          message: 'Unable to connect to server. Please check your internet connection.' 
+        });
+      }
+      
+      if (error.response?.status === 401) {
+        removeCookie('auth_token');
+        return rejectWithValue({ message: 'Session expired. Please login again.' });
+      }
+
+      return rejectWithValue({ 
+        message: error.response?.data?.message || 'Failed to fetch user info'
+      });
+    }
+  },
+  {
+    // Only allow one pending userInfo call at a time
+    condition: (_, { getState }) => {
+      const { loading } = getState().auth;
+      if (loading) {
+        return false;
+      }
+      return true;
     }
   }
 );
@@ -161,6 +190,11 @@ export const updateProfile = createAsyncThunk(
       const token = Cookies.get('auth_token');
       if (!token) return rejectWithValue('No auth token found');
 
+      // Log the formData contents for debugging
+      for (let [key, value] of formData.entries()) {
+        console.log('FormData:', key, value);
+      }
+
       const response = await axios.put(createApiUrl('/auth/profile/full'), formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -168,8 +202,10 @@ export const updateProfile = createAsyncThunk(
         }
       });
 
+      console.log('Profile update response:', response.data);
       return response.data.user;
     } catch (error) {
+      console.error('Profile update error:', error.response?.data);
       const message = error.response?.data?.message || 'Failed to update profile';
       return rejectWithValue({ message, required: error.response?.data?.required });
     }

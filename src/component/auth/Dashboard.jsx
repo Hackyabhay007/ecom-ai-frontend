@@ -17,21 +17,33 @@ const Dashboard = () => {
   const dispatch = useDispatch()
   const { user, loading, error } = useSelector((state) => state.auth)
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Fetch user info if not available
-        if (!user) {
-          await dispatch(userInfo()).unwrap()
-        }
-      } catch (error) {
-        router.push('/auth/login')
-      }
-    }
+    let isSubscribed = true;
 
-    checkAuth()
-  }, [dispatch, router, user])
+    const checkAuth = async () => {
+      // Only fetch if we haven't attempted yet and don't have user data
+      if (!hasAttemptedFetch && !user) {
+        try {
+          setHasAttemptedFetch(true);
+          await dispatch(userInfo()).unwrap();
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          if (error?.message === 'No auth token found' || error?.message === 'Session expired. Please login again.') {
+            router.push('/auth/login');
+          }
+        }
+      }
+    };
+
+    checkAuth();
+
+    // Cleanup function
+    return () => {
+      isSubscribed = false;
+    };
+  }, [dispatch, router, user, hasAttemptedFetch]);
 
   useEffect(() => {
     window.scrollTo({ top: 300, behavior: "smooth" });
