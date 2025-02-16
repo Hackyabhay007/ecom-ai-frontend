@@ -59,6 +59,20 @@ const ProductList = ({ layout, currentSort }) => {
   // Add request cancellation reference
   const abortControllerRef = useRef(null);
 
+  // Add state to track if data is being loaded
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const loadingRef = useRef(loading);
+
+  useEffect(() => {
+    // Only update loading state if it's different from previous
+    if (loading !== loadingRef.current) {
+      loadingRef.current = loading;
+      if (!loading) {
+        setIsInitialLoad(false);
+      }
+    }
+  }, [loading]);
+
   // Update fetchProducts to handle pagination properly
   const fetchProducts = useCallback(() => {
     if (abortControllerRef.current) {
@@ -101,8 +115,8 @@ const ProductList = ({ layout, currentSort }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Loading state with fixed height
-  if ((loading || searchLoading) && !products.length) {
+  // Show shimmer only on initial load
+  if ((loading || searchLoading) && isInitialLoad) {
     return (
       <div className="min-h-[600px]">
         <div className={`grid ${
@@ -118,81 +132,84 @@ const ProductList = ({ layout, currentSort }) => {
     );
   }
 
-  return (
-    <div className="min-h-screen h-fit">
-      {/* Products Grid */}
-      <div
-        className={`grid h-fit ${
+  // If we have products, show them even during subsequent loading states
+  if (products?.length > 0) {
+    return (
+      <div className="min-h-screen h-fit relative">
+        {/* Optional loading overlay for subsequent loads */}
+        {(loading || searchLoading) && !isInitialLoad && (
+          <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-blue"></div>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        <div className={`grid h-fit ${
           layout === "grid"
             ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             : "grid-cols-1 gap-6"
-        }`}
-      >
-        {(loading || searchLoading) ? (
-          [...Array(6)].map((_, index) => (
-            <ShimmerProductCard key={index} />
-          ))
-        ) : products && products.length > 0 ? (  // Add null check
-          products.map((product) => (
+        }`}>
+          {products.map((product) => (
             <MemoizedProductCard key={product.id} product={product} layout={layout} />
-          ))
-        ) : (
-          <NoProductsFound onClearAllFilters={() => dispatch(clearFilters())} />
+          ))}
+        </div>
+
+        {/* Updated Pagination Controls */}
+        {meta.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <button
+              onClick={() => handlePageChange(meta.page - 1)}
+              disabled={meta.page === 1}
+              className="px-4 py-2 border rounded-md disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            {[...Array(meta.totalPages)].map((_, index) => {
+              const pageNumber = index + 1;
+              // Show current page, first, last, and nearby pages
+              if (
+                pageNumber === 1 ||
+                pageNumber === meta.totalPages ||
+                Math.abs(pageNumber - meta.page) <= 2
+              ) {
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`px-4 py-2 rounded-md ${
+                      meta.page === pageNumber
+                        ? 'bg-theme-blue text-white'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              } else if (
+                pageNumber === 2 ||
+                pageNumber === meta.totalPages - 1
+              ) {
+                return <span key={pageNumber}>...</span>;
+              }
+              return null;
+            })}
+
+            <button
+              onClick={() => handlePageChange(meta.page + 1)}
+              disabled={meta.page >= meta.totalPages}
+              className="px-4 py-2 border rounded-md disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         )}
       </div>
+    );
+  }
 
-      {/* Updated Pagination Controls */}
-      {meta.totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <button
-            onClick={() => handlePageChange(meta.page - 1)}
-            disabled={meta.page === 1}
-            className="px-4 py-2 border rounded-md disabled:opacity-50"
-          >
-            Previous
-          </button>
-
-          {[...Array(meta.totalPages)].map((_, index) => {
-            const pageNumber = index + 1;
-            // Show current page, first, last, and nearby pages
-            if (
-              pageNumber === 1 ||
-              pageNumber === meta.totalPages ||
-              Math.abs(pageNumber - meta.page) <= 2
-            ) {
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => handlePageChange(pageNumber)}
-                  className={`px-4 py-2 rounded-md ${
-                    meta.page === pageNumber
-                      ? 'bg-theme-blue text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            } else if (
-              pageNumber === 2 ||
-              pageNumber === meta.totalPages - 1
-            ) {
-              return <span key={pageNumber}>...</span>;
-            }
-            return null;
-          })}
-
-          <button
-            onClick={() => handlePageChange(meta.page + 1)}
-            disabled={meta.page >= meta.totalPages}
-            className="px-4 py-2 border rounded-md disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  // No products found state
+  return <NoProductsFound onClearAllFilters={() => dispatch(clearFilters())} />;
 };
 
 export default ProductList;

@@ -303,15 +303,16 @@ const shopSlice = createSlice({
       .addCase(fetchProductsBySearch.pending, (state) => {
         state.searchLoading = true;
         state.searchError = null;
-        // Don't clear products here to prevent flashing
       })
       .addCase(fetchProductsBySearch.fulfilled, (state, action) => {
-        if (action.payload === null) return; // Skip state update if no new data
+        if (!action.payload) return;
 
         state.searchLoading = false;
+        state.loading = false; // Reset both loading states
         state.searchError = null;
         state.products = action.payload.products;
-        // Make sure we update the meta information
+        
+        // ...rest of the existing fulfilled case...
         state.meta = {
           ...state.meta,
           ...action.payload.meta
@@ -330,6 +331,7 @@ const shopSlice = createSlice({
       })
       .addCase(fetchProductsBySearch.rejected, (state, action) => {
         state.searchLoading = false;
+        state.loading = false; // Reset both loading states
         state.searchError = action.payload;
         state.products = []; // Clear products on error
       })

@@ -8,7 +8,8 @@ const Breadcrumb = ({ heading, onCollectionSelect, onClearAllFilters }) => {
   const { filters, appliedFilters, isFiltered } = useSelector(state => state.shop);
   const [selectedCollection, setSelectedCollection] = useState(collection_name || "");
 
-  const handleCollectionSelect = (collection) => {
+  const handleCollectionSelect = async (collection) => {
+    // Update URL first
     router.push({
       pathname: "/shop",
       query: { 
@@ -18,7 +19,11 @@ const Breadcrumb = ({ heading, onCollectionSelect, onClearAllFilters }) => {
     }, undefined, { shallow: true });
     
     setSelectedCollection(collection.title);
-    onCollectionSelect(collection.id);
+    
+    // Call the parent handler after URL update
+    if (onCollectionSelect) {
+      await onCollectionSelect(collection.id);
+    }
   };
 
   return (
@@ -33,22 +38,14 @@ const Breadcrumb = ({ heading, onCollectionSelect, onClearAllFilters }) => {
               {selectedCollection && <span> / {selectedCollection}</span>}
               {heading && !selectedCollection && <span> / {heading}</span>}
             </nav>
-            {isFiltered && (
-              <button
-                onClick={onClearAllFilters}
-                className="text-sm text-theme-blue hover:text-[#1F1F1F] transition-colors duration-300 flex items-center gap-1"
-              >
-                <i className="ri-filter-off-line"></i>
-                Clear All Filters
-              </button>
-            )}
+       
           </div>
           <p className="text-4xl font-bold pt-3">{heading}</p>
         </div>
       </div>
 
       {/* Collections */}
-      <div className="px-4 md:px-14">
+      <div className="px-4 md:px-14 md:ml-8">
         <div className="flex overflow-x-auto gap-4 text-xs md:text-sm font-semibold text-[#1F1F1F] uppercase no-scrollbar">
           {filters.collections?.map((collection) => (
             <span
