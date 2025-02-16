@@ -49,10 +49,10 @@ const Category = ({ activeCategory = "unisex", onNavigate }) => {
           <i className="ri-arrow-right-s-line text-lg backdrop-blur-sm bg-white/30 p-4 rounded-full"></i>
         </button>
 
-        {/* Categories Section */}
+        {/* Updated Categories Section */}
         <div
           ref={scrollRef}
-          className="flex space-x-4 overflow-x-auto scrollbar-custom2 p-2"
+          className="flex space-x-6 overflow-x-auto scrollbar-custom2 p-2"
           style={{ scrollSnapType: "x mandatory" }}
         >
           {loading ? (
@@ -63,30 +63,43 @@ const Category = ({ activeCategory = "unisex", onNavigate }) => {
             Array.isArray(categories) && categories.map((category) => (
               <div
                 key={category.id}
-                className="flex-shrink-0 cursor-pointer min-w-[250px]"
+                className="flex-shrink-0 cursor-pointer w-[350px]" // Increased from 300px to 350px
                 style={{ scrollSnapAlign: "start" }}
                 onClick={() => onNavigate(`/shop?cat_id=${category.id}&cat_name=${category.name}`)}
               >
-                <div className="w-full h-96 relative group">
+                <div className="relative group h-96 overflow-hidden"> {/* Fixed height instead of aspect ratio */}
                   <Image
                     src={category.image?.url || '/images/placeholder.jpg'}
                     alt={category.name}
-                    width={500}
-                    height={500}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    fill
+                    sizes="350px"
+                    className="object-cover transition-all duration-700 ease-in-out group-hover:scale-110"
                     onError={(e) => {
                       e.target.src = '/images/placeholder.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p className="text-white text-xl font-bold">
+                  {/* New gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                  
+                  {/* Hover effect overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:translate-y-0 translate-y-4">
+                    <p className="text-white text-2xl font-bold text-center px-2 mb-2 drop-shadow-lg">
                       {category.name}
                     </p>
+                    <div className="w-12 h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                    <p className="text-white/90 mt-2 text-sm uppercase tracking-wider">
+                      View Collection
+                    </p>
                   </div>
+
+                  {/* Border overlay on hover */}
+                  <div className="absolute inset-[12px] border-2 border-white/0 group-hover:border-white/40 transition-all duration-500 transform scale-90 group-hover:scale-100" />
                 </div>
-                <p className="text-left text-sm font-medium mt-2">
-                  {category.name}
-                </p>
+                <div className="mt-3 ml-1">
+                  <p className="text-left text-sm font-medium tracking-wide uppercase">
+                    {category.name}
+                  </p>
+                </div>
               </div>
             ))
           )}
