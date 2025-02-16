@@ -162,12 +162,17 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
       {availableCategories.map((item) => (
         <li
           key={item.id}
-          className={`flex py-1 text-sm cursor-pointer ${
-            item.id.toString() === cat_id || 
-            item.name === cat_name
-              ? "text-blue-600 font-medium"
-              : "text-black hover:text-blue-600"
-          }`}
+          className={`flex py-1 text-sm cursor-pointer transition-all duration-300 relative
+            ${
+              item.id.toString() === cat_id || 
+              item.name === cat_name
+                ? "text-theme-blue font-medium translate-x-2"
+                : "text-black hover:text-theme-blue hover:translate-x-1"
+            }
+            before:content-[''] before:absolute before:left-0 before:bottom-0 
+            before:h-[1px] before:bg-theme-blue before:transition-all before:duration-300
+            before:w-0 hover:before:w-full
+          `}
           onClick={() => {
             updateQueryParams({ 
               cat_id: item.id.toString(),

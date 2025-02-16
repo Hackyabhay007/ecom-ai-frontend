@@ -212,6 +212,7 @@ const ShopArea = () => {
       <Breadcrumb
         heading={heading}
         onCollectionSelect={handleCollectionSelect}
+        onClearAllFilters={handleClearAllFilters}
       />
 
       <div className="flex flex-col md:flex-row gap-6 container mx-auto p-4">

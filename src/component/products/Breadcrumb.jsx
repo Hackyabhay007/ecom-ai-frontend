@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 
-const Breadcrumb = ({ heading, onCollectionSelect }) => {
+const Breadcrumb = ({ heading, onCollectionSelect, onClearAllFilters }) => {
   const router = useRouter();
   const { collection_id, collection_name } = router.query;
-  const { filters } = useSelector(state => state.shop);
+  const { filters, appliedFilters, isFiltered } = useSelector(state => state.shop);
   const [selectedCollection, setSelectedCollection] = useState(collection_name || "");
 
   const handleCollectionSelect = (collection) => {
@@ -26,16 +26,23 @@ const Breadcrumb = ({ heading, onCollectionSelect }) => {
       {/* Breadcrumb Navigation */}
       <div className="py-1 mb-5">
         <div className="container mx-auto px-4">
-          <nav className="text-sm text-sub-color flex justify-start gap-0">
-            <span className="text-[#1F1F1F]">Homepage / </span>
-            <span> Shop </span>
-            {selectedCollection && (
-              <>
-                <span> / {selectedCollection}</span>
-              </>
+          <div className="flex items-center justify-between">
+            <nav className="text-sm text-sub-color flex justify-start gap-0">
+              <span className="text-[#1F1F1F]">Homepage / </span>
+              <span> Shop </span>
+              {selectedCollection && <span> / {selectedCollection}</span>}
+              {heading && !selectedCollection && <span> / {heading}</span>}
+            </nav>
+            {isFiltered && (
+              <button
+                onClick={onClearAllFilters}
+                className="text-sm text-theme-blue hover:text-[#1F1F1F] transition-colors duration-300 flex items-center gap-1"
+              >
+                <i className="ri-filter-off-line"></i>
+                Clear All Filters
+              </button>
             )}
-            {heading && !selectedCollection && <span> / {heading}</span>}
-          </nav>
+          </div>
           <p className="text-4xl font-bold pt-3">{heading}</p>
         </div>
       </div>
@@ -46,11 +53,15 @@ const Breadcrumb = ({ heading, onCollectionSelect }) => {
           {filters.collections?.map((collection) => (
             <span
               key={collection.id}
-              className={`relative cursor-pointer group rounded-full border border-[#1F1F1F] px-4 py-2 flex items-center justify-center whitespace-nowrap transition-all duration-300 ease-in-out transform hover:scale-105 ${
-                collection_id === collection.id
-                  ? "bg-[#1F1F1F] text-white shadow-lg"
-                  : "text-[#1F1F1F] hover:bg-[#1F1F1F] hover:text-white"
-              }`}
+              className={`
+                relative cursor-pointer group rounded-full border 
+                transition-all duration-300 ease-in-out transform 
+                hover:scale-105 px-4 py-2 flex items-center justify-center whitespace-nowrap
+                ${collection_id === collection.id
+                  ? "bg-theme-blue text-white border-theme-blue shadow-lg"
+                  : "border-[#1F1F1F] text-[#1F1F1F] hover:bg-theme-blue hover:text-white hover:border-theme-blue"
+                }
+              `}
               style={{
                 minWidth: "100px",
                 height: "40px",
