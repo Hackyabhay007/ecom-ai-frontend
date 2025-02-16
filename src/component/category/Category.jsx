@@ -78,11 +78,14 @@ const Category = ({ activeCategory = "unisex", onNavigate }) => {
                       e.target.src = '/images/placeholder.jpg';
                     }}
                   />
+                  {/* Dark overlay */}
+                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-500 ease-in-out" />
+                  
                   {/* New gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
                   
                   {/* Hover effect overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:translate-y-0 translate-y-4">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:translate-y-0 translate-y-4 z-10">
                     <p className="text-white text-2xl font-bold text-center px-2 mb-2 drop-shadow-lg">
                       {category.name}
                     </p>
@@ -93,7 +96,7 @@ const Category = ({ activeCategory = "unisex", onNavigate }) => {
                   </div>
 
                   {/* Border overlay on hover */}
-                  <div className="absolute inset-[12px] border-2 border-white/0 group-hover:border-white/40 transition-all duration-500 transform scale-90 group-hover:scale-100" />
+                  <div className="absolute inset-[12px] border-2 border-white/0 group-hover:border-white/40 transition-all duration-500 transform scale-90 group-hover:scale-100 z-10" />
                 </div>
                 <div className="mt-3 ml-1">
                   <p className="text-left text-sm font-medium tracking-wide uppercase">
