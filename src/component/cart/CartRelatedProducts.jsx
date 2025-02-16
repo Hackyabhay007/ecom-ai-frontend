@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
-import { addToCart } from "../../../redux/slices/cartSlice";
+import { addToCart, getAllCart } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
 import { fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 import { getViewedProducts } from "../../../utils/cookieUtils";
