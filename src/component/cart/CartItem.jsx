@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
-import { updateCart, getAllCart, selectGuestId } from "../../../redux/slices/cartSlice";
+import { updateCart, getAllCart, removeFromCart, selectGuestId } from "../../../redux/slices/cartSlice";
 import { formatPriceToINR } from "../../../utils/currencyUtils";
 import Cookies from 'js-cookie';
 
 const CartItem = ({ item }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(item?.quantity || 1);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { items, loading } = useSelector(state => state.cart);
   const guestId = useSelector(selectGuestId);
   const authToken = Cookies.get('auth_token');
@@ -52,6 +53,20 @@ const CartItem = ({ item }) => {
     }
   }, [dispatch, item.id, item.quantity, guestId, authToken]);
 
+  const handleRemoveItem = async () => {
+    if (isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      await dispatch(removeFromCart({ itemId: item.id })).unwrap();
+      await dispatch(getAllCart());
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!item?.product) return null;
 
   const getImageUrl = () => {
@@ -89,21 +104,35 @@ const CartItem = ({ item }) => {
           </div>
           
           {/* Quantity controls */}
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleQuantityChange(quantity - 1)}
+                className="px-2 py-1 border rounded-md disabled:opacity-50"
+                disabled={quantity <= 1 || loading}
+              >
+                -
+              </button>
+              <span className="px-4 py-1">{quantity}</span>
+              <button
+                onClick={() => handleQuantityChange(quantity + 1)}
+                className="px-2 py-1 border rounded-md"
+                disabled={loading}
+              >
+                +
+              </button>
+            </div>
+            
             <button
-              onClick={() => handleQuantityChange(quantity - 1)}
-              className="px-2 py-1 border rounded-md disabled:opacity-50"
-              disabled={quantity <= 1 || loading}
+              onClick={handleRemoveItem}
+              disabled={isDeleting}
+              className="text-red-500 hover:text-red-700 disabled:opacity-50 flex items-center gap-1"
             >
-              -
-            </button>
-            <span className="px-4 py-1">{quantity}</span>
-            <button
-              onClick={() => handleQuantityChange(quantity + 1)}
-              className="px-2 py-1 border rounded-md"
-              disabled={loading}
-            >
-              +
+              {isDeleting ? (
+                <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                <i className="ri-delete-bin-line"></i>
+              )}
             </button>
           </div>
         </div>

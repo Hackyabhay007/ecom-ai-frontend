@@ -174,6 +174,40 @@ export const updateCart = createAsyncThunk(
   }
 );
 
+export const removeFromCart = createAsyncThunk(
+  'cart/removeFromCart',
+  async ({ itemId }, { getState, rejectWithValue }) => {
+    try {
+      const token = Cookies.get('auth_token');
+      const state = getState();
+      const guestId = !token ? state.cart.guestId : null;
+
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        data: guestId ? { guestId } : {}
+      };
+
+      const response = await axios.delete(
+        createApiUrl(`/cart/items/${itemId}`),
+        config
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to remove item');
+      }
+
+      return response.data.data.cart;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to remove item from cart'
+      );
+    }
+  }
+);
+
 // Update initial state to include guestId
 const initialState = {
   items: [],
@@ -276,6 +310,10 @@ const cartSlice = createSlice({
       .addCase(updateCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(removeFromCart.fulfilled, (state, action) => {
+        state.items = action.payload.items;
+        state.totalAmount = action.payload.totalAmount;
       });
   }
 });
