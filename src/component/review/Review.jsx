@@ -61,11 +61,19 @@ const Review = () => {
   }, [reviewSection])
 
   const nextReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + itemsPerView) % reviews.length);
+    if (reviewsData.length > 0) {
+      setCurrentIndex((prevIndex) => 
+        (prevIndex + 1) % reviewsData.length
+      );
+    }
   };
 
   const prevReview = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - itemsPerView + reviews.length) % reviews.length);
+    if (reviewsData.length > 0) {
+      setCurrentIndex((prevIndex) => 
+        (prevIndex - 1 + reviewsData.length) % reviewsData.length
+      );
+    }
   };
 
   // Add swipe handlers for mobile
@@ -101,9 +109,85 @@ const Review = () => {
     return formattedDate;
   }
 
-  const reviewsToShow = reviews.slice(currentIndex, currentIndex + itemsPerView);
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  };
 
-  if (status === 'loading') {
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset, velocity) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  const ReviewCard = ({ review, index, animate = true }) => (
+    <motion.div 
+      className="w-full md:w-1/3 px-4 mb-4 flex"
+      initial={animate ? { opacity: 0, y: 20 } : { opacity: 1 }}
+      animate={animate ? { 
+        opacity: 1, 
+        y: 0,
+        transition: { 
+          delay: index * 0.1,
+          duration: 0.5,
+          ease: "easeOut"
+        } 
+      } : {}}
+      exit={animate ? { opacity: 0, y: -20 } : {}}
+      whileHover={{ 
+        scale: 1.02,
+        transition: { duration: 0.3, ease: "easeOut" }
+      }}
+    >
+      <motion.div 
+        className="border-2 border-theme-blue rounded-lg p-6 shadow-md bg-white w-full flex flex-col"
+        initial={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
+        whileHover={{ 
+          boxShadow: "0 10px 15px rgba(0, 0, 0, 0.2)",
+          transition: { duration: 0.3 }
+        }}
+      >
+        <div className="flex items-start space-x-4 mb-4">
+          <div className="flex-shrink-0">
+            <Image
+              src={review?.profile_picture || '/default-avatar.png'}
+              alt={`${review?.name || 'User'}'s profile`}
+              width={64}
+              height={64}
+              className="rounded-xl object-cover"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-yellow-600 mb-2">
+              {renderStars(review?.rating)}
+            </div>
+            <h3 className="font-semibold text-lg mb-2 truncate">
+              {review?.name}
+            </h3>
+            <p className="text-gray-600 text-sm">
+              {review?.date}
+            </p>
+          </div>
+        </div>
+        <p className="text-gray-700 flex-1 line-clamp-4">
+          {review?.message}
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+
+  if (loading) {
     return (
       <div className="h-[350px] w-full flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-theme-blue"></div>
@@ -120,83 +204,103 @@ const Review = () => {
   }
 
   return (
-    <div className="p-5 ">
-      <h2 className="text-center text-xl md:text-3xl font-bold mb-8">{title}</h2>
+    <div className="p-5">
+      <motion.h2 
+        className="text-center text-xl md:text-3xl font-bold mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {title}
+      </motion.h2>
 
-      {/* Desktop View */}
-      <div className="hidden lg:flex justify-start space-x-4 overflow-x-auto px-5">
-        {reviewsData?.map((review) => (
-          <div
-            key={review?.name}
-            className="w-1/3 px-5 border-2 border-theme-blue rounded-lg"
-            style={{ height: 'auto' }} // Ensuring consistent height across all cards
-          >
-            {/* {console.log("This is the Review of the Review.jsx component ",review)} */}
-            <div className="relative mb-4">
-              <Image
-                src={review?.profile_picture}
-                alt={`Review by ${review?.name}`}
-                width={200}
-                height={200}
-                className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
-              />
-              <div className="ml-20 my-5">
-                <div className="text-yellow-600">{renderStars(review?.rating)}</div>
-                <h3 className="font-semibold text-lg mt-2">{review?.message}</h3>
+      <div className="relative">
+        <motion.div 
+          className="flex flex-nowrap overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <AnimatePresence initial={false} mode="wait">
+            <div className="flex flex-col md:flex-row w-full">
+              {/* Mobile View */}
+              <div className="block md:hidden w-full">
+                {reviewsData[currentIndex] && (
+                  <motion.div
+                    key={currentIndex}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 25
+                    }}
+                  >
+                    <ReviewCard review={reviewsData[currentIndex]} index={0} />
+                  </motion.div>
+                )}
               </div>
-              {/* <p className="text-sub-color mt-2">{review?.review}</p> */}
-              <p className="text-sm font-bold mt-2">{review?.name}</p>
-              <p className="text-sm text-sub-color mt-2">{review?.date}</p>
 
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile View */}
-      <div className="lg:hidden flex justify-center items-center">
-        <div className="relative w-full p-5">
-          <div className="w-full px-5 py-2 border border-theme-blue rounded-lg h-fit" >
-            <div className="relative">
-              <Image
-                src={reviewsData[currentIndex]?.profile_picture}
-                alt={`Review by ${reviewsData[currentIndex]?.name}`}
-                width={200}
-                height={200}
-                className="absolute top-0 left-0 w-16 h-16 rounded-xl object-cover"
-              />
-              <div className="ml-20 mt-4">
-                <div className="text-yellow-600">{renderStars(reviewsData[currentIndex]?.rating)}</div>
-                {/* <h3 className="font-semibold text-lg mt-2">{reviewsData[currentIndex]?.heading}</h3> */}
+              {/* Desktop View */}
+              <div className="hidden md:flex space-x-4 w-full">
+                <div className="flex space-x-4 w-full justify-center">
+                  {reviewsData.slice(0, 3).map((review, index) => (
+                    <ReviewCard 
+                      key={review.name + index} 
+                      review={review}
+                      index={index}
+                      animate={true}
+                    />
+                  ))}
+                </div>
               </div>
-              <p className="text-sub-color mt-2">{reviewsData[currentIndex]?.message}</p>
-              <p className="text-sm font-bold mt-2">{reviewsData[currentIndex]?.name}</p>
-              <p className="text-sm text-sub-color mt-2">{reviewsData[currentIndex]?.date}</p>
-
             </div>
-          </div>
+          </AnimatePresence>
+        </motion.div>
 
-          {/* Carousel Navigation */}
-          <div className="absolute top-1/2 left-0 w-full flex justify-between ">
-            <button onClick={prevReview} className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full">
-              <i className="ri-arrow-left-s-fill"></i>
-            </button>
-            <button onClick={nextReview} className="backdrop-blur-sm bg-white/15 p-2 shadow-md rounded-full">
+        {/* Navigation Controls - Only show in mobile or when more than 3 reviews in desktop */}
+        {reviewsData.length > 0 && (
+          <>
+            <div className="md:hidden absolute top-1/2 left-0 w-full flex justify-between -translate-y-1/2 px-2 pointer-events-none">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={prevReview}
+                className="bg-white/80 p-3 rounded-full shadow-lg pointer-events-auto"
+              >
+                <i className="ri-arrow-left-s-line text-xl"></i>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={nextReview}
+                className="bg-white/80 p-3 rounded-full shadow-lg pointer-events-auto"
+              >
+                <i className="ri-arrow-right-s-line text-xl"></i>
+              </motion.button>
+            </div>
 
-              <i className="ri-arrow-right-s-fill"></i>
-            </button>
-          </div>
-
-          {/* Carousel Dots */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {reviewsData?.map((_, index) => (
-              <div
-                key={index}
-                className={`h-2 w-2 rounded-full ${index === currentIndex ? 'bg-theme-blue' : 'bg-gray-400'}`}
-              ></div>
-            ))}
-          </div>
-        </div>
+            {/* Pagination Dots - Only show in mobile */}
+            <div className="md:hidden flex justify-center space-x-2 mt-6">
+              {reviewsData.map((_, index) => (
+                <motion.div
+                  key={index}
+                  className={`h-2 w-2 rounded-full cursor-pointer ${
+                    index === currentIndex ? 'bg-theme-blue' : 'bg-gray-300'
+                  }`}
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    scale: index === currentIndex ? 1.2 : 1
+                  }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setCurrentIndex(index)}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
