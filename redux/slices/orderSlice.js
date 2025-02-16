@@ -9,6 +9,11 @@ export const createOrder = createAsyncThunk(
   async (orderData, { rejectWithValue }) => {
     try {
       const token = Cookies.get('auth_token');
+      
+      if (!orderData.paymentMethod) {
+        return rejectWithValue('Payment method is required');
+      }
+
       const response = await axios.post(createApiUrl('/orders'), {
         items: orderData.items.map(item => ({
           productId: item.product_id,
@@ -25,16 +30,20 @@ export const createOrder = createAsyncThunk(
           country: "India",
           phone: orderData.shippingAddress.phoneNumber
         },
-        paymentGateway: orderData.paymentMethod
+        paymentGateway: orderData.paymentMethod // Make sure this matches exactly
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Failed to create order');
+      return rejectWithValue(
+        error.response?.data?.message || 
+        'Failed to create order'
+      );
     }
   }
 );

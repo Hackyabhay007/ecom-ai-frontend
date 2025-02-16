@@ -10,10 +10,22 @@ const PaymentOptions = ({ selectedMethod, onSelect }) => {
       description: 'Pay securely with PhonePe'
     },
     {
+      id: 'razorpay',
+      name: 'Razorpay',
+      logo: '/images/razorpay-logo.png',
+      description: 'Pay using credit/debit card, UPI, or netbanking'
+    },
+    {
       id: 'payu',
       name: 'PayU',
       logo: '/images/payu-logo.png',
-      description: 'Pay using credit/debit card, netbanking, or UPI'
+      description: 'Pay using multiple payment options'
+    },
+    {
+      id: 'cod',
+      name: 'Cash on Delivery',
+      logo: '/images/cod-logo.png',
+      description: 'Pay when you receive your order'
     }
   ];
 
@@ -36,7 +48,8 @@ const PaymentOptions = ({ selectedMethod, onSelect }) => {
                 <Image
                   src={method.logo}
                   alt={method.name}
-                  layout="fill"
+                  width={48}
+                  height={48}
                   objectFit="contain"
                 />
               </div>

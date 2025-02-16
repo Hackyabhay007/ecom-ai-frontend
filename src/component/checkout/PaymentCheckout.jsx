@@ -24,7 +24,7 @@ function PaymentCheckout({ onPaymentComplete, formData }) {
       const result = await dispatch(createOrder({
         items,
         shippingAddress: formData,
-        paymentMethod: selectedMethod
+        paymentMethod: selectedMethod // This should now be one of: phonepe, razorpay, payu, cod
       })).unwrap();
 
       // If payment URL is provided, redirect to payment gateway
@@ -37,7 +37,7 @@ function PaymentCheckout({ onPaymentComplete, formData }) {
       }
     } catch (error) {
       console.error('Payment failed:', error);
-      alert('Payment failed. Please try again.');
+      alert(error.message || 'Payment failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }

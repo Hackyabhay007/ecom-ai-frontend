@@ -61,13 +61,13 @@ function CheckoutContainer() {
         items,
         totalAmount,
         shippingAddress: formData,
-        // Add other order details as needed
+        paymentMethod: 'cod' // Set a default payment method or handle it in state
       })).unwrap();
       setStep(3);
       router.push({ query: { ...query, step: 3 } });
     } catch (error) {
       console.error('Failed to create order:', error);
-      alert('Failed to create order. Please try again.');
+      alert(error.message || 'Failed to create order. Please try again.');
     }
   };
 
