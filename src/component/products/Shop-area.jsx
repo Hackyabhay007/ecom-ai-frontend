@@ -39,24 +39,30 @@ const ShopArea = () => {
   // Get categories from store filters
   const categories = storeFilters?.categories || [];
 
-  // Load products when filters change
+  // Modify the useEffect for fetching products to prevent double fetching
   useEffect(() => {
-    dispatch(fetchProducts({
-      page: 1,
-      filters: {
-        categoryId: cat_id,
-        size,
-        color,
-        minPrice: min_price,
-        maxPrice: max_price,
-        saleOnly: showSaleOnly // Add this line
-      }
-    }));
-  }, [dispatch, cat_id, size, color, min_price, max_price, showSaleOnly]); // Add showSaleOnly to dependencies
+    // Only fetch if we have actual filter changes
+    const filters = {
+      ...(cat_id && { categoryId: cat_id }),
+      ...(size && { size }),
+      ...(color && { color }),
+      ...(min_price && { minPrice: min_price }),
+      ...(max_price && { maxPrice: max_price }),
+      ...(showSaleOnly && { saleOnly: showSaleOnly })
+    };
+
+    // Check if filters actually changed before dispatching
+    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(appliedFilters);
+    
+    if (filtersChanged) {
+      dispatch(fetchProducts({ page: 1, filters }));
+    }
+  }, [dispatch, cat_id, size, color, min_price, max_price, showSaleOnly]);
 
    const { appliedFilters } = useSelector(state => state.shop);
 
-  // Update filtered products when products change
+  // Remove the second useEffect that was updating filtered products
+  // This was causing double updates
   useEffect(() => {
     if (products?.length > 0) {
       setFilteredProducts(products);

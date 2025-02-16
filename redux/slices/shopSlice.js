@@ -4,23 +4,34 @@ import { createApiUrl } from '../../utils/apiConfig';
 
 export const fetchProducts = createAsyncThunk(
   'shop/fetchProducts',
-  async ({ page = 1, filters = {} }, { rejectWithValue }) => {
+  async ({ page = 1, filters = {} }, { getState, rejectWithValue }) => {
     try {
+      const state = getState();
+      
+      // Skip if filters haven't changed
+      if (JSON.stringify(state.shop.appliedFilters) === JSON.stringify(filters) &&
+          state.shop.products.length > 0) {
+        return null;
+      }
+
+      // Format query parameters according to API spec
       const queryParams = new URLSearchParams({
-        page,
-        limit: 10,
-        ...(filters.categoryId && { categoryId: filters.categoryId }),
-        ...(filters.size && { size: filters.size }),
-        ...(filters.color && { color: filters.color }),
+        page: String(page),
+        limit: '10',
+        ...(filters.search && { search: filters.search }),
+        ...(filters.categoryId && { categories: filters.categoryId }),
+        ...(filters.collections && { collections: filters.collections }),
         ...(filters.minPrice && { minPrice: filters.minPrice }),
         ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-        ...(filters.saleOnly && { saleOnly: filters.saleOnly }),
-        // Add support for fetching by productIds
-        ...(filters.ids && { ids: filters.ids.join(',') }),
+        ...(filters.color && { colors: filters.color }),
+        ...(filters.size && { sizes: filters.size }),
+        ...(filters.brands && { brands: filters.brands }),
+        ...(filters.inStock !== undefined && { inStock: filters.inStock }),
+        ...(filters.onSale !== undefined && { onSale: filters.onSale })
       });
 
       const response = await axios.get(
-        createApiUrl(`/products?${queryParams.toString()}`),
+        createApiUrl(`/products/search?${queryParams.toString()}`),
         {
           headers: {
             'Content-Type': 'application/json',
@@ -79,38 +90,32 @@ export const fetchSingleProduct = createAsyncThunk(
 );
 
 
-// Add new fetchProductsBySearch thunk
+// Update fetchProductsBySearch to use the same parameter format
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
   async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
-    console.log('Fetching products by search:', { searchQuery, filters });
-    
     try {
-      let queryParams = new URLSearchParams();
-
-      if (typeof searchQuery === 'string' && searchQuery.length > 0) {
-        // If searchQuery exists, use it as the search parameter
-        queryParams.append('search', searchQuery);
-      } else if (filters.query && filters.queryValue) {
-        // If no search query but has filter query parameters
-        queryParams.append(filters.query, filters.queryValue);
-      }
-
-      // Add any additional filter parameters
-      Object.entries(filters).forEach(([key, value]) => {
-        if (key !== 'query' && key !== 'queryValue' && value !== undefined) {
-          queryParams.append(key, value);
-        }
+      const queryParams = new URLSearchParams({
+        ...(searchQuery && { search: searchQuery }),
+        ...(filters.categories && { categories: filters.categories }),
+        ...(filters.collections && { collections: filters.collections }),
+        ...(filters.minPrice && { minPrice: filters.minPrice }),
+        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
+        ...(filters.colors && { colors: filters.colors }),
+        ...(filters.sizes && { sizes: filters.sizes }),
+        ...(filters.brands && { brands: filters.brands }),
+        ...(filters.inStock !== undefined && { inStock: filters.inStock }),
+        ...(filters.onSale !== undefined && { onSale: filters.onSale })
       });
 
-      const finalUrl = createApiUrl(`/products/search?${queryParams.toString()}`);
-      console.log('Final search URL:', finalUrl);
-
-      const response = await axios.get(finalUrl, {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await axios.get(
+        createApiUrl(`/products/search?${queryParams.toString()}`),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
         }
-      });
+      );
 
       if (!response.data.success) {
         return rejectWithValue('Failed to search products');
@@ -137,6 +142,8 @@ const initialState = {
     categories: [],
     collections: [],
     brands: [],
+    inStock: undefined,
+    onSale: undefined
   },
   meta: {
     total: 0,
@@ -204,6 +211,8 @@ const shopSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
+        if (!action.payload) return; // Skip update if payload is null
+        
         state.loading = false;
         state.products = action.payload.products;
         // Update filters from API response

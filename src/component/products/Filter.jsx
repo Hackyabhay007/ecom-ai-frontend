@@ -7,6 +7,9 @@ import { setPriceRange, setFilters, fetchProductsBySearch } from "../../../redux
 
 const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const dispatch = useDispatch();
+  // Add showSaleOnly state
+  const [showSaleOnly, setShowSaleOnly] = useState(false);
+  
   // Get all necessary states from Redux store
   const { 
     filters,
@@ -41,15 +44,7 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const handlePriceChange = useCallback((type, value) => {
     const newRange = { ...Range, [type]: value };
     setRange(newRange);
-    
-    dispatch(fetchProductsBySearch({
-      filters: {
-        ...appliedFilters,
-        minPrice: newRange.min,
-        maxPrice: newRange.max
-      }
-    }));
-  }, [Range, appliedFilters, dispatch]);
+  }, [Range]);
 
   const handleSliderChange = (value) => {
     dispatch(setPriceRange({ min: value[0], max: value[1] }));
@@ -68,38 +63,33 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
     const currentQuery = { ...Route.query };
     const updatedQuery = { ...currentQuery, ...newParams };
     
-    // Remove undefined or null values
+    // Clean up undefined values
     Object.keys(updatedQuery).forEach(key => 
       updatedQuery[key] == null && delete updatedQuery[key]
     );
 
-    // Create complete filters object combining existing and new filters
+    // Format filters according to API spec
     const searchFilters = {
-      ...appliedFilters, // Keep existing filters
-      categoryId: newParams.cat_id || currentQuery.cat_id || appliedFilters.categoryId,
-      size: newParams.size || currentQuery.size || appliedFilters.size,
-      color: newParams.color || currentQuery.color || appliedFilters.color,
-      minPrice: newParams.min_price || currentQuery.min_price || appliedFilters.minPrice,
-      maxPrice: newParams.max_price || currentQuery.max_price || appliedFilters.maxPrice,
+      ...appliedFilters,
+      categories: newParams.cat_id || currentQuery.cat_id,
+      sizes: newParams.size || currentQuery.size,
+      colors: newParams.color || currentQuery.color,
+      minPrice: newParams.min_price || currentQuery.min_price,
+      maxPrice: newParams.max_price || currentQuery.max_price,
+      onSale: showSaleOnly
     };
 
-    // Update URL without losing existing params
+    // Update URL
     Route.push({
       pathname: "/shop",
       query: updatedQuery
     }, undefined, { shallow: true });
 
-    // Update filters in Redux store while preserving existing ones
-    dispatch(setFilters({
-      ...appliedFilters,
-      ...searchFilters
-    }));
-
     // Dispatch search with complete filters
     dispatch(fetchProductsBySearch({ 
       filters: searchFilters
     }));
-  }, [appliedFilters, Route, dispatch]);
+  }, [appliedFilters, Route, dispatch, showSaleOnly]);
 
   const {
     cat_id,
@@ -134,20 +124,14 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
 
   // Add new handler for size filter
   const handleSizeFilter = useCallback((size) => {
-    const updatedFilters = {
-      ...appliedFilters,
-      sizes: size
-    };
+    updateQueryParams({ size });
+  }, [updateQueryParams]);
 
-    dispatch(fetchProductsBySearch({
-      filters: updatedFilters
-    }));
-
-    Route.push({
-      pathname: "/shop",
-      query: { ...Route.query, size }
-    }, undefined, { shallow: true });
-  }, [appliedFilters, Route, dispatch]);
+  // Add handler for sale toggle
+  const handleSaleToggle = useCallback(() => {
+    setShowSaleOnly(prev => !prev);
+    updateQueryParams({ onSale: !showSaleOnly });
+  }, [showSaleOnly, updateQueryParams]);
 
   useEffect(() => {
     if (isMobileFilterOpen) {
@@ -384,6 +368,20 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
                 ))
               )}
             </div>
+          </div>
+
+          {/* Add Sale Only toggle */}
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="checkbox"
+              id="saleOnly"
+              checked={showSaleOnly}
+              onChange={handleSaleToggle}
+              className="form-checkbox h-4 w-4"
+            />
+            <label htmlFor="saleOnly" className="text-sm font-medium text-black">
+              Show Sale Items Only
+            </label>
           </div>
         </div>
       </div>
