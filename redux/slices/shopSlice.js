@@ -100,36 +100,28 @@ export const fetchSingleProduct = createAsyncThunk(
 // Update fetchProductsBySearch to use the same parameter format
 export const fetchProductsBySearch = createAsyncThunk(
   'shop/fetchProductsBySearch',
-  async ({ searchQuery = '', filters = {} }, { rejectWithValue }) => {
+  async ({ searchQuery = '', filters = {} }, { rejectWithValue, getState }) => {
     try {
       const queryParams = new URLSearchParams({
         page: String(filters.page || 1),
         limit: String(filters.limit || 10),
-        // ...rest of the filter parameters...
+        ...(searchQuery && { search: searchQuery }),
+        ...(filters.categoryId && { categories: filters.categoryId }),
+        ...(filters.collections && { collections: filters.collections }),
+        ...(filters.minPrice && { minPrice: filters.minPrice }),
+        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
+        ...(filters.colors && { colors: filters.colors }),
+        ...(filters.sizes && { sizes: filters.sizes }),
+        ...(filters.brands && { brands: filters.brands }),
+        ...(filters.inStock !== undefined && { inStock: filters.inStock }),
+        ...(filters.onSale !== undefined && { onSale: filters.onSale }),
+        ...(filters.sort && { sort: filters.sort }) // Add sort parameter
       });
-      
-      if (searchQuery) {
-        queryParams.append('search', searchQuery);
-      }
-
-      // Handle category ID specifically
-      if (filters.categoryId) {
-        queryParams.append('categories', filters.categoryId);
-      }
-
-      // Add other filters
-      if (filters.colors) queryParams.append('colors', filters.colors);
-      if (filters.sizes) queryParams.append('sizes', filters.sizes);
-      if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
-      if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
-      if (filters.onSale !== undefined) queryParams.append('onSale', filters.onSale);
 
       const response = await axios.get(
         createApiUrl(`/products/search?${queryParams.toString()}`),
         {
-          headers: {
-            'Content-Type': 'application/json',
-          }
+          headers: { 'Content-Type': 'application/json' }
         }
       );
 
@@ -142,7 +134,6 @@ export const fetchProductsBySearch = createAsyncThunk(
         filters: response.data.data.filters,
         meta: response.data.data.meta
       };
-
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to search products');
     }
@@ -176,6 +167,8 @@ const initialState = {
   selectedProductLoading: false,
   selectedProductError: null,
   isFiltered: false, // Add this to track if filters are applied
+  currentSort: 'default',
+  originalProducts: [], // Add this to store original product order
   // relatedProducts: [],
   // relatedProductsMeta: {
   //   currentPage: 1,
@@ -206,6 +199,30 @@ const shopSlice = createSlice({
       if (action.payload.collections) {
         state.selectedCollectionId = action.payload.collections;
       }
+
+      // Handle sorted products if provided
+      if (action.payload.sortedProducts) {
+        state.products = action.payload.sortedProducts;
+      }
+      if (action.payload.currentSort) {
+        state.currentSort = action.payload.currentSort;
+      }
+
+      // Store original products order on first load
+      if (!state.originalProducts.length && action.payload.products) {
+        state.originalProducts = action.payload.products;
+      }
+      
+      // Handle sorted products
+      if (action.payload.sortedProducts) {
+        state.products = action.payload.sortedProducts;
+        state.currentSort = action.payload.currentSort;
+      }
+
+      // Reset to original order if default selected
+      if (action.payload.currentSort === 'default' && state.originalProducts.length) {
+        state.products = [...state.originalProducts];
+      }
     },
     clearFilters: (state) => {
       state.appliedFilters = {};
@@ -217,6 +234,10 @@ const shopSlice = createSlice({
         priceRange: initialState.filters.priceRange,
         onSale: undefined
       };
+      state.currentSort = 'default';
+      if (state.originalProducts.length) {
+        state.products = [...state.originalProducts];
+      }
     },
     setPriceRange: (state, action) => {
       // Preserve other filters when updating price range
