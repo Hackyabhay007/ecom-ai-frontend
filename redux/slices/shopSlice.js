@@ -211,10 +211,11 @@ const shopSlice = createSlice({
       state.appliedFilters = {};
       state.isFiltered = false;
       state.lastAppliedFilters = null;
-      // Don't reset available filters, only applied ones
+      // Reset onSale filter specifically
       state.filters = {
         ...state.filters,
-        priceRange: initialState.filters.priceRange
+        priceRange: initialState.filters.priceRange,
+        onSale: undefined
       };
     },
     setPriceRange: (state, action) => {

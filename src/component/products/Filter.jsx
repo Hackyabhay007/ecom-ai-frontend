@@ -8,58 +8,76 @@ import FilterSkeleton from './FilterSkeleton';
 
 const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const dispatch = useDispatch();
-  // Add showSaleOnly state
   const [showSaleOnly, setShowSaleOnly] = useState(false);
-  
-  // Get all necessary states from Redux store
-  const { 
-    filters,
-    appliedFilters,
-    loading: storeLoading,  // Get loading state from store
-    error: storeError      // Get error state from store
-  } = useSelector((state) => state.shop);
+  const { filters, appliedFilters, loading: storeLoading, error: storeError } = useSelector((state) => state.shop);
   const Route = useRouter();
 
   // Get dynamic values from Redux store
   const availableSizes = filters.sizes || [];
   const availableColors = filters.colors || [];
   const availableCategories = filters.categories || [];
-  const availableCollections = filters.collections || []; // Add this line
-  
-  // Initialize price range from filters
-  const [Range, setRange] = useState({
-    min: filters.priceRange.min || 0,
-    max: filters.priceRange.max || 1000,
+  const availableCollections = filters.collections || [];
+
+  // Price range states
+  const [sliderValues, setSliderValues] = useState([
+    filters.priceRange?.min || 0,
+    filters.priceRange?.max || 10000
+  ]);
+
+  const [inputValues, setInputValues] = useState({
+    min: filters.priceRange?.min || 0,
+    max: filters.priceRange?.max || 10000
   });
 
-  // Update range when filters change
-  useEffect(() => {
-    if (filters.priceRange) {
-      setRange({
-        min: filters.priceRange.min,
-        max: filters.priceRange.max
-      });
-    }
-  }, [filters.priceRange]);
-
-  const handlePriceChange = useCallback((type, value) => {
-    const newRange = { ...Range, [type]: value };
-    setRange(newRange);
-  }, [Range]);
-
-  const handleSliderChange = (value) => {
-    dispatch(setPriceRange({ min: value[0], max: value[1] }));
-    
-    // Dispatch search with updated price range
-    dispatch(fetchProductsBySearch({
-      filters: {
-        ...filters,
-        minPrice: value[0],
-        maxPrice: value[1]
-      }
-    }));
+  // Debounce function
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
   };
 
+  // Price handlers
+  const handleSliderChange = useCallback((value) => {
+    setSliderValues(value);
+  }, []);
+
+  const debouncedPriceUpdate = useCallback(
+    debounce((values) => {
+      dispatch(setPriceRange({ min: values[0], max: values[1] }));
+      updateQueryParams({ min_price: values[0], max_price: values[1] });
+    }, 500),
+    [dispatch]
+  );
+
+  const handleSliderAfterChange = useCallback((value) => {
+    debouncedPriceUpdate(value);
+  }, [debouncedPriceUpdate]);
+
+  const handleInputChange = useCallback((type, value) => {
+    const numValue = parseInt(value) || 0;
+    const newValues = [...sliderValues];
+    
+    if (type === 'min') {
+      newValues[0] = Math.min(numValue, sliderValues[1]);
+    } else {
+      newValues[1] = Math.max(numValue, sliderValues[0]);
+    }
+    
+    setSliderValues(newValues);
+    setInputValues(prev => ({ ...prev, [type]: numValue }));
+    debouncedPriceUpdate(newValues);
+  }, [sliderValues, debouncedPriceUpdate]);
+
+  // Sale toggle handler
+  const handleSaleToggle = useCallback(() => {
+    const newSaleValue = !showSaleOnly;
+    setShowSaleOnly(newSaleValue);
+    updateQueryParams({ onSale: newSaleValue || null });
+  }, [showSaleOnly]);
+
+  // Update query params
   const updateQueryParams = useCallback((newParams) => {
     const currentQuery = { ...Route.query };
     const updatedQuery = { ...currentQuery, ...newParams };
@@ -105,6 +123,22 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
     dispatch(fetchProductsBySearch({ filters: searchFilters }));
   }, [appliedFilters, Route, dispatch, availableCategories]);
 
+  // Effects
+  useEffect(() => {
+    if (filters.priceRange) {
+      setSliderValues([filters.priceRange.min, filters.priceRange.max]);
+      setInputValues({
+        min: filters.priceRange.min,
+        max: filters.priceRange.max
+      });
+    }
+  }, [filters.priceRange]);
+
+  useEffect(() => {
+    const onSale = Route.query.onSale === 'true';
+    setShowSaleOnly(onSale);
+  }, [Route.query.onSale]);
+
   const {
     cat_id,
     cat_name,
@@ -140,12 +174,6 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const handleSizeFilter = useCallback((size) => {
     updateQueryParams({ size });
   }, [updateQueryParams]);
-
-  // Add handler for sale toggle
-  const handleSaleToggle = useCallback(() => {
-    setShowSaleOnly(prev => !prev);
-    updateQueryParams({ onSale: !showSaleOnly });
-  }, [showSaleOnly, updateQueryParams]);
 
   useEffect(() => {
     if (isMobileFilterOpen) {
@@ -280,68 +308,68 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
             </p>
             <hr className="my-4" />
           </div> */}
-          <div className="mb-4">
-            <h3 className="text-md font-semibold text-black mb-2">Price</h3>
-            <div className="flex items-center gap-4">
+          <div className="mb-6">
+            <h3 className="text-md font-semibold text-black mb-4">Price Range</h3>
+            
+            {/* Price inputs */}
+            <div className="flex items-center gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-black">
-                  Min Price
-                </label>
+                <label className="block text-sm text-gray-600 mb-1">Min</label>
                 <input
                   type="number"
-                  className="border border-gray-300 rounded p-2 w-24"
-                  value={Range.min}
-                  onChange={(e) =>
-                    handlePriceChange("min", Number(e.target.value))
-                  }
+                  min="0"
+                  value={inputValues.min}
+                  onChange={(e) => handleInputChange('min', e.target.value)}
+                  className="w-24 p-2 border rounded-md focus:ring-1 focus:ring-theme-blue"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-black">
-                  Max Price
-                </label>
+                <label className="block text-sm text-gray-600 mb-1">Max</label>
                 <input
                   type="number"
-                  className="border border-gray-300 rounded p-2 w-24"
-                  value={Range.max}
-                  onChange={(e) =>
-                    handlePriceChange("max", Number(e.target.value))
-                  }
+                  min="0"
+                  value={inputValues.max}
+                  onChange={(e) => handleInputChange('max', e.target.value)}
+                  className="w-24 p-2 border rounded-md focus:ring-1 focus:ring-theme-blue"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 px-2 w-full overflow-hidden">
-              {/* Slider for Price */}
+            {/* Slider */}
+            <div className="px-2 py-4">
               <Slider
                 range
                 min={0}
-                max={Range.max}
-                className="px-2 mt-2"
-                step={10}
-                trackStyle={{ backgroundColor: "black" }} // Set the track color to black
-                handleStyle={{
-                  backgroundColor: "black", // Set the handle color to black
-                  borderColor: "black", // Set the handle border color to black
-                }}
-                value={[priceRange.min, priceRange.max]}
+                max={10000}
+                step={100}
+                value={sliderValues}
                 onChange={handleSliderChange}
-                marks={{
-                  0: `₹0`,
-                  1000: `₹1000`,
-                  5000: `₹5000`,
-                  10000: `₹10000`,
-                }}
+                onAfterChange={handleSliderAfterChange}
+                trackStyle={[{ backgroundColor: '#153A63' }]}
+                handleStyle={[
+                  { borderColor: '#153A63', backgroundColor: 'white' },
+                  { borderColor: '#153A63', backgroundColor: 'white' }
+                ]}
+                railStyle={{ backgroundColor: '#E5E7EB' }}
               />
-
-              <div className="flex justify-between text-sm">
-                <span>₹{priceRange.min}</span>
-                <span>₹{priceRange.max}</span>
+              <div className="flex justify-between mt-2 text-sm text-gray-600">
+                <span>₹{sliderValues[0]}</span>
+                <span>₹{sliderValues[1]}</span>
               </div>
-                <button onClick={()=>updateQueryParams({min_price : priceRange.min , max_price : priceRange.max })} className=" border-2 border-black bg-white text-black py-1 rounded-md hover:bg-black hover:text-white duration-150 ">
-                  Apply
-                </button>
             </div>
+          </div>
+
+          {/* Sale toggle with state sync */}
+          <div className="mb-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showSaleOnly}
+                onChange={handleSaleToggle}
+                className="form-checkbox h-4 w-4 text-theme-blue rounded border-gray-300"
+              />
+              <span className="text-sm font-medium">Sale Items Only</span>
+            </label>
           </div>
 
           {/* Colors Filter Section */}
