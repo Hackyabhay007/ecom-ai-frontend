@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchSingleProduct } from '../../../redux/slices/shopSlice';
 import ProductView from '../../component/products/product_view/ProductView';
 import Loader from '../../component/loader/Loader';
+import { addViewedProduct } from '../../../utils/cookieUtils';
 
 const ProductPage = () => {
   const router = useRouter();
@@ -22,6 +23,18 @@ const ProductPage = () => {
       dispatch(fetchSingleProduct(id));
     }
   }, [dispatch, id]);
+
+  // Save product to cookies when loaded
+  useEffect(() => {
+    if (selectedProduct) {
+      addViewedProduct({
+        id: selectedProduct.id,
+        title: selectedProduct.title,
+        variants: selectedProduct.variants,
+        thumbnail: selectedProduct.thumbnail
+      });
+    }
+  }, [selectedProduct]);
 
   if (!id) {
     return <Loader />;

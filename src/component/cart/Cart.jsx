@@ -39,27 +39,38 @@ const Cart = () => {
     return typeof window !== 'undefined' ? Cookies.get('auth_token') : null;
   }, []);
 
-  // Initialize cart based on auth status
+  // Memoize cart data to prevent unnecessary rerenders
+  const cartData = useMemo(() => ({
+    items,
+    totalAmount,
+    loading,
+  }), [items, totalAmount, loading]);
+
+  // Prevent cart re-initialization during navigation
   useEffect(() => {
-    const initCart = async () => {
-      try {
-        if (!isInitialized) {
+    if (!isInitialized && !router.isFallback) {
+      const initCart = async () => {
+        try {
           if (!authToken && !guestId) {
-            // Initialize guest ID for non-authenticated users
             await dispatch(initializeGuestId());
           }
-
-          // Fetch cart data
           await dispatch(getAllCart()).unwrap();
+        } catch (error) {
+          console.error('Failed to initialize cart:', error);
+        } finally {
           setIsInitialized(true);
         }
-      } catch (error) {
-        console.error('Failed to initialize cart:', error);
-      }
-    };
+      };
+      initCart();
+    }
+  }, [authToken, guestId, isInitialized, dispatch, router.isFallback]);
 
-    initCart();
-  }, [authToken, guestId, isInitialized, dispatch]);
+  // Add persistent cart data
+  const persistentCartData = useMemo(() => ({
+    items,
+    totalAmount,
+    loading
+  }), [items, totalAmount, loading]);
 
   // Move debug logging to development only
   if (process.env.NODE_ENV === 'development') {
@@ -124,12 +135,19 @@ const Cart = () => {
 
   return (
     <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
-      {/* Left Component - Related Products */}
-      <div className="md:w-1/2 p-5 border-r overflow-y-scroll scrollbar-custom">
-        <h2 className="md:text-xl text-md capitalize text-theme-blue font-bold md:px-4 mb-5 md:mb-10">
-          {authToken ? "Products you may like" : "Sign in to save your cart"}
+      {/* Left Component - Related Products - Updated layout */}
+      <div className="md:w-1/2 p-5 border-r overflow-y-auto scrollbar-custom">
+        <h2 className="text-lg font-semibold text-theme-blue mb-4">
+          {authToken ? "You May Also Like" : "Sign in to save your cart"}
         </h2>
-        <CartRelatedProducts items={items} />
+        <div className="pr-2">
+          {isInitialized && (
+            <CartRelatedProducts 
+              items={persistentCartData.items} 
+              key={router.asPath} // Add key to force preserve state
+            />
+          )}
+        </div>
       </div>
 
       {/* Right Component - Cart Items and Summary */}
@@ -170,4 +188,7 @@ const Cart = () => {
   );
 };
 
-export default Cart;
+// Memoize cart component with custom comparison
+export default React.memo(Cart, (prevProps, nextProps) => {
+  return prevProps.router?.asPath === nextProps.router?.asPath;
+});
