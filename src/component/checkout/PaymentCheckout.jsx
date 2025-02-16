@@ -1,18 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { processPayment } from "@/redux/slices/orderSlice";
+import { createOrder } from "@/redux/slices/orderSlice";
 import PaymentOptions from './PaymentOptions';
 import { clearCart } from "@/redux/slices/cartSlice";
 
-function PaymentCheckout({ onPaymentComplete }) {
+function PaymentCheckout({ onPaymentComplete, formData }) {
   const dispatch = useDispatch();
   const [selectedMethod, setSelectedMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const { currentOrder } = useSelector(state => state.orders);
   const { items, totalAmount } = useSelector(state => state.cart);
+  const { currentOrder, paymentData } = useSelector(state => state.orders);
 
   const handlePayment = async () => {
-    if (!selectedMethod || !currentOrder?.id) {
+    if (!selectedMethod) {
       alert('Please select a payment method');
       return;
     }
@@ -20,19 +20,21 @@ function PaymentCheckout({ onPaymentComplete }) {
     setIsProcessing(true);
 
     try {
-      await dispatch(processPayment({
-        orderId: currentOrder.id,
-        paymentMethod: selectedMethod,
-        paymentData: {
-          amount: totalAmount,
-          currency: 'INR',
-          // Add other payment-specific data here
-        }
+      // Create order first
+      const result = await dispatch(createOrder({
+        items,
+        shippingAddress: formData,
+        paymentMethod: selectedMethod
       })).unwrap();
 
-      // Clear cart after successful payment
-      dispatch(clearCart());
-      onPaymentComplete();
+      // If payment URL is provided, redirect to payment gateway
+      if (result.paymentData?.url) {
+        window.location.href = result.paymentData.url;
+      } else {
+        // Handle other payment flows
+        dispatch(clearCart());
+        onPaymentComplete(result.order);
+      }
     } catch (error) {
       console.error('Payment failed:', error);
       alert('Payment failed. Please try again.');
