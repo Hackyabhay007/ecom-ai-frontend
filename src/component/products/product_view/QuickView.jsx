@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../../../redux/slices/cartSlice"; // Update import
-import { updateCart } from "../../../lib/data/cart";
 import { useRouter } from "next/router";
 import { useRegion } from "../../../contexts/RegionContext";
+import { formatPriceToINR } from "../../../../utils/currencyUtils"; // Add this import
 import { size } from "lodash";
 
 const QuickView = ({ productId, initialData, onClose }) => {
@@ -180,160 +180,165 @@ const QuickView = ({ productId, initialData, onClose }) => {
   }
 
   return (
-    <div onClick={handleContainerClick} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-5 pb-20 md:pb-5 z-50 ">
-      <div className="bg-white w-full md:w-2/3 h-full md:h-auto md:max-h-[90%] rounded-lg flex flex-col md:flex-row transform px-1 pb-2 animate-scale-up sm:overflow-hidden overflow-y-auto">
+    <div 
+      onClick={handleContainerClick} 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-50 backdrop-blur-sm"
+    >
+      <div className="bg-white w-full md:w-4/5 lg:w-3/4 h-[90vh] rounded-2xl flex flex-col md:flex-row relative overflow-hidden">
         {/* Close Button */}
         <button
-          className="absolute top-4 right-4 bg-gray-200 hover:bg-black hover:text-white transition-all duration-300 rounded-full w-8 h-8 flex items-center justify-center text-black"
           onClick={onClose}
+          className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-black hover:text-white transition-all duration-300"
         >
-          X
+          ✕
         </button>
 
-        {/* Images Section */}
-        <div className="md:w-1/3 w-full flex flex-col items-center min-h-20 gap-4 p-4 overflow-y-auto scrollbar-custom">
-          <Image
-            src={initialData?.images[0]?.url}
-            alt={initialData?.images[0]?.alt}
-            width={300}
-            height={300}
-            className="rounded-lg object-cover"
-          />
-          {additionalImages && additionalImages.map((image, index) => (
-            <Image
-              key={index}
-              src={image.url}
-              alt={`Additional Image ${index + 1}`}
-              width={300}
-              height={100}
-              className="rounded-lg object-cover"
-            />
-          ))}
+        {/* Images Section - Left */}
+        <div className="md:w-1/2 p-6 overflow-y-auto scrollbar-hide">
+          <div className="space-y-4">
+            {/* Main Image */}
+            <div className="relative aspect-square w-full rounded-2xl overflow-hidden">
+              <Image
+                src={initialData?.images[0]?.url}
+                alt={initialData?.images[0]?.alt}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            
+            {/* Additional Images */}
+            <div className="grid grid-cols-2 gap-4">
+              {initialData?.variants?.[0]?.images?.map((image, index) => (
+                <div key={index} className="relative aspect-square rounded-xl overflow-hidden">
+                  <Image
+                    src={image.url}
+                    alt={`Product view ${index + 1}`}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Product Details Section */}
-        <div className="md:w-2/3 w-full p-6 flex flex-col">
-          <h1 className="text-2xl font-bold mb-2">{product.title}</h1>
-
-          {/* Star Rating */}
-          <div className="flex items-center mb-4">
-            {Array.from({ length: averageRating }, (_, i) => (
-              <i key={i} className="ri-star-fill text-yellow-400"></i>
-            ))}
+        {/* Product Details - Right */}
+        <div className="md:w-1/2 p-8 overflow-y-auto scrollbar-hide bg-gray-50">
+          <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
+          
+          {/* Category */}
+          <div className="mb-6">
+            <span className="text-gray-600">Category: </span>
+            <span className="font-medium">{initialData?.category?.name}</span>
           </div>
 
-          {/* Pricing Details */}
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-md text-theme-blue font-bold">
-            ₹ {product?.metadata?.discount > 0
-                ? discountedAmount
-                : getVariantPrice()}
+          {/* Price */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-2xl font-bold text-theme-blue">
+              {product?.metadata?.discount > 0
+                ? formatPriceToINR(discountedAmount)
+                : formatPriceToINR(getVariantPrice())}
             </span>
             {product?.metadata?.discount > 0 && (
               <>
-                <span className="text-sub-color text-sm line-through">
-                ₹ {getVariantPrice()}
-                </span>{" "}
-                <span className="text-cream bg-discount-color px-2 py-1 rounded-full text-xs font-semibold">
-                  -{discount}%
+                <span className="text-gray-400 line-through">
+                  {formatPriceToINR(getVariantPrice())}
+                </span>
+                <span className="bg-[#D2EF9A] text-black px-2 py-1 rounded-full text-sm">
+                  -{discount}% OFF
                 </span>
               </>
             )}
           </div>
 
-          {/* Categories */}
-          <div className="mb-4">
-            <span className="text-md font-bold">Category: </span>
-            {
-              initialData?.category?.name
-            }
-            {/* {categories.map((category, index) => (
-              <span key={index} className="text-sm text-sub-color mr-2">
-                {category.name}
-              </span>
-            ))} */}
-          </div>
-
           {/* Colors */}
-          <div className="mb-4">
-            <span className="text-md font-bold">Color: </span>
-            <div className="flex my-2 gap-2">
-              {colors?.map((color, index) => (
-                <div
-                  key={index}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer ${
-                    selectedColor === color ? "border-black" : ""
-                  }`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => {
-                    setSelectedColor(color);
-                    getVariantPrice();
-                  }}
-                />
-              ))}
+          {colors?.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-medium mb-3">Color</h3>
+              <div className="flex gap-3">
+                {colors?.map((color, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedColor(color)}
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${
+                      selectedColor === color
+                        ? 'border-theme-blue ring-2 ring-theme-blue ring-offset-2'
+                        : 'border-gray-300 hover:border-theme-blue'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Sizes */}
-          <div className="mb-4">
-            <span className="text-md font-bold">Size: </span>
-            <div className="flex my-2 gap-4">
-              {sizes?.map((size, index) => (
-                <div
-                  key={index}
-                  className={`w-10 h-10 border rounded-full flex items-center justify-center cursor-pointer ${
-                    selectedSize === size ? "border-black" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedSize(size);
-                    getVariantPrice();
-                  }}
-                >
-                  {size}
-                </div>
-              ))}
+          {sizes?.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-medium mb-3">Size</h3>
+              <div className="flex flex-wrap gap-3">
+                {sizes?.map((size, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedSize(size)}
+                    className={`min-w-[48px] h-12 rounded-lg border-2 transition-all ${
+                      selectedSize === size
+                        ? 'border-theme-blue bg-theme-blue text-white'
+                        : 'border-gray-300 hover:border-theme-blue'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Quantity and Add to Cart */}
-          <h3 className=" text-md font-semibold">Quantity:</h3>
-          <div className="flex flex-wrap items-center gap-2 ">
-            <div className="flex items-center min-w-20 w-1/3 border rounded-lg">
+          {/* Quantity */}
+          <div className="mb-6">
+            <h3 className="font-medium mb-3">Quantity</h3>
+            <div className="flex items-center h-12 w-32 border-2 border-gray-300 rounded-lg">
               <button
-                className="px-3 py-2"
                 onClick={() => handleQuantityChange("decrement")}
+                className="w-12 h-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
-                -
+                −
               </button>
               <input
                 type="text"
                 value={quantity}
                 readOnly
-                className="w-full text-center"
+                className="w-full text-center bg-transparent"
               />
               <button
-                className="px-3 py-2"
                 onClick={() => handleQuantityChange("increment")}
+                className="w-12 h-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
                 +
               </button>
             </div>
-            <button
-              className={`w-full  rounded-lg px-6 py-2 ${
-                isAdded
-                  ? "bg-green-500 text-white"
-                  : "bg-white border-2 border-gray-300"
-              }`}
-              onClick={handleAddToCart}
-            >
-              {isAdded ? "Added to Cart" : "Add to Cart"}
-            </button>
-            <button onClick={()=>handleBuyNow()} className="bg-black text-white w-full px-6 py-2 rounded-lg ">
-              Buy It Now
-            </button>
           </div>
 
-          {/* Buy Now Button */}
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleAddToCart}
+              className={`w-full h-12 rounded-full transition-all ${
+                isAdded
+                  ? 'bg-green-500 text-white'
+                  : 'bg-theme-blue text-white hover:bg-black'
+              }`}
+            >
+              {isAdded ? '✓ Added to Cart' : 'Add to Cart'}
+            </button>
+            <button
+              onClick={() => handleBuyNow()}
+              className="w-full h-12 rounded-full bg-black text-white hover:bg-theme-blue transition-all"
+            >
+              Buy Now
+            </button>
+          </div>
         </div>
       </div>
     </div>

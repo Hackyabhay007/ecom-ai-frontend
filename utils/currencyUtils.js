@@ -13,6 +13,13 @@ export const formatINR = (price) => {
   }).format(price);
 };
 
-export const formatPriceToINR = (usdPrice) => {
-  return formatINR(convertToINR(usdPrice));
+export const formatPriceToINR = (price) => {
+  if (!price) return '₹0';
+  
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(price);
 };

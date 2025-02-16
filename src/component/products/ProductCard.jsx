@@ -307,125 +307,77 @@ const ProductCard = ({ product, layout }) => {
   }
 
   if (layout === "list") {
-    const variant = product.variants?.[0];
-    const mainImage = variant?.images?.[0]?.url;
-    const price = variant?.price;
-    const isOnSale = variant?.isOnSale;
-    const salePrice = variant?.salePrice;
-
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="group flex gap-6 bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
+        className="flex flex-row gap-4 bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 p-4"
       >
-        {/* Product Image Container */}
-        <div className="relative w-64 min-h-[300px]">
-          <div className="relative h-full w-full">
-            <Image
-              src={mainImage || '/placeholder.png'}
-              alt={product.name}
-              fill
-              className="object-cover rounded-l-2xl"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority
-            />
-            {/* Only show Sale tag */}
-            {isOnSale && (
-              <span className="absolute top-2 left-2 bg-[#DB4444] text-white text-xs px-3 py-1 rounded-full font-medium">
-                SALE
-              </span>
-            )}
-          </div>
+        {/* Product Image */}
+        <div className="w-1/3 md:w-48 relative aspect-square flex-shrink-0">
+          <Image
+            src={primaryImage || '/placeholder.png'}
+            alt={product.name}
+            fill
+            className="object-cover rounded-xl"
+            sizes="(max-width: 768px) 33vw, 200px"
+            priority
+          />
+          {discountes > 0 && (
+            <span className="absolute top-2 left-2 bg-[#DB4444] text-white text-xs px-3 py-1 rounded-full">
+              SALE
+            </span>
+          )}
         </div>
 
         {/* Product Details */}
-        <div className="flex-1 p-6 flex flex-col">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2 group-hover:text-theme-blue transition-colors">
-                {product.name}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {product.category?.name}
-              </p>
-            </div>
-            <div className="text-right">
-              {isOnSale ? (
-                <div className="flex flex-col items-end">
-                  <span className="text-[#DB4444] font-semibold text-lg">{formatPriceToINR(salePrice)}</span>
-                  <span className="text-gray-400 line-through text-sm">{formatPriceToINR(price)}</span>
+        <div className="flex-1 flex flex-col justify-between">
+          <div>
+            <h3 className="text-base md:text-lg font-semibold mb-1">{product.name}</h3>
+            <p className="text-gray-600 text-sm mb-2">{product.category?.name}</p>
+            
+            <div className="mb-2">
+              {discount > 0 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[#DB4444] font-semibold">{discountedamount}</span>
+                  <span className="text-gray-400 line-through text-sm">{formatPriceToINR(variantPrice)}</span>
+                  <span className="bg-[#D2EF9A] text-black text-xs px-2 py-1 rounded-full">
+                    -{discount}% off
+                  </span>
                 </div>
               ) : (
-                <span className="font-semibold text-lg">{formatPriceToINR(price)}</span>
+                <span className="font-semibold">{formatPriceToINR(variantPrice)}</span>
               )}
             </div>
-          </div>
 
-          <p className="text-gray-600 text-sm mb-6 line-clamp-2">
-            {product.description}
-          </p>
-
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Size:</span>
-              <span className="font-medium">{variant?.size}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Color:</span>
-              <div 
-                className="w-4 h-4 rounded-full border"
-                style={{ backgroundColor: variant?.color?.toLowerCase() }}
-              ></div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Stock:</span>
-              <span className={`text-sm font-medium ${variant?.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {variant?.stock > 0 ? 'In Stock' : 'Out of Stock'}
-              </span>
-            </div>
+            <p className="text-gray-600 text-sm mb-4 line-clamp-2 hidden md:block">
+              {description}
+            </p>
           </div>
 
           {/* Actions */}
-          <div className="mt-auto flex items-center gap-4">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleAddToCart(e);
-                setAddedToCart(true);
-                setTimeout(() => setAddedToCart(false), 2000);
               }}
-              className="flex-1 bg-black text-white py-2 rounded-full hover:bg-theme-blue transition-colors duration-300"
+              className="flex-1 min-w-[120px] bg-black text-white py-2 rounded-full hover:bg-theme-blue transition-colors"
             >
               {addedToCart ? 'Added ✓' : 'Add to Cart'}
             </button>
-            
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsQuickViewOpen(true);
-                }}
-                className="px-4 py-2 border border-black rounded-full hover:bg-black hover:text-white transition-all duration-300"
-              >
-                Quick View
-              </button>
-              
-              {isQuickViewOpen && (
-                <QuickView
-                  productId={id}
-                  initialData={product}
-                  onClose={(e) => {
-                    e?.stopPropagation();
-                    setIsQuickViewOpen(false);
-                  }}
-                />
-              )}
-            </div>
-
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsQuickViewOpen(true);
+              }}
+              className="px-4 py-2 border border-black rounded-full hover:bg-black hover:text-white transition-colors"
+            >
+              Quick View
+            </button>
             <button
               onClick={(e) => handleAddToWishlist(e)}
-              className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors duration-300 ${
+              className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full border transition-colors ${
                 isInWishlist 
                   ? 'bg-theme-blue text-white border-theme-blue' 
                   : 'border-black hover:bg-black hover:text-white'
