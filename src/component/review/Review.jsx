@@ -135,7 +135,7 @@ const Review = () => {
 
   const ReviewCard = ({ review, index, animate = true }) => (
     <motion.div 
-      className="w-full md:w-1/3 px-4 mb-4 flex"
+      className="w-full md:w-1/3 px-4 mb-4"
       initial={animate ? { opacity: 0, y: 20 } : { opacity: 1 }}
       animate={animate ? { 
         opacity: 1, 
@@ -147,26 +147,21 @@ const Review = () => {
         } 
       } : {}}
       exit={animate ? { opacity: 0, y: -20 } : {}}
-      whileHover={{ 
-        scale: 1.02,
-        transition: { duration: 0.3, ease: "easeOut" }
-      }}
     >
       <motion.div 
-        className="border-2 border-theme-blue rounded-lg p-6 shadow-md bg-white w-full flex flex-col"
+        className="border-2 border-theme-blue rounded-lg p-6 bg-white h-full"
         initial={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
         whileHover={{ 
-          boxShadow: "0 10px 15px rgba(0, 0, 0, 0.2)",
-          transition: { duration: 0.3 }
+          boxShadow: "0 8px 12px rgba(0, 0, 0, 0.15)",
+          transition: { duration: 0.2 }
         }}
       >
         <div className="flex items-start space-x-4 mb-4">
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 w-16 h-16 relative">
             <Image
               src={review?.profile_picture || '/default-avatar.png'}
               alt={`${review?.name || 'User'}'s profile`}
-              width={64}
-              height={64}
+              fill
               className="rounded-xl object-cover"
             />
           </div>
@@ -182,7 +177,7 @@ const Review = () => {
             </p>
           </div>
         </div>
-        <p className="text-gray-700 flex-1 line-clamp-4">
+        <p className="text-gray-700 line-clamp-4">
           {review?.message}
         </p>
       </motion.div>
