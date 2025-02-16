@@ -33,6 +33,7 @@ const Cart = () => {
   const { items, totalAmount, loading, guestId } = useSelector(state => state.cart);
   const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [hasRelatedProducts, setHasRelatedProducts] = useState(false);
 
   // Memoize auth token
   const authToken = useMemo(() => {
@@ -105,6 +106,11 @@ const Cart = () => {
     }
   }, [items]);
 
+  // Handler for CartRelatedProducts status
+  const handleProductsLoad = (hasProducts) => {
+    setHasRelatedProducts(hasProducts);
+  };
+
   // Right Component section
   const renderCartContent = () => {
     const currentItems = items?.length > 0 ? items : persistentItems;
@@ -146,19 +152,24 @@ const Cart = () => {
   };
 
   return (
-    <div className="flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px]">
-      {/* Left Component - Related Products - Only show if initialized */}
+    <div className={`flex mb-20 py-16 md:py-0 md:mb-0 flex-col-reverse md:flex-row h-fit md:h-[550px] ${!hasRelatedProducts ? 'justify-center' : ''}`}>
+      {/* Only render related products section if there are products to show */}
       {isInitialized && persistentCartData.items.length > 0 && (
         <div className="md:w-1/2 p-5 border-r overflow-y-auto scrollbar-custom">
           <CartRelatedProducts 
             items={persistentCartData.items} 
             key={router.asPath}
+            onProductsLoad={handleProductsLoad}
           />
         </div>
       )}
 
-      {/* Right Component - Make it full width if no related products */}
-      <div className={`${isInitialized && persistentCartData.items.length > 0 ? 'md:w-1/2' : 'w-full'} flex flex-col`}>
+      {/* Cart section - Full width when no related products */}
+      <div className={`
+        flex flex-col
+        ${hasRelatedProducts ? 'md:w-1/2' : 'md:w-3/4 mx-auto'} 
+        transition-all duration-300
+      `}>
         <div className="p-6 flex-1 overflow-y-scroll scrollbar-custom">
           {renderCartContent()}
         </div>

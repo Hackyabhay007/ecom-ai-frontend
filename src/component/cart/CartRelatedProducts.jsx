@@ -7,7 +7,7 @@ import { fetchProductsBySearch } from "../../../redux/slices/shopSlice";
 import { getViewedProducts } from "../../../utils/cookieUtils";
 import { useRouter } from 'next/router';
 
-const CartRelatedProducts = ({items}) => {
+const CartRelatedProducts = ({items, onProductsLoad}) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -79,6 +79,13 @@ const CartRelatedProducts = ({items}) => {
 
     loadProducts();
   }, [cartItemCategories, cartItems, dispatch]);
+
+  useEffect(() => {
+    // Notify parent component about products availability
+    if (typeof onProductsLoad === 'function') {
+      onProductsLoad(displayProducts.length > 0);
+    }
+  }, [displayProducts, onProductsLoad]);
 
   // Don't render anything if no products to display
   if (!isLoading && displayProducts.length === 0) {
