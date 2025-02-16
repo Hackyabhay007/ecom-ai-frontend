@@ -1,13 +1,8 @@
-export const cleanBaseUrl = (url) => {
-    if (!url) return 'http://localhost:9000';
-    return url.replace(/;$/, '').replace(/\/$/, '');
-};
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-export const BASE_URL = cleanBaseUrl(process.env.NEXT_PUBLIC_API_URL);
-
-export const createApiUrl = (path) => {
-    console.log("Path:", path);
-    const url = new URL(path, BASE_URL);
-    console.log("URL:", url.toString());
-    return url.toString();
+export const createApiUrl = (path) => `${API_BASE_URL}${path}`;
+export const createImageUrl = (path) => {
+  if (!path) return '/default-avatar.png';
+  if (path.startsWith('http')) return path;
+  return `${API_BASE_URL}${path}`;
 };

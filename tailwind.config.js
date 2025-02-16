@@ -21,6 +21,9 @@ module.exports = {
           light: "#6a11cb",
           dark: "#2575fc",
         },
+        primary: '#153A63', // or your app's primary color
+        'primary/90': '#153A63',
+        'primary/50': '#153A63',
       },
       backgroundImage: {
         "gradient-custom": "linear-gradient(to right, #6a11cb, #2575fc)",
