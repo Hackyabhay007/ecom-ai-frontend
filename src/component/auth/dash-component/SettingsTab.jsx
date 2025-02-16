@@ -4,6 +4,9 @@ import { updateProfile } from '@/redux/slices/authSlice';
 import { createImageUrl } from 'utils/apiConfig';
 
 const SettingsTab = ({ userInfo }) => {
+
+  console.log("settings tab user info", userInfo);
+  
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
@@ -15,6 +18,7 @@ const SettingsTab = ({ userInfo }) => {
     newPassword: '',
     profilePicture: null
   });
+  
   const [preview, setPreview] = useState(userInfo?.profilePicture || null);
 
   const handleInputChange = (e) => {
@@ -65,7 +69,7 @@ const SettingsTab = ({ userInfo }) => {
           <div className="shrink-0">
             <img 
               className="h-20 w-20 object-cover rounded-full border-2 border-gray-200"
-              src={preview ? preview : createImageUrl(userInfo?.profilePicture)}
+              src={preview ? preview : userInfo?.profilePicture}
               alt="Profile"
             />
           </div>

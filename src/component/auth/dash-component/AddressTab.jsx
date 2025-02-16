@@ -1,198 +1,94 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  retrieveCustomer,
-  createOrUpdateAddress,
-} from "@/redux/slices/authSlice";
+import { updateProfile } from "@/redux/slices/authSlice";
 
 const AddressForm = () => {
   const dispatch = useDispatch();
-  
-  // Access user data from auth state
   const { user, loading, error } = useSelector((state) => state.auth);
-
-  // Log user data for debugging
-  console.log('User data in AddressForm:', user);
+  const [buttonText, setButtonText] = useState("Update Address");
 
   // Initialize state with user data
   const [newAddress, setNewAddress] = useState({
-    address_name: '',
-    company: '',
-    first_name: '',
-    last_name: '',
-    address_1: '',
-    address_2: '',
+    street: '',
     city: '',
-    country_code: '',
-    province: '',
-    postal_code: '',
-    phone: '',
-    is_default_billing: false,
-    is_default_shipping: false,
-    metadata: {},
+    state: '',
+    country: '',
+    zipCode: '',
+    isDefault: false
   });
-
-  // Add buttonText state
-  const [buttonText, setButtonText] = useState("Update Address");
 
   // Update form when user data changes
   useEffect(() => {
-    if (user) {
-      setNewAddress(prev => ({
-        ...prev,
-        // Map both camelCase and snake_case variations
-        first_name: user.firstName || user.first_name || '',
-        last_name: user.lastName || user.last_name || '',
-        phone: user.phone || '',
-        // Set address name based on user's name if not set
-        address_name: prev.address_name || '',
-        // Merge existing address data if available
-        ...(user.addresses?.[0] || {})
-      }));
+    if (user && user.addresses?.[0]) {
+      const defaultAddress = user.addresses[0];
+      setNewAddress({
+        street: defaultAddress.street || '',
+        city: defaultAddress.city || '',
+        state: defaultAddress.state || '',
+        country: defaultAddress.country || '',
+        zipCode: defaultAddress.zipCode || '',
+        isDefault: defaultAddress.isDefault || false
+      });
     }
   }, [user]);
 
-  // Fetch user data if not available
-  useEffect(() => {
-    if (!user) {
-      dispatch(retrieveCustomer());
-    }
-  }, [dispatch, user]);
-
-  // Show loading state
-  if (loading) {
-    return <div className="text-center py-4">Loading address information...</div>;
-  }
-
-  // Show error state
-  if (error) {
-    return <div className="text-red-500 text-center py-4">Error: {error}</div>;
-  }
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    console.log(name, value, type, checked);
-
     setNewAddress((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (e) => {
+    e.preventDefault();
     try {
       setButtonText("Updating...");
 
-      console.log(newAddress);  
+      // Create FormData object for the update
+      const formData = new FormData();
+      
+      // Add the address to the addresses array
+      formData.append('addresses', JSON.stringify([newAddress]));
+      
+      // Keep existing user data
+      if (user.firstName) formData.append('firstName', user.firstName);
+      if (user.lastName) formData.append('lastName', user.lastName);
+      if (user.dateOfBirth) formData.append('dateOfBirth', user.dateOfBirth);
 
-      await dispatch(createOrUpdateAddress({ addressData: newAddress }));
-
-
-
+      await dispatch(updateProfile(formData)).unwrap();
       setButtonText("Update Successful ✔");
-      setTimeout(() => setButtonText("Update Address"), 4000);
+      setTimeout(() => setButtonText("Update Address"), 2000);
     } catch (error) {
       setButtonText("Update Failed ❌");
       console.error("Error updating address:", error);
-      setTimeout(() => setButtonText("Update Address"), 4000);
+      setTimeout(() => setButtonText("Update Address"), 2000);
     }
   };
 
+  // ... rest of your render code with the form remains the same, but update input names to match new structure ...
   return (
     <div className="md:p-4 p-1">
       <div className="border rounded-lg p-6 bg-white">
         <h2 className="md:text-lg text-md font-bold mb-6 border-b pb-2">
-          Billing Address
+          Update Address
         </h2>
-        <div className="space-y-6">
-          {/* Name Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                First Name*
-              </label>
-              <input
-                type="text"
-                name="first_name"
-                value={newAddress.first_name}
-                onChange={handleChange}
-                className="w-full py-4 px-4 border rounded-lg"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Last Name*
-              </label>
-              <input
-                type="text"
-                name="last_name"
-                value={newAddress.last_name}
-                onChange={handleChange}
-                className="w-full py-4 px-4 border rounded-lg"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Company and Address Name */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Company Name
-              </label>
-              <input
-                type="text"
-                name="company"
-                value={newAddress.company}
-                onChange={handleChange}
-                className="w-full py-4 px-4 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Address Name
-              </label>
-              <input
-                type="text"
-                name="address_name"
-                value={newAddress.address_name}
-                onChange={handleChange}
-                className="w-full py-4 px-4 border rounded-lg"
-              />
-            </div>
-          </div>
-
-          {/* Address Fields */}
+        <form onSubmit={handleUpdate} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Street Address 1*
+              Street Address*
             </label>
             <input
               type="text"
-              name="address_1"
-              value={newAddress.address_1}
+              name="street"
+              value={newAddress.street}
               onChange={handleChange}
               className="w-full py-4 px-4 border rounded-lg"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              landmark
-            </label>
-            <input
-              type="text"
-              name="address_2"
-              value={newAddress.address_2}
-              onChange={handleChange}
-              className="w-full py-4 px-4 border rounded-lg"
-            />
-          </div>
 
-          {/* City, Province, Postal Code */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 City*
@@ -208,25 +104,12 @@ const AddressForm = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Province/State*
+                State/Province*
               </label>
               <input
                 type="text"
-                name="province"
-                value={newAddress.province}
-                onChange={handleChange}
-                className="w-full py-4 px-4 border rounded-lg"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Postal Code*
-              </label>
-              <input
-                type="text"
-                name="postal_code"
-                value={newAddress.postal_code}
+                name="state"
+                value={newAddress.state}
                 onChange={handleChange}
                 className="w-full py-4 px-4 border rounded-lg"
                 required
@@ -234,16 +117,15 @@ const AddressForm = () => {
             </div>
           </div>
 
-          {/* Country and Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Country Code*
+                Country*
               </label>
               <input
                 type="text"
-                name="country_code"
-                value={newAddress.country_code}
+                name="country"
+                value={newAddress.country}
                 onChange={handleChange}
                 className="w-full py-4 px-4 border rounded-lg"
                 required
@@ -251,12 +133,12 @@ const AddressForm = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Phone*
+                ZIP Code*
               </label>
               <input
-                type="tel"
-                name="phone"
-                value={newAddress.phone}
+                type="text"
+                name="zipCode"
+                value={newAddress.zipCode}
                 onChange={handleChange}
                 className="w-full py-4 px-4 border rounded-lg"
                 required
@@ -264,43 +146,52 @@ const AddressForm = () => {
             </div>
           </div>
 
-          {/* Default Address Checkboxes */}
-          <div className="flex space-x-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="is_default_billing"
-                checked={newAddress.is_default_billing}
-                onChange={handleChange}
-                className="mr-2"
-              />
-              <label className="text-sm font-medium text-gray-700">
-                Default Billing Address
-              </label>
-            </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="is_default_shipping"
-                checked={newAddress.is_default_shipping}
-                onChange={handleChange}
-                className="mr-2"
-              />
-              <label className="text-sm font-medium text-gray-700">
-                Default Shipping Address
-              </label>
-            </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="isDefault"
+              checked={newAddress.isDefault}
+              onChange={handleChange}
+              className="mr-2"
+            />
+            <label className="text-sm font-medium text-gray-700">
+              Set as default address
+            </label>
           </div>
 
           <div className="flex justify-start">
             <button
-              onClick={handleUpdate}
+              type="submit"
+              disabled={loading}
               className="px-6 py-4 rounded-md md:rounded-xl text-xs md:text-sm uppercase md:font-bold hover:bg-discount-color bg-black text-white hover:text-black transition-all duration-200 ease-in-out"
             >
               {buttonText}
             </button>
           </div>
-        </div>
+        </form>
+
+        {/* Display existing addresses */}
+        {user?.addresses?.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Saved Addresses</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {user.addresses.map((address, index) => (
+                <div key={index} className="p-4 border rounded-lg">
+                  <p className="font-medium">{address.street}</p>
+                  <p className="text-gray-600">
+                    {address.city}, {address.state} {address.zipCode}
+                  </p>
+                  <p className="text-gray-600">{address.country}</p>
+                  {address.isDefault && (
+                    <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      Default Address
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
