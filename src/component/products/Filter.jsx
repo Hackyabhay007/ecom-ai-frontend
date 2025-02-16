@@ -4,6 +4,7 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { setPriceRange, setFilters, fetchProductsBySearch } from "../../../redux/slices/shopSlice";
+import FilterSkeleton from './FilterSkeleton';
 
 const Filter = memo(({ onApplyFilters, currentFilters }) => {
   const dispatch = useDispatch();
@@ -185,6 +186,10 @@ const Filter = memo(({ onApplyFilters, currentFilters }) => {
       ))}
     </ul>
   );
+
+  if (storeLoading) {
+    return <FilterSkeleton />;
+  }
 
   return (
     <div>

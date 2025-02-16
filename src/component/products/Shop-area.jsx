@@ -238,6 +238,7 @@ const ShopArea = () => {
             currentLayout={layout}
             showSaleOnly={showSaleOnly}
             currentSort={sortBy} // Add this prop
+            onClearAllFilters={handleClearAllFilters}
           />
 
           <div className="text-left items-center flex gap-5 text-gray-600 my-4 mb-5">
